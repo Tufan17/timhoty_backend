@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "allowJs": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": "./",                    // Temel dizin
+    "paths": {
+      "@/*": ["src/*"]                  // Aliases (Kısa yollar)
+    },
+    "types": ["node"],                  // Node.js tipleri dahil edilmiştir
+    "forceConsistentCasingInFileNames": true, // Dosya isimlerinde büyük/küçük harf tutarlılığını zorlar
+    "rootDir": "./src",                 // Kaynak dosyalarının bulunduğu dizin
+    "skipDefaultLibCheck": true,        // Varsayılan kütüphaneleri kontrol etmez
+    "sourceMap": true,                  // Kaynak haritalarını oluşturur
+    "declaration": true,                // Tür bildirimi dosyalarını oluşturur
+    "declarationMap": true              // Tür bildirim haritalarını oluşturur
+  },
+  "include": [
+    "src",                             // Kaynak dizinini dahil et
+    "types",                           // Types dizinini dahil et
+    "knexfile.ts",                     // knexfile.ts dosyasını dahil et
+    "migrations/*.ts",                 // Göç dosyalarını dahil et
+    "seeds/*.ts"                       // Seed dosyalarını dahil et
+, "src/controllers/Admin/CampaignController.ts", "src/models/Admin/OperationModel.ts"  ],
+  "exclude": [
+    "node_modules",                    // node_modules dizinini dışla
+    "dist"                              // dist dizinini dışla
+  ]
+}
