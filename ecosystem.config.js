@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
       {
-        name: "uygunusec",
+        name: "timhoty",
         script: "src/server.ts",
         node_args: "--import tsx",
         exec_mode: "fork",
