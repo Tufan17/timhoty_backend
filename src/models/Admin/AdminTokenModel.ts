@@ -1,4 +1,4 @@
-import BaseModel from '../BaseModel'
+import BaseModel from '@/models/BaseModel'
 
 export default class AdminTokenModel extends BaseModel {
   constructor() {
