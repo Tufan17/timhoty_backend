@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 import "./crone/index";
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3005;
 const HOST = process.env.HOST || "0.0.0.0";
 import staticPlugin from "@fastify/static";
 import path from "path";
