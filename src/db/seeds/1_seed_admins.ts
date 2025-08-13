@@ -11,7 +11,7 @@ export async function seed(knex: Knex): Promise<void> {
       name_surname: "Süper Admin",
       email: "admin@timhoty.com",
       phone: "00000000001",
-      password: HashPassword("123456"),
+      password: "bc2ce654f64b74183f6253d8e772fa6e",
       language: "tr",
       status: true,
     },
