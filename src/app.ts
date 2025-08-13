@@ -4,6 +4,7 @@ import path from "path";
 import dbPlugin from "./plugins/db";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/admin";
+import permissionsRoutes from "./routes/permissions";
 
 
 
@@ -12,7 +13,7 @@ export default async function app(fastify: FastifyInstance) {
 
   fastify.register(authRoutes, { prefix: "/auth" });
   fastify.register(adminRoutes, { prefix: "/admin" });
-
+  fastify.register(permissionsRoutes, { prefix: "/permissions" });
 
 
 
