@@ -8,5 +8,6 @@ declare module 'fastify' {
       [key: string]: any;
     };
     language?: string;
+    t: (key: string) => string;
   }
 }

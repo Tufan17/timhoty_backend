@@ -1,0 +1,11 @@
+{
+  "AUTH": {
+    "ADMIN_NOT_FOUND": "Admin not found",
+    "INVALID_PASSWORD": "Invalid password",
+    "TOKEN_GENERATION_ERROR": "Token generation error",
+    "LOGIN_ERROR": "Login error",
+    "TOKEN_NOT_FOUND": "Token not found",
+    "LOGOUT_SUCCESS": "Logout successful",
+    "LOGIN_SUCCESS": "Login successful"
+  }
+}

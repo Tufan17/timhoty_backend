@@ -1,0 +1,11 @@
+{
+  "AUTH": {
+    "ADMIN_NOT_FOUND": "Admin bulunamadı",
+    "INVALID_PASSWORD": "Geçersiz şifre",
+    "TOKEN_GENERATION_ERROR": "Token oluşturma hatası",
+    "LOGIN_ERROR": "Giriş hatası",
+    "TOKEN_NOT_FOUND": "Token bulunamadı",
+    "LOGOUT_SUCCESS": "Çıkış başarılı",
+    "LOGIN_SUCCESS": "Giriş başarılı"
+  }
+}

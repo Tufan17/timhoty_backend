@@ -9,7 +9,7 @@ export default class AdminAuthController {
         email: string;
         password: string;
       };
-      const user = await new AuthAdminService().login(email, password);
+      const user = await new AuthAdminService().login(email, password, req.t);
       return user;
     } catch (error: any) {
       return res.status(400).send(error.message);
@@ -23,7 +23,7 @@ export default class AdminAuthController {
       if (!token) {
         throw new Error("No token provided");
       }
-      const user = await new AuthAdminService().logout(token);
+      const user = await new AuthAdminService().logout(token, req.t);
       return user;
     } catch (error: any) {
       return res.status(400).send(error.message);
