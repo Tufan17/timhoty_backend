@@ -18,9 +18,6 @@ const start = async () => {
     await server.register(cors, {
       origin: [
         "http://167.71.3.100",
-        "https://site.uygunusec.com.tr",
-        "https://admin.uygunusec.com.tr",
-        "https://bayi.uygunusec.com.tr",
         "http://localhost:5173",
         "http://localhost:5174",
       ],
