@@ -11,6 +11,15 @@ import permissionsRoutes from "./routes/permissions";
 export default async function app(fastify: FastifyInstance) {
   await fastify.register(dbPlugin);
 
+
+  fastify.register(
+      (fastify) => {
+        fastify.get('/', (request, reply) => {
+          return reply.send({ message: "Hoşgeldiniz Timhoty'e" });
+        });
+    }
+  );
+
   fastify.register(authRoutes, { prefix: "/auth" });
   fastify.register(adminRoutes, { prefix: "/admin" });
   fastify.register(permissionsRoutes, { prefix: "/permissions" });
