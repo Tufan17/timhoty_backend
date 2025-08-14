@@ -34,8 +34,9 @@ export default class AuthAdminService {
         const body = {
             id: admin.id,
             name_surname: admin.name_surname,
+            language: admin.language,
             email: admin.email,
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),//1 gün
+            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
         }
 
       token = jwt.sign(
