@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import PermissionModel from "@/models/PermissionModel";
-// import LogModel from "@/models/Admin/LogModel";
 // import UserModel from "@/models/Admin/UserModel";
 import AdminModel from "@/models/Admin/AdminModel";
 class PermissionController {
@@ -16,7 +15,7 @@ class PermissionController {
       if (!["users", "dealer_users", "admins"].includes(target)) {
         return res.status(400).send({
           success: false,
-          message: "Target is invalid",
+          message: req.t("PERMISSION.TARGET_INVALID"),
         });
       }
 
@@ -33,7 +32,7 @@ class PermissionController {
       if (!user) {
         return res.status(400).send({
           success: false,
-          message: "User not found",
+          message: req.t("PERMISSION.USER_NOT_FOUND"),
         });
       }
 
@@ -43,21 +42,14 @@ class PermissionController {
         name,
         status
       );
-    //   await new LogModel().createLog(req.user, "create", "Permission", {
-    //     name,
-    //     target,
-    //     target_id,
-    //     status,
-    //   });
-
       return res.status(200).send({
         success: true,
-        message: "Permission created successfully",
+        message: req.t("PERMISSION.PERMISSION_CREATED_SUCCESS"),
       });
     } catch (error) {
       return res.status(500).send({
         success: false,
-        message: "Permission creation failed",
+        message: req.t("PERMISSION.PERMISSION_CREATED_ERROR"),
         error: error,
       });
     }
@@ -73,7 +65,7 @@ class PermissionController {
       if (!["users", "dealer_users", "admins"].includes(target)) {
         return res.status(400).send({
           success: false,
-          message: "Target is invalid",
+          message: req.t("PERMISSION.TARGET_INVALID"),
         });
       }
 
@@ -90,30 +82,24 @@ class PermissionController {
       if (!user) {
         return res.status(400).send({
           success: false,
-          message: "User not found",
+          message: req.t("PERMISSION.USER_NOT_FOUND"),
         });
       }
 
       for (const permission of permissions) {
         await new PermissionModel().createOrUpdate(target, user_id, permission.name, permission.status);
-        // await new LogModel().createLog(req.user, "create", "Permission", {
-        //   name: permission.name,
-        //   target,
-        //   target_id: user_id,
-        //   status: permission.status,
-        // });
       }
 
 
       return res.status(200).send({
         success: true,
-        message: "Permissions total data created successfully",
+        message: req.t("PERMISSION.PERMISSION_CREATED_SUCCESS"),
       });
 
     } catch (error) {
       return res.status(500).send({
         success: false,
-        message: "Permission total data creation failed",
+        message: req.t("PERMISSION.PERMISSION_CREATED_ERROR"),
         error: error,
       });
     }
@@ -125,7 +111,7 @@ class PermissionController {
       if (!["users", "admins","solution_partner","sale_partner"].includes(target)) {
         return res.status(400).send({
           success: false,
-          message: "Target is invalid",
+          message: req.t("PERMISSION.TARGET_INVALID"),
         });
       }
 
@@ -142,7 +128,7 @@ class PermissionController {
 
       return res.status(200).send({
         success: true,
-        message: "Permissions fetched successfully",
+        message: req.t("PERMISSION.PERMISSION_FETCHED_SUCCESS"),
         data: permissions,
       });
 
@@ -150,7 +136,7 @@ class PermissionController {
 
         return res.status(500).send({
         success: false,
-        message: "Permission total data fetching failed",
+        message: req.t("PERMISSION.PERMISSION_FETCHED_ERROR"),
         error: error,
       });
 

@@ -9,5 +9,25 @@
     "LOGIN_SUCCESS": "Giriş başarılı",
     "TOKEN_EXPIRED": "Token süresi doldu",
     "TOKEN_INVALID": "Token geçersiz"
+  },
+  "ADMIN": {
+    "ADMIN_FETCHED_SUCCESS": "Adminler başarıyla getirildi",
+    "ADMIN_FETCHED_ERROR": "Adminler getirilirken hata oluştu",
+    "ADMIN_CREATED_SUCCESS": "Admin başarıyla oluşturuldu",
+    "ADMIN_CREATED_ERROR": "Admin oluşturulurken hata oluştu",
+    "ADMIN_UPDATED_SUCCESS": "Admin başarıyla güncellendi",
+    "ADMIN_UPDATED_ERROR": "Admin güncellenirken hata oluştu",
+    "ADMIN_DELETED_SUCCESS": "Admin başarıyla silindi",
+    "ADMIN_DELETED_ERROR": "Admin silinirken hata oluştu",
+    "ADMIN_NOT_AUTHORIZED": "Admin yetkisi yok",
+    "ADMIN_ALREADY_EXISTS": "Admin zaten mevcut"
+  },
+  "PERMISSION": {
+    "TARGET_INVALID": "Hedef geçersiz",
+    "USER_NOT_FOUND": "Kullanıcı bulunamadı",
+    "PERMISSION_CREATED_SUCCESS": "İzinler başarıyla oluşturuldu",
+    "PERMISSION_CREATED_ERROR": "İzinler oluşturulurken hata oluştu",
+    "PERMISSION_FETCHED_SUCCESS": "İzinler başarıyla getirildi",
+    "PERMISSION_FETCHED_ERROR": "İzinler getirilirken hata oluştu"
   }
 }

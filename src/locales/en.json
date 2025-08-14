@@ -9,5 +9,25 @@
     "LOGIN_SUCCESS": "Login successful",
     "TOKEN_EXPIRED": "Token expired",
     "TOKEN_INVALID": "Token invalid"
+  },
+  "ADMIN": {
+    "ADMIN_FETCHED_SUCCESS": "Admins fetched successfully",
+    "ADMIN_FETCHED_ERROR": "Admins fetch failed",
+    "ADMIN_CREATED_SUCCESS": "Admin created successfully",
+    "ADMIN_CREATED_ERROR": "Admin create failed",
+    "ADMIN_UPDATED_SUCCESS": "Admin updated successfully",
+    "ADMIN_UPDATED_ERROR": "Admin update failed",
+    "ADMIN_DELETED_SUCCESS": "Admin deleted successfully",
+    "ADMIN_DELETED_ERROR": "Admin delete failed",
+    "ADMIN_NOT_AUTHORIZED": "Admin not authorized",
+    "ADMIN_ALREADY_EXISTS": "Admin already exists"
+  },
+  "PERMISSION": {
+    "TARGET_INVALID": "Target is invalid",
+    "USER_NOT_FOUND": "User not found",
+    "PERMISSION_CREATED_SUCCESS": "Permission created successfully",
+    "PERMISSION_CREATED_ERROR": "Permission creation failed",
+    "PERMISSION_FETCHED_SUCCESS": "Permission fetched successfully",
+    "PERMISSION_FETCHED_ERROR": "Permission fetching failed"
   }
 }

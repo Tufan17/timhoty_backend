@@ -38,7 +38,7 @@ export default class AdminController {
 
       return res.status(200).send({
         success: true,
-        message: "Admins fetched successfully",
+        message: req.t("ADMIN.ADMIN_FETCHED_SUCCESS"),
         data: data,
         recordsPerPageOptions: [10, 20, 50, 100],
         total: total,
@@ -50,7 +50,7 @@ export default class AdminController {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: "Admins fetch failed",
+        message: req.t("ADMIN.ADMIN_FETCHED_ERROR"),
       });
     }
   }
@@ -62,14 +62,14 @@ export default class AdminController {
       const permissions = await new PermissionModel().getAdminPermissions(id);
       return res.status(200).send({
         success: true,
-        message: "Admin fetched successfully",
+        message: req.t("ADMIN.ADMIN_FETCHED_SUCCESS"),
         data: { admin, permissions },
       });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: "Admin fetch failed",
+        message: req.t("ADMIN.ADMIN_FETCHED_ERROR"),
       });
     }
   }
@@ -89,7 +89,7 @@ export default class AdminController {
       if (existingAdmin) {
         return res.status(400).send({
           success: false,
-          message: "Admin already exists",
+          message: req.t("ADMIN.ADMIN_ALREADY_EXISTS"),
         });
       }
       await new AdminModel().create({
@@ -105,14 +105,14 @@ export default class AdminController {
 
       return res.status(200).send({
         success: true,
-        message: "Admin created successfully",
+        message: req.t("ADMIN.ADMIN_CREATED_SUCCESS"),
         data: admin,
       });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: "Admin create failed",
+        message: req.t("ADMIN.ADMIN_CREATED_ERROR"),
       });
     }
   }
@@ -133,7 +133,7 @@ export default class AdminController {
       if (!existingAdmin) {
         return res.status(404).send({
           success: false,
-          message: "Admin not found",
+          message: req.t("ADMIN.ADMIN_NOT_FOUND"),
         });
       }
 
@@ -153,14 +153,14 @@ export default class AdminController {
 
       return res.status(200).send({
         success: true,
-        message: "Admin updated successfully",
+        message: req.t("ADMIN.ADMIN_UPDATED_SUCCESS"),
         data: updatedAdmin,
       });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: "Admin update failed",
+        message: req.t("ADMIN.ADMIN_UPDATED_ERROR"),
       });
     }
   }
@@ -173,7 +173,7 @@ export default class AdminController {
       if (user.email !== "admin@timhoty.com") {
         return res.status(403).send({
           success: false,
-          message: "You are not authorized to delete this admin",
+          message: req.t("ADMIN.ADMIN_NOT_AUTHORIZED"),
         });
       }
 
@@ -182,7 +182,7 @@ export default class AdminController {
       if (!existingAdmin) {
         return res.status(404).send({
           success: false,
-          message: "Admin not found",
+          message: req.t("ADMIN.ADMIN_NOT_FOUND"),
         });
       }
 
@@ -190,13 +190,13 @@ export default class AdminController {
 
       return res.status(200).send({
         success: true,
-        message: "Admin deleted successfully",
+        message: req.t("ADMIN.ADMIN_DELETED_SUCCESS"),
       });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: "Admin delete failed",
+        message: req.t("ADMIN.ADMIN_DELETED_ERROR"),
       });
     }
   }
