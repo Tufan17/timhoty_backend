@@ -177,13 +177,6 @@ export default class AdminController {
         });
       }
 
-      if (user.id !== id) {
-        return res.status(403).send({
-          success: false,
-          message: "You are not authorized to delete this admin",
-        });
-      }
-
       const existingAdmin = await new AdminModel().first({ id });
 
       if (!existingAdmin) {

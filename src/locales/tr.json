@@ -6,6 +6,8 @@
     "LOGIN_ERROR": "Giriş hatası",
     "TOKEN_NOT_FOUND": "Token bulunamadı",
     "LOGOUT_SUCCESS": "Çıkış başarılı",
-    "LOGIN_SUCCESS": "Giriş başarılı"
+    "LOGIN_SUCCESS": "Giriş başarılı",
+    "TOKEN_EXPIRED": "Token süresi doldu",
+    "TOKEN_INVALID": "Token geçersiz"
   }
 }

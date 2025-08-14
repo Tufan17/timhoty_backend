@@ -6,6 +6,8 @@
     "LOGIN_ERROR": "Login error",
     "TOKEN_NOT_FOUND": "Token not found",
     "LOGOUT_SUCCESS": "Logout successful",
-    "LOGIN_SUCCESS": "Login successful"
+    "LOGIN_SUCCESS": "Login successful",
+    "TOKEN_EXPIRED": "Token expired",
+    "TOKEN_INVALID": "Token invalid"
   }
 }

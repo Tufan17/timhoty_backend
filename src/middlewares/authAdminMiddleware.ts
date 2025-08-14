@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
-export const authAdminMiddleware = async (req: any, res: any) => {
-  const authHeader = req.headers.authorization
+export const authAdminMiddleware = async (request: FastifyRequest, reply: FastifyReply) => {
+  const authHeader = request.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).send({
+    return reply.status(401).send({
       success: false,
-      message: 'Token yok' 
+      message: request.t('AUTH.TOKEN_NOT_FOUND')
     })
   }
 
@@ -16,32 +17,32 @@ export const authAdminMiddleware = async (req: any, res: any) => {
 
 
     if (payload.expires_at < new Date()) {
-      return res.status(401).send({ 
+      return reply.status(401).send({ 
         success: false,
-        message: 'Token süresi doldu' 
+        message: request.t('AUTH.TOKEN_EXPIRED')
       })
     }
     if(!payload){
-      return res.status(401).send({ 
+      return reply.status(401).send({ 
         success: false,
-        message: 'Token geçersiz' 
+        message: request.t('AUTH.TOKEN_INVALID')
       })
     }
 
-      req.user = payload
-      req.user.role = "admin"
+      (request as any).user = payload;
+      (request as any).user.type = "admin";
   } catch (err: any) {
     if(err.message === "jwt expired"){
-      return res.status(401).send({ 
+      return reply.status(401).send({ 
         success: false,
-        message: 'Token süresi doldu',
+        message: request.t('AUTH.TOKEN_EXPIRED'),
         logout: true,
         error: err
       })
     }
-    return res.status(401).send({ 
+    return reply.status(401).send({ 
       success: false,
-      message: 'Token doğrulanamadı' ,
+      message: request.t('AUTH.TOKEN_INVALID'),
       error: err
     })
   }
