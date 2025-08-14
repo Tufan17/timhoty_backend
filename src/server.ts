@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3005;
 const HOST = process.env.HOST || "0.0.0.0";
 import staticPlugin from "@fastify/static";
 import path from "path";
+import { languageMiddleware } from "./middlewares/languageMiddleware";
 
 const server = Fastify({ logger: false });
 
@@ -37,6 +38,8 @@ const start = async () => {
       prefix: "/uploads/",
     });
     await server.register(app);
+
+    server.addHook("preHandler", languageMiddleware);
 
     await server.listen({ port: Number(PORT), host: HOST });
 

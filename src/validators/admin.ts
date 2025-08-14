@@ -15,3 +15,9 @@ export const adminUpdateSchema = Joi.object({
   language: Joi.string().optional(),
   status: Joi.boolean().optional(),
 });
+
+export const adminLoginSchema = Joi.object({
+  email: Joi.string().required(),
+  password: Joi.string().required(),
+});
+

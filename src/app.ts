@@ -15,10 +15,12 @@ export default async function app(fastify: FastifyInstance) {
   fastify.register(
       (fastify) => {
         fastify.get('/', (request, reply) => {
-          return reply.send({ message: "Hoşgeldiniz Timhoty'e" });
+          return reply.send({ message: "Timhoty'e Hoşgeldiniz :)" });
         });
     }
   );
+
+  
 
   fastify.register(authRoutes, { prefix: "/auth" });
   fastify.register(adminRoutes, { prefix: "/admin" });

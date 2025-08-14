@@ -7,5 +7,6 @@ declare module 'fastify' {
       role: string;
       [key: string]: any;
     };
+    language?: string;
   }
 }

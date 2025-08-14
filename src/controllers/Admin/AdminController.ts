@@ -2,8 +2,6 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../db/knex";
 import AdminModel from "@/models/Admin/AdminModel";
 import PermissionModel from "@/models/PermissionModel";
-import HashPassword from "@/utils/hashPassword";
-import AdminTokenModel from "@/models/Admin/AdminTokenModel";
 import AdminTokenController from "./AdminTokenController";
 
 export default class AdminController {
@@ -144,38 +142,19 @@ export default class AdminController {
         phone: phone || existingAdmin.phone,
         language: language || existingAdmin.language,
         status: status || existingAdmin.status,
+        password: password,
       };
 
-      if (password) {
-        body.password = HashPassword(password);
-      }
 
       await new AdminModel().update(id, body);
 
       const updatedAdmin = await new AdminModel().first({ id });
-      let newToken;
-      if (updatedAdmin?.id === req.user?.id && language !== existingAdmin?.language) {
-        const authHeader = req.headers.authorization
-        const token = await new AdminTokenController().changeLanguage(
-          authHeader?.split(' ')[1] as string,
-          language,
-          {
-            id: updatedAdmin?.id as string,
-            name_surname: updatedAdmin?.name_surname as string,
-            email: updatedAdmin?.email as string,
-          }
-        );
-        console.log(token);
-        if (token.success) {
-          newToken = token.token;
-        }
-      }
+    
 
       return res.status(200).send({
         success: true,
         message: "Admin updated successfully",
         data: updatedAdmin,
-        token: newToken,
       });
     } catch (error) {
       console.log(error);
