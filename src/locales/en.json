@@ -52,5 +52,18 @@
     "CURRENCY_DELETED_SUCCESS": "Currency deleted successfully",
     "CURRENCY_DELETED_ERROR": "Currency deletion failed",
     "CURRENCY_NOT_FOUND": "Currency not found"
+  },
+  "USER": {
+    "USER_FETCHED_SUCCESS": "Users fetched successfully",
+    "USER_FETCHED_ERROR": "Users fetch failed",
+    "USER_CREATED_SUCCESS": "User created successfully",
+    "USER_CREATED_ERROR": "User create failed",
+    "USER_UPDATED_SUCCESS": "User updated successfully",
+    "USER_UPDATED_ERROR": "User update failed",
+    "USER_DELETED_SUCCESS": "User deleted successfully",
+    "USER_DELETED_ERROR": "User delete failed",
+    "USER_NOT_FOUND": "User not found",
+    "USER_NOT_AUTHORIZED": "User not authorized",
+    "USER_ALREADY_EXISTS": "User already exists"
   }
 }

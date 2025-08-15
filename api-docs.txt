@@ -33,3 +33,10 @@ Timhoty Api's
         update: /currencies/:id - PUT                   -> para birimini güncelleme
         delete: /currencies/:id - DELETE                -> para birimini silme
 
+    User
+        findAll: /users - GET                           -> adminde kulannıcıları datatable ile çekme  
+        findOne: /users/:id - GET                       -> kullanıcı detayı
+        create: /users - POST                           -> kullanıcı ekleme
+        update: /users/:id - PUT                        -> kulanıcıyı güncelleme
+        delete: /users/:id - DELETE                     -> kulanıcıyı silme
+

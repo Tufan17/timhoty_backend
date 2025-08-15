@@ -18,7 +18,7 @@ class BaseModel {
     return result;
   }
 
-  async update(id: number | string, data: DataObject): Promise<number> {
+  async update(id: number | string, data: DataObject): Promise<any> {
     if ((this.modelName === 'users'||this.modelName === 'admins'||this.modelName === 'dealer_users') && data.password) {
       data.password = HashPassword(data.password);
     }
@@ -27,7 +27,8 @@ class BaseModel {
       .table(this.modelName)
       .where({ id })
       .whereNull('deleted_at')
-      .update(data);
+      .update(data)
+      .returning('*');
     return result;
   }
   async first(where: DataObject): Promise<DataObject | undefined> {

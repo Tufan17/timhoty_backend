@@ -52,5 +52,18 @@
     "CURRENCY_DELETED_SUCCESS": "Para birimi başarıyla silindi",
     "CURRENCY_DELETED_ERROR": "Para birimi silinirken hata oluştu",
     "CURRENCY_NOT_FOUND": "Para birimi bulunamadı"
+  },
+  "USER": {
+    "USER_FETCHED_SUCCESS": "Kullanıcılar başarıyla getirildi",
+    "USER_FETCHED_ERROR": "Kullanıcılar getirilirken hata oluştu",
+    "USER_CREATED_SUCCESS": "Kullanıcı başarıyla oluşturuldu",
+    "USER_CREATED_ERROR": "Kullanıcı oluşturulurken hata oluştu",
+    "USER_UPDATED_SUCCESS": "Kullanıcı başarıyla güncellendi",
+    "USER_UPDATED_ERROR": "Kullanıcı güncellenirken hata oluştu",
+    "USER_DELETED_SUCCESS": "Kullanıcı başarıyla silindi",
+    "USER_DELETED_ERROR": "Kullanıcı silinirken hata oluştu",
+    "USER_NOT_FOUND": "Kullanıcı bulunamadı",
+    "USER_NOT_AUTHORIZED": "Kullanıcı yetkisi yok",
+    "USER_ALREADY_EXISTS": "Kullanıcı zaten mevcut"
   }
 }

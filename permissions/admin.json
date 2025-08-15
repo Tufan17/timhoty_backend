@@ -1,5 +1,4 @@
 [
-    "campaign",
     "hotel",
     "tour",
     "activity",
@@ -7,5 +6,15 @@
     "visa",
     "blog",
     "faq",
-    "location"
+    "location",
+    "campaign",
+    "Muhasebe",
+    "tours",
+    "customers",
+    "sales-partner",
+    "solition-partner",
+    "proformars",
+    "reservations",
+    "notifications",
+    "settings"
 ]
