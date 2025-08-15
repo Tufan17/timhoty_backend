@@ -1,90 +1,35 @@
-Admin Api's
+Timhoty Api's
 
-    login: /auth/admin/login - POST - ALL
-    logout: /auth/admin/login - POST - ADMIN
+    login: /auth/admin/login - POST 
+    logout: /auth/admin/login - POST 
 
     Admin
-        findAll: /admin - GET - ADMIN
-        findOnly: /admin/:id - GET - ADMIN
-        create: /admin - POST - ADMIN
-        update: /admin/:id - PUT - ADMIN
-        delete: /admin/:id - DELETE - ADMIN
+        datatable: /admins - GET                        -> Adminlerin çağrıldığı datatable
+        findOnly: /admins/:id - GET                     -> Admin verileri
+        create: /admins - POST                          -> Yeni admin oluşturma
+        update: /admins/:id - PUT                       -> admin güncelleme
+        delete: /admins/:id - DELETE                    -> admini silme
 
-    City:
-        findAll: /city - GET - ALL
-        findOnly: /city/:id - GET - ALL
-        create: /city - POST - ADMIN
-        update: /city/:id - PUT - ADMIN
-        delete: /city/:id - DELETE - ADMIN
+    Permission
+        findUser: /permissions/:target/:id - GET        -> target: users || admins || solution_partner || sale_partner id: kulannıcı id => Kulanıcının izinlerini getirir
+        createOrUpdate: /permissions - POST             -> kullanıcı izni yoksa ekle varsa güncelle
+        totalCreateOrUpdate: /permissions/total - POST  -> { name: string; status: boolean }[] bu şekilde toplu işlemler yapar 
+    
+    Log
+        findAll: /logs - GET                            -> logların datatable'ı 
+        findOne: /logs/:id - GET                        -> bireysel log datası
+    
+    Language
+        findAll: /languages - GET                      -> dilerin datatable'ı 
+        findOne: /languages/:id - GET                  -> dilin detayı
+        create: /languages - POST                      -> dil ekleme
+        update: /languages/:id - PUT                   -> dili güncelleme
+        delete: /languages/:id - DELETE                -> dili silme
 
-    District
-        findAll: /district/:city_id - GET - ALL
-        create: /district - POST - ADMIN
-        update: /district/:id - PUT - ADMIN
-        delete: /district/:id - DELETE - ADMIN
+    Currency
+        findAll: /currencies - GET                      -> para birimlerinin datatable'ı 
+        findOne: /currencies/:id - GET                  -> para birimi detayı
+        create: /currencies - POST                      -> para birimi ekleme
+        update: /currencies/:id - PUT                   -> para birimini güncelleme
+        delete: /currencies/:id - DELETE                -> para birimini silme
 
-    Job
-        findAll: /jobs - GET - All
-        findOnly: /jobs/:id - GET - ADMIN
-        create: /jobs - POST - ADMIN
-        update: /jobs/:id - PUT - ADMIN
-        delete: /jobs/:id - DELETE - ADMIN
-
-    Dealer
-        findAll: /dealer - GET - ADMIN
-        findOnly: /dealer/:id - GET - ADMIN
-        create: /dealer - POST - ADMIN
-        update: /dealer/:id - PUT - ADMIN
-        delete: /dealer/:id - DELETE - ADMIN
-
-    DealerDocs
-        findAll: /dealer-document - GET - ADMIN
-        findOnly: /dealer-document/:id - GET - ADMIN
-        create: /dealer-document - POST - ADMIN - FormatData
-        update: /dealer-document/:id - PUT - ADMIN - FormatData
-        deelte: /dealer-document/:id - DELETE - ADMIN
-        
-    DealerUser
-        findAll: /dealer-user – GET – ADMIN
-        findUser: /dealer-user/user – GET – DEALER
-        findDealer: /dealer-user/:id – GET – ADMIN
-        create: /dealer-user – POST – ADMIN
-        update: /dealer-user/:id – PUT – ADMIN
-        delete: /dealer-user/:id – DELETE – ADMIN
-        verify: /dealer-user/verify – POST – ADMIN
-        resend-otp: /dealer-user/resend-otp – POST – ADMIN
-
-    InsuranceType
-        findAll: /insurance-type - GET - ADMIN
-        findOnly: /insurance-type/:id - GET - ADMIN
-        create: /insurance-type - POST - ADMIN
-        update: /insurance-type/:id - PUT - ADMIN
-        delete: /insurance-type/:id - DELETE - ADMIN
-
-    Blog
-        findAll: /blog - GET - ADMIN
-        findOnly: /blog/:id - GET - ADMIN
-        create: /blog - POST - ADMIN - FormatData
-        update: /blog/:id - PUT - ADMIN - FormatData
-        delete: /blog/:id - DELETE - ADMIN
-
-    Company
-        findAll: /company - GET - ADMIN
-        findOnly: /company/:id - GET - ADMIN
-        create: /company - POST - ADMIN - FormatData
-        update: /company/:id - PUT - ADMIN - FormatData
-        delete: /company/:id - DELETE - ADMIN
-
-    DealerCommission
-        findAll: /dealer-commission - GET - ADMIN
-        findOnly: /dealer-commission/:id - GET - ADMIN
-        create: /dealer-commission - POST - ADMIN 
-        update: /dealer-commission/:id - PUT - ADMIN 
-        delete: /dealer-commission/:id - DELETE - ADMIN
-
-    Blog
-        findAll: /campaign - GET - ADMIN
-        findOnly: /campaign/:id - GET - ADMIN
-        create: /campaign - POST - ADMIN - FormatData
-        update: /campaign/:id - PUT - ADMIN - FormatData
-        delete: /campaign/:id - DELETE - ADMIN

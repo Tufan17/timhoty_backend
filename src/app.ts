@@ -5,6 +5,9 @@ import dbPlugin from "./plugins/db";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/admin";
 import permissionsRoutes from "./routes/permissions";
+import logsRoutes from "./routes/logs";
+import currencyRoutes from "./routes/currency";
+import languageRoutes from "./routes/language";
 
 
 
@@ -23,8 +26,13 @@ export default async function app(fastify: FastifyInstance) {
   
 
   fastify.register(authRoutes, { prefix: "/auth" });
-  fastify.register(adminRoutes, { prefix: "/admin" });
+
+  
+  fastify.register(adminRoutes, { prefix: "/admins" });
   fastify.register(permissionsRoutes, { prefix: "/permissions" });
+  fastify.register(logsRoutes, { prefix: "/logs" });
+  fastify.register(languageRoutes, { prefix: "/languages" });
+  fastify.register(currencyRoutes, { prefix: "/currencies" });
 
 
 

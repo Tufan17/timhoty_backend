@@ -10,11 +10,11 @@ class BaseModel {
     this.modelName = modelName;
   }
 
-  async create(data: DataObject): Promise<number[]> {
+  async create(data: DataObject): Promise<any> {
     if ((this.modelName === 'users'||this.modelName === 'admins'||this.modelName === 'dealer_users') && data.password) {
       data.password = HashPassword(data.password);
     }
-    const result = await connection.table(this.modelName).insert(data);
+    const [result] = await connection.table(this.modelName).insert(data).returning('*');
     return result;
   }
 
@@ -169,18 +169,18 @@ class BaseModel {
     return data;
   }
 
-  async oneToMany(id: number | string, relationModel: string, relationColumn: string): Promise<DataObject[]> {
+  async oneToMany(id: number | string, relationModel: string, relationColumn: string,select?: string[] | string): Promise<DataObject[]> {
     const data = await connection
       .table(this.modelName)
-      .where({ id })
-      .whereNull('deleted_at')
-      .join(
+      .where(`${this.modelName}.id`, id)
+      .whereNull(`${this.modelName}.deleted_at`)
+      .leftJoin(
         relationModel,
-        `${this.modelName}.${relationColumn}`,
+        `${this.modelName}.id`,
         '=',
-        `${relationModel}.id`
+        `${relationModel}.${relationColumn}`
       )
-      .select(`${this.modelName}.*`, `${relationModel}.*`);
+      .select(select ? [select].flat() : [`${this.modelName}.*`, `${relationModel}.*`]);
     return data;
   }
 

@@ -29,5 +29,28 @@
     "PERMISSION_CREATED_ERROR": "İzinler oluşturulurken hata oluştu",
     "PERMISSION_FETCHED_SUCCESS": "İzinler başarıyla getirildi",
     "PERMISSION_FETCHED_ERROR": "İzinler getirilirken hata oluştu"
+  },  
+  "LANGUAGE": {
+    "LANGUAGE_FETCHED_SUCCESS": "Diller başarıyla getirildi",
+    "LANGUAGE_FETCHED_ERROR": "Diller getirilirken hata oluştu",
+    "LANGUAGE_CREATED_SUCCESS": "Dil başarıyla oluşturuldu",
+    "LANGUAGE_CREATED_ERROR": "Dil oluşturulurken hata oluştu",
+    "LANGUAGE_UPDATED_SUCCESS": "Dil başarıyla güncellendi",
+    "LANGUAGE_UPDATED_ERROR": "Dil güncellenirken hata oluştu",
+    "LANGUAGE_DELETED_SUCCESS": "Dil başarıyla silindi",
+    "LANGUAGE_DELETED_ERROR": "Dil silinirken hata oluştu",
+    "LANGUAGE_ALREADY_EXISTS": "Dil zaten mevcut",
+    "LANGUAGE_NOT_FOUND": "Dil bulunamadı"
+  },
+  "CURRENCY": {
+    "CURRENCY_FETCHED_SUCCESS": "Para birimi başarıyla getirildi",
+    "CURRENCY_FETCHED_ERROR": "Para birimi getirilirken hata oluştu",
+    "CURRENCY_CREATED_SUCCESS": "Para birimi başarıyla oluşturuldu",
+    "CURRENCY_CREATED_ERROR": "Para birimi oluşturulurken hata oluştu",
+    "CURRENCY_UPDATED_SUCCESS": "Para birimi başarıyla güncellendi",
+    "CURRENCY_UPDATED_ERROR": "Para birimi güncellenirken hata oluştu",
+    "CURRENCY_DELETED_SUCCESS": "Para birimi başarıyla silindi",
+    "CURRENCY_DELETED_ERROR": "Para birimi silinirken hata oluştu",
+    "CURRENCY_NOT_FOUND": "Para birimi bulunamadı"
   }
 }

@@ -29,5 +29,28 @@
     "PERMISSION_CREATED_ERROR": "Permission creation failed",
     "PERMISSION_FETCHED_SUCCESS": "Permission fetched successfully",
     "PERMISSION_FETCHED_ERROR": "Permission fetching failed"
+  },
+  "LANGUAGE": {
+    "LANGUAGE_FETCHED_SUCCESS": "Languages fetched successfully",
+    "LANGUAGE_FETCHED_ERROR": "Languages fetching failed",
+    "LANGUAGE_CREATED_SUCCESS": "Language created successfully",
+    "LANGUAGE_CREATED_ERROR": "Language creation failed",
+    "LANGUAGE_UPDATED_SUCCESS": "Language updated successfully",
+    "LANGUAGE_UPDATED_ERROR": "Language update failed",
+    "LANGUAGE_DELETED_SUCCESS": "Language deleted successfully",
+    "LANGUAGE_DELETED_ERROR": "Language deletion failed",
+    "LANGUAGE_ALREADY_EXISTS": "Language already exists",
+    "LANGUAGE_NOT_FOUND": "Language not found"
+  },
+  "CURRENCY": {
+    "CURRENCY_FETCHED_SUCCESS": "Currency fetched successfully",
+    "CURRENCY_FETCHED_ERROR": "Currency fetching failed",
+    "CURRENCY_CREATED_SUCCESS": "Currency created successfully",
+    "CURRENCY_CREATED_ERROR": "Currency creation failed",
+    "CURRENCY_UPDATED_SUCCESS": "Currency updated successfully",
+    "CURRENCY_UPDATED_ERROR": "Currency update failed",
+    "CURRENCY_DELETED_SUCCESS": "Currency deleted successfully",
+    "CURRENCY_DELETED_ERROR": "Currency deletion failed",
+    "CURRENCY_NOT_FOUND": "Currency not found"
   }
 }
