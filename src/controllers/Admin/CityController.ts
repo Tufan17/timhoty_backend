@@ -104,7 +104,6 @@ export default class CityController {
         .whereNull("cities.deleted_at")
         .whereNull("city_pivots.deleted_at")
         .first();
-      console.log(existingCity);
 
       if (existingCity) {
         return res.status(400).send({
