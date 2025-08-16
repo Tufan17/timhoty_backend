@@ -88,5 +88,17 @@
     "CITY_DELETED_ERROR": "Şehir silinirken hata oluştu",
     "CITY_NOT_FOUND": "Şehir bulunamadı",
     "CITY_ALREADY_EXISTS": "Şehir zaten mevcut"
+  },
+  "SOLUTION_PARTNER": {
+    "SOLUTION_PARTNER_FETCHED_SUCCESS": "Çözüm Ortakları başarıyla getirildi",
+    "SOLUTION_PARTNER_FETCHED_ERROR": "Çözüm Ortakları getirilirken hata oluştu",
+    "SOLUTION_PARTNER_CREATED_SUCCESS": "Çözüm Ortakı başarıyla oluşturuldu",
+    "SOLUTION_PARTNER_CREATED_ERROR": "Çözüm Ortakı oluşturulurken hata oluştu",
+    "SOLUTION_PARTNER_UPDATED_SUCCESS": "Çözüm Ortakı başarıyla güncellendi",
+    "SOLUTION_PARTNER_UPDATED_ERROR": "Çözüm Ortakı güncellenirken hata oluştu",
+    "SOLUTION_PARTNER_DELETED_SUCCESS": "Çözüm Ortakı başarıyla silindi",
+    "SOLUTION_PARTNER_DELETED_ERROR": "Çözüm Ortakı silinirken hata oluştu",
+    "SOLUTION_PARTNER_NOT_FOUND": "Çözüm Ortakı bulunamadı",
+    "SOLUTION_PARTNER_ALREADY_EXISTS": "Çözüm Ortakı zaten mevcut"
   }
 }

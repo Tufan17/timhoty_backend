@@ -89,5 +89,17 @@
     "CITY_DELETED_ERROR": "City delete failed",
     "CITY_NOT_FOUND": "City not found",
     "CITY_ALREADY_EXISTS": "City already exists"
+  },
+  "SOLUTION_PARTNER": {
+    "SOLUTION_PARTNER_FETCHED_SUCCESS": "Solution partners fetched successfully",
+    "SOLUTION_PARTNER_FETCHED_ERROR": "Solution partners fetch failed",
+    "SOLUTION_PARTNER_CREATED_SUCCESS": "Solution partner created successfully",
+    "SOLUTION_PARTNER_CREATED_ERROR": "Solution partner create failed",
+    "SOLUTION_PARTNER_UPDATED_SUCCESS": "Solution partner updated successfully",
+    "SOLUTION_PARTNER_UPDATED_ERROR": "Solution partner update failed",
+    "SOLUTION_PARTNER_DELETED_SUCCESS": "Solution partner deleted successfully",
+    "SOLUTION_PARTNER_DELETED_ERROR": "Solution partner delete failed",
+    "SOLUTION_PARTNER_NOT_FOUND": "Solution partner not found",
+    "SOLUTION_PARTNER_ALREADY_EXISTS": "Solution partner already exists"
   }
 }

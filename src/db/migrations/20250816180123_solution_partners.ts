@@ -17,6 +17,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string("iban").nullable();
         table.string("language_code").notNullable();
         table.boolean("admin_verified").notNullable().defaultTo(false);
+        table.uuid("application_status_id").nullable().references("id").inTable("application_status");
         table.boolean("status").notNullable().defaultTo(false);
         table.string("created_at").defaultTo(knex.fn.now());
         table.string("updated_at").defaultTo(knex.fn.now());
