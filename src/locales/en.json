@@ -65,5 +65,29 @@
     "USER_NOT_FOUND": "User not found",
     "USER_NOT_AUTHORIZED": "User not authorized",
     "USER_ALREADY_EXISTS": "User already exists"
+  },
+  "COUNTRY": {
+    "COUNTRY_FETCHED_SUCCESS": "Countries fetched successfully",
+    "COUNTRY_FETCHED_ERROR": "Countries fetch failed",
+    "COUNTRY_CREATED_SUCCESS": "Country created successfully",
+    "COUNTRY_CREATED_ERROR": "Country create failed",
+    "COUNTRY_UPDATED_SUCCESS": "Country updated successfully",
+    "COUNTRY_UPDATED_ERROR": "Country update failed",
+    "COUNTRY_DELETED_SUCCESS": "Country deleted successfully",
+    "COUNTRY_DELETED_ERROR": "Country delete failed",
+    "COUNTRY_NOT_FOUND": "Country not found",
+    "COUNTRY_ALREADY_EXISTS": "Country already exists"
+  },
+  "CITY": {
+    "CITY_FETCHED_SUCCESS": "Cities fetched successfully",
+    "CITY_FETCHED_ERROR": "Cities fetch failed",
+    "CITY_CREATED_SUCCESS": "City created successfully",
+    "CITY_CREATED_ERROR": "City create failed",
+    "CITY_UPDATED_SUCCESS": "City updated successfully",
+    "CITY_UPDATED_ERROR": "City update failed",
+    "CITY_DELETED_SUCCESS": "City deleted successfully",
+    "CITY_DELETED_ERROR": "City delete failed",
+    "CITY_NOT_FOUND": "City not found",
+    "CITY_ALREADY_EXISTS": "City already exists"
   }
 }

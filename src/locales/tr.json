@@ -65,5 +65,28 @@
     "USER_NOT_FOUND": "Kullanıcı bulunamadı",
     "USER_NOT_AUTHORIZED": "Kullanıcı yetkisi yok",
     "USER_ALREADY_EXISTS": "Kullanıcı zaten mevcut"
+  },
+  "COUNTRY": {
+    "COUNTRY_FETCHED_SUCCESS": "Ülkeler başarıyla getirildi",
+    "COUNTRY_FETCHED_ERROR": "Ülkeler getirilirken hata oluştu",
+    "COUNTRY_CREATED_SUCCESS": "Ülke başarıyla oluşturuldu",
+    "COUNTRY_CREATED_ERROR": "Ülke oluşturulurken hata oluştu",
+    "COUNTRY_UPDATED_SUCCESS": "Ülke başarıyla güncellendi",
+    "COUNTRY_UPDATED_ERROR": "Ülke güncellenirken hata oluştu",
+    "COUNTRY_DELETED_SUCCESS": "Ülke başarıyla silindi",
+    "COUNTRY_DELETED_ERROR": "Ülke silinirken hata oluştu",
+    "COUNTRY_NOT_FOUND": "Ülke bulunamadı"
+  },
+  "CITY": {
+    "CITY_FETCHED_SUCCESS": "Şehirler başarıyla getirildi",
+    "CITY_FETCHED_ERROR": "Şehirler getirilirken hata oluştu",
+    "CITY_CREATED_SUCCESS": "Şehir başarıyla oluşturuldu",
+    "CITY_CREATED_ERROR": "Şehir oluşturulurken hata oluştu",
+    "CITY_UPDATED_SUCCESS": "Şehir başarıyla güncellendi",
+    "CITY_UPDATED_ERROR": "Şehir güncellenirken hata oluştu",
+    "CITY_DELETED_SUCCESS": "Şehir başarıyla silindi",
+    "CITY_DELETED_ERROR": "Şehir silinirken hata oluştu",
+    "CITY_NOT_FOUND": "Şehir bulunamadı",
+    "CITY_ALREADY_EXISTS": "Şehir zaten mevcut"
   }
 }

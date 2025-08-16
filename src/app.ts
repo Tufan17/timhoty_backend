@@ -9,6 +9,8 @@ import logsRoutes from "./routes/logs";
 import currencyRoutes from "./routes/currency";
 import languageRoutes from "./routes/language";
 import adminUserRoutes from "./routes/user";
+import countryRoutes from "./routes/country";
+import cityRoutes from "./routes/city";
 
 
 
@@ -35,6 +37,8 @@ export default async function app(fastify: FastifyInstance) {
   fastify.register(languageRoutes, { prefix: "/languages" });
   fastify.register(currencyRoutes, { prefix: "/currencies" });
   fastify.register(adminUserRoutes, { prefix: "/users" });
+  fastify.register(countryRoutes, { prefix: "/countries" });
+  fastify.register(cityRoutes, { prefix: "/cities" });
 
 
 
