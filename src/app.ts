@@ -15,6 +15,7 @@ import cityRoutes from "./routes/city";
 import solutionPartnerRoutes from "./routes/solutionPartner";
 import solutionPartnerDocRoutes from "./routes/solutionPartnerDoc";
 import solutionPartnerUserRoutes from "./routes/solutionPartnerUser";
+import solutionPartnerCommissionRoutes from "./routes/solutionPartnerCommission";
 
 
 
@@ -38,19 +39,22 @@ export default async function app(fastify: FastifyInstance) {
 
   fastify.register(authRoutes, { prefix: "/auth" });
 
-  
+  fastify.register(logsRoutes, { prefix: "/logs" });  
   fastify.register(adminRoutes, { prefix: "/admins" });
-  fastify.register(permissionsRoutes, { prefix: "/permissions" });
-  fastify.register(logsRoutes, { prefix: "/logs" });
+  fastify.register(adminUserRoutes, { prefix: "/users" });
   fastify.register(languageRoutes, { prefix: "/languages" });
   fastify.register(currencyRoutes, { prefix: "/currencies" });
-  fastify.register(adminUserRoutes, { prefix: "/users" });
+  fastify.register(permissionsRoutes, { prefix: "/permissions" });
+  
+  // Location Routes
   fastify.register(countryRoutes, { prefix: "/countries" });
   fastify.register(cityRoutes, { prefix: "/cities" });
+
+  // Solution Partner Routes
   fastify.register(solutionPartnerRoutes, { prefix: "/solution-partners" });
   fastify.register(solutionPartnerDocRoutes, { prefix: "/solution-partner-docs" });
   fastify.register(solutionPartnerUserRoutes, { prefix: "/solution-partner-users" });
-
+  fastify.register(solutionPartnerCommissionRoutes, { prefix: "/solution-partner-commissions" });
 
 
 
