@@ -11,27 +11,30 @@ export default class CityController {
         limit = 10,
         search = "",
         country_id = "",
-      } = req.query as { page: number; limit: number; search: string; country_id: string };
+      } = req.query as {
+        page: number;
+        limit: number;
+        search: string;
+        country_id: string;
+      };
 
-      const language = req.language;
+      const language = req.language || "en";
 
       const query = knex("cities")
         .whereNull("cities.deleted_at")
         .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
         .where("city_pivots.language_code", language)
-        .where("cities.country_id", country_id)
+        .where(function () {
+          if (country_id) {
+            this.where("cities.country_id", country_id);
+          }
+        })
         .where(function () {
           this.where("city_pivots.name", "ilike", `%${search}%`);
-          if (
-            search.toLowerCase() === "true" ||
-            search.toLowerCase() === "false"
-          ) {
-            this.orWhere("countries.is_active", search.toLowerCase() === "true");
-          }
         })
         .select("cities.*", "city_pivots.name as name")
         .groupBy("cities.id", "city_pivots.name");
-        
+
       const countResult = await query.clone().count("* as total").first();
       const total = Number(countResult?.total ?? 0);
       const totalPages = Math.ceil(total / Number(limit));
@@ -63,8 +66,12 @@ export default class CityController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const city = await new CityModel().oneToMany(id, "city_pivots", "city_id");
-      
+      const city = await new CityModel().oneToMany(
+        id,
+        "city_pivots",
+        "city_id"
+      );
+
       return res.status(200).send({
         success: true,
         message: req.t("CITY.CITY_FETCHED_SUCCESS"),
@@ -81,13 +88,23 @@ export default class CityController {
 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-            const { name, country_id, number_plate } = req.body as {
+      const { name, country_id, number_plate, photo } = req.body as {
         name: string;
-        country_id: string; 
+        country_id: string;
         number_plate: string;
+        photo: string;
       };
-
-      const existingCity = await new CityModel().first({ country_id });
+      const language = req.language || "en";
+      const existingCity = await knex("cities")
+        .where("country_id", country_id)
+        .where("number_plate", number_plate)
+        .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+        .where("city_pivots.language_code", language)
+        .where("city_pivots.name", name)
+        .whereNull("cities.deleted_at")
+        .whereNull("city_pivots.deleted_at")
+        .first();
+      console.log(existingCity);
 
       if (existingCity) {
         return res.status(400).send({
@@ -98,6 +115,7 @@ export default class CityController {
       const city = await new CityModel().create({
         country_id,
         number_plate,
+        photo,
       });
       const translateResult = await translateCreate({
         target: "city_pivots",
@@ -108,7 +126,6 @@ export default class CityController {
         },
       });
       city.city_pivots = translateResult;
-
 
       return res.status(200).send({
         success: true,
@@ -127,10 +144,11 @@ export default class CityController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { name, country_id, number_plate } = req.body as {
+      const { name, country_id, number_plate, photo } = req.body as {
         name: string;
         country_id: string;
         number_plate: string;
+        photo?: string;
       };
 
       const existingCity = await new CityModel().first({ id });
@@ -145,6 +163,7 @@ export default class CityController {
       let body: any = {
         country_id,
         number_plate,
+        photo,
       };
 
       const updatedCityData = await new CityModel().update(id, body);
@@ -156,9 +175,16 @@ export default class CityController {
           name,
         },
       });
-      const updatedCityPivots = await new CityModel().oneToMany(id, "city_pivots", "city_id");
+      const updatedCityPivots = await new CityModel().oneToMany(
+        id,
+        "city_pivots",
+        "city_id"
+      );
 
-      const updatedCity = {...updatedCityData[0], city_pivots: updatedCityPivots};
+      const updatedCity = {
+        ...updatedCityData[0],
+        city_pivots: updatedCityPivots,
+      };
 
       return res.status(200).send({
         success: true,
@@ -177,7 +203,7 @@ export default class CityController {
   async delete(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-    const existingCity = await new CityModel().first({ id });
+      const existingCity = await new CityModel().first({ id });
 
       if (!existingCity) {
         return res.status(404).send({
@@ -187,7 +213,10 @@ export default class CityController {
       }
 
       await new CityModel().delete(id);
-      await knex("city_pivots").where("city_id", id).whereNull("deleted_at").update({ deleted_at: new Date() });
+      await knex("city_pivots")
+        .where("city_id", id)
+        .whereNull("deleted_at")
+        .update({ deleted_at: new Date() });
 
       return res.status(200).send({
         success: true,

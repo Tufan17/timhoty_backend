@@ -170,7 +170,7 @@ class BaseModel {
     return data;
   }
 
-  async oneToMany(id: number | string, relationModel: string, relationColumn: string,select?: string[] | string): Promise<DataObject[]> {
+  async oneToMany(id: number | string, relationModel: string, relationColumn: string,select?: string[] | string,where?: DataObject): Promise<DataObject[]> {
     const data = await connection
       .table(this.modelName)
       .where(`${this.modelName}.id`, id)
@@ -181,6 +181,7 @@ class BaseModel {
         '=',
         `${relationModel}.${relationColumn}`
       )
+      .where(where || {})
       .select(select ? [select].flat() : [`${this.modelName}.*`, `${relationModel}.*`]);
     return data;
   }

@@ -1,10 +1,11 @@
 import { FastifyInstance } from "fastify";
 import CityController from "../controllers/Admin/CityController";
 import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { citySchema, cityUpdateSchema } from "../validators/city";
+import { citySchema, cityUpdateSchema, cityQuerySchema } from "../validators/city";
 import { makeAuditLogger } from "../middlewares/logMiddleware";
 import CityModel from "../models/CityModel";
-import { validate } from "../middlewares/validate";
+import { validateFormData } from "../middlewares/validateFormData";
+import { validateQuery } from "../middlewares/validateQuery";
 
 export default async function cityRoutes(fastify: FastifyInstance) {
   const cityController = new CityController();
@@ -17,6 +18,7 @@ export default async function cityRoutes(fastify: FastifyInstance) {
   });
   fastify.get("/", {
     preHandler: [authAdminMiddleware],
+    preValidation: [validateQuery(cityQuerySchema)],
     handler: cityController.findAll,
   });
   fastify.get("/:id", {
@@ -25,12 +27,12 @@ export default async function cityRoutes(fastify: FastifyInstance) {
   });
   fastify.post("/", {
     preHandler: [authAdminMiddleware, currencyAuditLogger],
-    preValidation: [validate(citySchema)],
+    preValidation: [validateFormData(citySchema)],
     handler: cityController.create,
   });
   fastify.put("/:id", {
     preHandler: [authAdminMiddleware, currencyAuditLogger],
-    preValidation: [validate(cityUpdateSchema)],
+    preValidation: [validateFormData(cityUpdateSchema)],
     handler: cityController.update,
   });
   fastify.delete("/:id", {

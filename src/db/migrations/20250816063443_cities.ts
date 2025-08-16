@@ -5,6 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable("cities", (table) => {
         table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
         table.uuid("country_id").notNullable().references("id").inTable("countries");
+        table.string("photo").nullable();
         table.string("number_plate").nullable();
         table.string("created_at").defaultTo(knex.fn.now());
         table.string("updated_at").defaultTo(knex.fn.now());
