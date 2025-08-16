@@ -58,7 +58,7 @@ class LogsController {
             const log = await new LogsModel().first({ id });
 
             if (!log) {
-                return res.status(404).send({ success: false, message: "Log not found" });
+                return res.status(404).send({ success: false, message: req.t("LOGS.LOG_FETCHED_ERROR") });
             }
 
             let user;
@@ -77,7 +77,7 @@ class LogsController {
 
             return res.status(200).send({ success: true, data: {log,user,data} });
         } catch (error) {
-            return res.status(500).send({ success: false, message: "Log not found" });
+            return res.status(500).send({ success: false, message: req.t("LOGS.LOG_FETCHED_ERROR") });
         }
     }
  

@@ -11,7 +11,7 @@ class BaseModel {
   }
 
   async create(data: DataObject): Promise<any> {
-    if ((this.modelName === 'users'||this.modelName === 'admins'||this.modelName === 'dealer_users') && data.password) {
+    if (data.password) {
       data.password = HashPassword(data.password);
     }
     const [result] = await connection.table(this.modelName).insert(data).returning('*');
@@ -19,7 +19,7 @@ class BaseModel {
   }
 
   async update(id: number | string, data: DataObject): Promise<any> {
-    if ((this.modelName === 'users'||this.modelName === 'admins'||this.modelName === 'dealer_users') && data.password) {
+    if (data.password) {
       data.password = HashPassword(data.password);
     }
     data.updated_at = new Date();

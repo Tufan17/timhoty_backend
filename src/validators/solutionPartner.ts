@@ -40,3 +40,23 @@ export const solutionPartnerDocUpdateSchema = Joi.object({
   doc_url: Joi.string().optional(),
 });
 
+export const solutionPartnerUserSchema = Joi.object({
+  solution_partner_id: Joi.string().required(),
+  type: Joi.string().required(),
+  name_surname: Joi.string().required(),
+  phone: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+  language_code: Joi.string().required(),
+});
+
+export const solutionPartnerUserUpdateSchema = Joi.object({ 
+  type: Joi.string().optional(),
+  solution_partner_id: Joi.string().optional(),
+  name_surname: Joi.string().optional(),
+  phone: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  password: Joi.string().optional(),
+  language_code: Joi.string().optional(),
+  status: Joi.boolean().optional(),
+});

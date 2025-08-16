@@ -2,6 +2,7 @@
 import { FastifyInstance } from "fastify";
 import path from "path";
 import dbPlugin from "./plugins/db";
+import { languageMiddleware } from "./middlewares/languageMiddleware";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/admin";
 import permissionsRoutes from "./routes/permissions";
@@ -13,12 +14,16 @@ import countryRoutes from "./routes/country";
 import cityRoutes from "./routes/city";
 import solutionPartnerRoutes from "./routes/solutionPartner";
 import solutionPartnerDocRoutes from "./routes/solutionPartnerDoc";
+import solutionPartnerUserRoutes from "./routes/solutionPartnerUser";
 
 
 
 
 export default async function app(fastify: FastifyInstance) {
   await fastify.register(dbPlugin);
+
+  // Global language middleware
+  fastify.addHook('preHandler', languageMiddleware);
 
 
   fastify.register(
@@ -44,6 +49,7 @@ export default async function app(fastify: FastifyInstance) {
   fastify.register(cityRoutes, { prefix: "/cities" });
   fastify.register(solutionPartnerRoutes, { prefix: "/solution-partners" });
   fastify.register(solutionPartnerDocRoutes, { prefix: "/solution-partner-docs" });
+  fastify.register(solutionPartnerUserRoutes, { prefix: "/solution-partner-users" });
 
 
 

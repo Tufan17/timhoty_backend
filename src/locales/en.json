@@ -1,4 +1,5 @@
 {
+  "VALIDATION_ERROR": "Validation error", 
   "AUTH": {
     "ADMIN_NOT_FOUND": "Admin not found",
     "INVALID_PASSWORD": "Invalid password",
@@ -112,5 +113,17 @@
     "SOLUTION_PARTNER_DOC_DELETED_SUCCESS": "Solution partner docs deleted successfully",
     "SOLUTION_PARTNER_DOC_DELETED_ERROR": "Solution partner docs delete failed",
     "SOLUTION_PARTNER_DOC_NOT_FOUND": "Solution partner docs not found"
+  },
+  "SOLUTION_PARTNER_USER": {
+    "SOLUTION_PARTNER_USER_FETCHED_SUCCESS": "Solution partner users fetched successfully",
+    "SOLUTION_PARTNER_USER_FETCHED_ERROR": "Solution partner users fetch failed",
+    "SOLUTION_PARTNER_USER_CREATED_SUCCESS": "Solution partner user created successfully",
+    "SOLUTION_PARTNER_USER_CREATED_ERROR": "Solution partner user create failed",
+    "SOLUTION_PARTNER_USER_UPDATED_SUCCESS": "Solution partner user updated successfully",
+    "SOLUTION_PARTNER_USER_UPDATED_ERROR": "Solution partner user update failed",
+    "SOLUTION_PARTNER_USER_DELETED_SUCCESS": "Solution partner user deleted successfully",
+    "SOLUTION_PARTNER_USER_DELETED_ERROR": "Solution partner user delete failed",
+    "SOLUTION_PARTNER_USER_NOT_FOUND": "Solution partner user not found",
+    "SOLUTION_PARTNER_USER_ALREADY_EXISTS": "Solution partner user already exists"
   }
 }

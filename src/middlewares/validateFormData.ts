@@ -1,9 +1,13 @@
 import { saveUploadedFile } from '@/utils/fileUpload';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ObjectSchema } from 'joi';
+import { languageMiddleware } from './languageMiddleware';
 
 export const validateFormData = (schema: ObjectSchema) => {
   return async (req: FastifyRequest, res: FastifyReply) => {
+    await languageMiddleware(req, res);
+    const t = (req as any).t;
+
     const parts = req.parts();
 
     const fields: Record<string, any> = {};
@@ -30,7 +34,7 @@ export const validateFormData = (schema: ObjectSchema) => {
     if (error) {
       return res.status(400).send({
         success: false,
-        message: 'Validation error',
+        message: t('VALIDATION_ERROR'),
         details: error.details.map((err) => err.message),
       });
     }

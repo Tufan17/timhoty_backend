@@ -1,4 +1,5 @@
 {
+  "VALIDATION_ERROR": "Doğrulama hatası",
   "AUTH": {
     "ADMIN_NOT_FOUND": "Admin bulunamadı",
     "INVALID_PASSWORD": "Geçersiz şifre",
@@ -111,5 +112,17 @@
     "SOLUTION_PARTNER_DOC_DELETED_SUCCESS": "Çözüm Ortakı Belgeleri başarıyla silindi",
     "SOLUTION_PARTNER_DOC_DELETED_ERROR": "Çözüm Ortakı Belgeleri silinirken hata oluştu",
     "SOLUTION_PARTNER_DOC_NOT_FOUND": "Çözüm Ortakı Belgeleri bulunamadı"
+  },
+  "SOLUTION_PARTNER_USER": {
+    "SOLUTION_PARTNER_USER_FETCHED_SUCCESS": "Çözüm Ortakı Kullanıcıları başarıyla getirildi",
+    "SOLUTION_PARTNER_USER_FETCHED_ERROR": "Çözüm Ortakı Kullanıcıları getirilirken hata oluştu",
+    "SOLUTION_PARTNER_USER_CREATED_SUCCESS": "Çözüm Ortakı Kullanıcı başarıyla oluşturuldu",
+    "SOLUTION_PARTNER_USER_CREATED_ERROR": "Çözüm Ortakı Kullanıcı oluşturulurken hata oluştu",
+    "SOLUTION_PARTNER_USER_UPDATED_SUCCESS": "Çözüm Ortakı Kullanıcı başarıyla güncellendi",
+    "SOLUTION_PARTNER_USER_UPDATED_ERROR": "Çözüm Ortakı Kullanıcı güncellenirken hata oluştu",
+    "SOLUTION_PARTNER_USER_DELETED_SUCCESS": "Çözüm Ortakı Kullanıcı başarıyla silindi",
+    "SOLUTION_PARTNER_USER_DELETED_ERROR": "Çözüm Ortakı Kullanıcı silinirken hata oluştu",
+    "SOLUTION_PARTNER_USER_NOT_FOUND": "Çözüm Ortakı Kullanıcı bulunamadı",
+    "SOLUTION_PARTNER_USER_ALREADY_EXISTS": "Çözüm Ortakı Kullanıcı zaten mevcut"
   }
 }

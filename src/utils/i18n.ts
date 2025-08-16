@@ -28,11 +28,11 @@ const i18n = (language: string) => {
     selectedLanguage = JSON.parse(data);
   }
 
-  return (key: Record<string, any>) => {
+  return (key: string) => {
 
-    const keys=key.split(".");
+    const keys = key.split(".");
 
-    if(keys.length>1){
+    if(keys.length > 1){
       return selectedLanguage[keys[0]]?.[keys[1]] || key;
     }
     return selectedLanguage[keys[0]] || key;
