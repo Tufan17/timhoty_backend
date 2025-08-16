@@ -100,5 +100,16 @@
     "SOLUTION_PARTNER_DELETED_ERROR": "Çözüm Ortakı silinirken hata oluştu",
     "SOLUTION_PARTNER_NOT_FOUND": "Çözüm Ortakı bulunamadı",
     "SOLUTION_PARTNER_ALREADY_EXISTS": "Çözüm Ortakı zaten mevcut"
+  },
+  "SOLUTION_PARTNER_DOC": {
+    "SOLUTION_PARTNER_DOC_FETCHED_SUCCESS": "Çözüm Ortakı Belgeleri başarıyla getirildi",
+    "SOLUTION_PARTNER_DOC_FETCHED_ERROR": "Çözüm Ortakı Belgeleri getirilirken hata oluştu",
+    "SOLUTION_PARTNER_DOC_CREATED_SUCCESS": "Çözüm Ortakı Belgeleri başarıyla oluşturuldu",
+    "SOLUTION_PARTNER_DOC_CREATED_ERROR": "Çözüm Ortakı Belgeleri oluşturulurken hata oluştu",
+    "SOLUTION_PARTNER_DOC_UPDATED_SUCCESS": "Çözüm Ortakı Belgeleri başarıyla güncellendi",
+    "SOLUTION_PARTNER_DOC_UPDATED_ERROR": "Çözüm Ortakı Belgeleri güncellenirken hata oluştu",
+    "SOLUTION_PARTNER_DOC_DELETED_SUCCESS": "Çözüm Ortakı Belgeleri başarıyla silindi",
+    "SOLUTION_PARTNER_DOC_DELETED_ERROR": "Çözüm Ortakı Belgeleri silinirken hata oluştu",
+    "SOLUTION_PARTNER_DOC_NOT_FOUND": "Çözüm Ortakı Belgeleri bulunamadı"
   }
 }

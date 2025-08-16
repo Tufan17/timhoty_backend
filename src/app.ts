@@ -12,6 +12,7 @@ import adminUserRoutes from "./routes/user";
 import countryRoutes from "./routes/country";
 import cityRoutes from "./routes/city";
 import solutionPartnerRoutes from "./routes/solutionPartner";
+import solutionPartnerDocRoutes from "./routes/solutionPartnerDoc";
 
 
 
@@ -42,6 +43,7 @@ export default async function app(fastify: FastifyInstance) {
   fastify.register(countryRoutes, { prefix: "/countries" });
   fastify.register(cityRoutes, { prefix: "/cities" });
   fastify.register(solutionPartnerRoutes, { prefix: "/solution-partners" });
+  fastify.register(solutionPartnerDocRoutes, { prefix: "/solution-partner-docs" });
 
 
 

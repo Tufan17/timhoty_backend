@@ -101,5 +101,16 @@
     "SOLUTION_PARTNER_DELETED_ERROR": "Solution partner delete failed",
     "SOLUTION_PARTNER_NOT_FOUND": "Solution partner not found",
     "SOLUTION_PARTNER_ALREADY_EXISTS": "Solution partner already exists"
+  },
+  "SOLUTION_PARTNER_DOC": {
+    "SOLUTION_PARTNER_DOC_FETCHED_SUCCESS": "Solution partner docs fetched successfully",
+    "SOLUTION_PARTNER_DOC_FETCHED_ERROR": "Solution partner docs fetch failed",
+    "SOLUTION_PARTNER_DOC_CREATED_SUCCESS": "Solution partner docs created successfully",
+    "SOLUTION_PARTNER_DOC_CREATED_ERROR": "Solution partner docs create failed",
+    "SOLUTION_PARTNER_DOC_UPDATED_SUCCESS": "Solution partner docs updated successfully",
+    "SOLUTION_PARTNER_DOC_UPDATED_ERROR": "Solution partner docs update failed",
+    "SOLUTION_PARTNER_DOC_DELETED_SUCCESS": "Solution partner docs deleted successfully",
+    "SOLUTION_PARTNER_DOC_DELETED_ERROR": "Solution partner docs delete failed",
+    "SOLUTION_PARTNER_DOC_NOT_FOUND": "Solution partner docs not found"
   }
 }

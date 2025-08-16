@@ -31,5 +31,12 @@ export const solutionPartnerUpdateSchema = Joi.object({
   location_id: Joi.string().optional(),
 });
 
+export const solutionPartnerDocSchema = Joi.object({
+  solution_partner_id: Joi.string().required(),
+  doc_url: Joi.string().required(),
+});
 
+export const solutionPartnerDocUpdateSchema = Joi.object({
+  doc_url: Joi.string().optional(),
+});
 
