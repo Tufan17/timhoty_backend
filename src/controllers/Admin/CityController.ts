@@ -10,7 +10,8 @@ export default class CityController {
         page = 1,
         limit = 10,
         search = "",
-      } = req.query as { page: number; limit: number; search: string };
+        country_id = "",
+      } = req.query as { page: number; limit: number; search: string; country_id: string };
 
       const language = req.language;
 
@@ -18,6 +19,7 @@ export default class CityController {
         .whereNull("cities.deleted_at")
         .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
         .where("city_pivots.language_code", language)
+        .where("cities.country_id", country_id)
         .where(function () {
           this.where("city_pivots.name", "ilike", `%${search}%`);
           if (

@@ -40,3 +40,17 @@ Timhoty Api's
         update: /users/:id - PUT                        -> kulanıcıyı güncelleme
         delete: /users/:id - DELETE                     -> kulanıcıyı silme
 
+    Country
+        findAll: /countries - GET                       -> ülkelerin datatable'ı
+        findOne: /countries/:id - GET                   -> ülke detayı  
+        create: /countries - POST                       -> ülke ekleme
+        update: /countries/:id - PUT                    -> ülkeyi güncelleme
+        delete: /countries/:id - DELETE                 -> ülkeyi silme
+
+    City
+        findAll: /cities - GET                          -> şehirlerin datatable'ı
+        findOne: /cities/:id - GET                      -> şehir detayı
+        create: /cities - POST                          -> şehir ekleme
+        update: /cities/:id - PUT                       -> şehiri güncelleme
+        delete: /cities/:id - DELETE                    -> şehiri silme
+
