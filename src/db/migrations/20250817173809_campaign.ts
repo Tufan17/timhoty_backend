@@ -8,6 +8,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string("end_date").notNullable();
         table.string("photo_url").notNullable();
         table.enum("service_type", ["hotel", "rental", "activity", "tour"]).notNullable().defaultTo("hotel");
+        table.boolean("highlight").notNullable().defaultTo(false);
         table.boolean("status").notNullable().defaultTo(true);
         table.string("created_at").defaultTo(knex.fn.now());
         table.string("updated_at").defaultTo(knex.fn.now());

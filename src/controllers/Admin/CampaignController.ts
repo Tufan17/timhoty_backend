@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../db/knex";
 import CampaignModel from "@/models/CampaignModel";
-import CampaignPivotModel from "@/models/CampaignPivotModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";
 
 export default class CampaignController {
@@ -80,7 +79,7 @@ export default class CampaignController {
 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { title, description, start_date, end_date, photo_url, service_type, status } = req.body as {
+      const { title, description, start_date, end_date, photo_url, service_type, status, highlight } = req.body as {
         title: string;
         description: string;
         start_date: Date;
@@ -88,6 +87,7 @@ export default class CampaignController {
         photo_url: string;
         service_type: string;
         status?: boolean;
+        highlight?: boolean;
       };
 
       const campaign = await new CampaignModel().create({
@@ -96,6 +96,7 @@ export default class CampaignController {
         photo_url,
         service_type,
         status: status || true,
+        highlight: highlight || false,
       });
       const translateResult = await translateCreate({
         target: "campaign_pivots",
@@ -126,7 +127,7 @@ export default class CampaignController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { title, description, start_date, end_date, photo_url, service_type, status } = req.body as {
+      const { title, description, start_date, end_date, photo_url, service_type, status, highlight } = req.body as {
         title: string;
         description: string;
         start_date: Date;
@@ -134,6 +135,7 @@ export default class CampaignController {
         photo_url: string;
         service_type: string;
         status?: boolean;
+        highlight?: boolean;
       };
 
       const existingCampaign = await new CampaignModel().first({ id });
@@ -151,6 +153,7 @@ export default class CampaignController {
         photo_url: photo_url || existingCampaign.photo_url,
         service_type: service_type || existingCampaign.service_type,
         status: status || existingCampaign.status || true,
+        highlight: highlight || existingCampaign.highlight || false,
       };
 
       await new CampaignModel().update(id, body);

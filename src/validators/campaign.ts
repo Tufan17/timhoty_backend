@@ -8,6 +8,7 @@ export const campaignSchema = Joi.object({
   photo_url: Joi.string().required(),
   service_type: Joi.string().required(),
   status: Joi.boolean().optional().default(true),
+  highlight: Joi.boolean().optional().default(false),
 });
 
 export const campaignUpdateSchema = Joi.object({
@@ -18,6 +19,7 @@ export const campaignUpdateSchema = Joi.object({
   photo_url: Joi.string().optional(),
   service_type: Joi.string().optional(),
   status: Joi.boolean().optional(),
+  highlight: Joi.boolean().optional(),
 });
 
 
