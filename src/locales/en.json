@@ -125,5 +125,27 @@
     "SOLUTION_PARTNER_USER_DELETED_ERROR": "Solution partner user delete failed",
     "SOLUTION_PARTNER_USER_NOT_FOUND": "Solution partner user not found",
     "SOLUTION_PARTNER_USER_ALREADY_EXISTS": "Solution partner user already exists"
+  },
+  "CAMPAIGN": {
+    "CAMPAIGN_FETCHED_SUCCESS": "Campaigns fetched successfully",
+    "CAMPAIGN_FETCHED_ERROR": "Campaigns fetch failed",
+    "CAMPAIGN_CREATED_SUCCESS": "Campaign created successfully",
+    "CAMPAIGN_CREATED_ERROR": "Campaign create failed",
+    "CAMPAIGN_UPDATED_SUCCESS": "Campaign updated successfully",
+    "CAMPAIGN_UPDATED_ERROR": "Campaign update failed",
+    "CAMPAIGN_DELETED_SUCCESS": "Campaign deleted successfully",
+    "CAMPAIGN_DELETED_ERROR": "Campaign delete failed",
+    "CAMPAIGN_NOT_FOUND": "Campaign not found"
+  },
+  "CAMPAIGN_PIVOT": {
+    "CAMPAIGN_PIVOT_FETCHED_SUCCESS": "Campaign pivots fetched successfully",
+    "CAMPAIGN_PIVOT_FETCHED_ERROR": "Campaign pivots fetch failed",
+    "CAMPAIGN_PIVOT_CREATED_SUCCESS": "Campaign pivots created successfully",
+    "CAMPAIGN_PIVOT_CREATED_ERROR": "Campaign pivots create failed",
+    "CAMPAIGN_PIVOT_UPDATED_SUCCESS": "Campaign pivots updated successfully",
+    "CAMPAIGN_PIVOT_UPDATED_ERROR": "Campaign pivots update failed",
+    "CAMPAIGN_PIVOT_DELETED_SUCCESS": "Campaign pivots deleted successfully",
+    "CAMPAIGN_PIVOT_DELETED_ERROR": "Campaign pivots delete failed",
+    "CAMPAIGN_PIVOT_NOT_FOUND": "Campaign pivots not found"
   }
 }

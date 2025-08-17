@@ -54,3 +54,39 @@ Timhoty Api's
         update: /cities/:id - PUT                       -> şehiri güncelleme
         delete: /cities/:id - DELETE                    -> şehiri silme
 
+    Solution Partner
+        findAll: /solution-partners - GET              -> çözüm ortaklarının datatable'ı
+        findOne: /solution-partners/:id - GET          -> çözüm ortağı detayı
+        create: /solution-partners - POST              -> çözüm ortağı ekleme
+        update: /solution-partners/:id - PUT           -> çözüm ortağını güncelleme
+        delete: /solution-partners/:id - DELETE        -> çözüm ortağını silme
+
+    Solution Partner Doc
+        findAll: /solution-partner-docs - GET          -> çözüm ortağı belgelerinin datatable'ı
+        findOne: /solution-partner-docs/:id - GET      -> çözüm ortağı belgesi detayı
+        create: /solution-partner-docs - POST          -> çözüm ortağı belgesi ekleme
+        update: /solution-partner-docs/:id - PUT       -> çözüm ortağı belgesini güncelleme
+        delete: /solution-partner-docs/:id - DELETE    -> çözüm ortağı belgesini silme
+
+    Solution Partner User
+        findAll: /solution-partner-users - GET         -> çözüm ortağı kullanıcılarının datatable'ı
+        findOne: /solution-partner-users/:id - GET     -> çözüm ortağı kullanıcısı detayı
+        create: /solution-partner-users - POST         -> çözüm ortağı kullanıcısı ekleme
+        update: /solution-partner-users/:id - PUT      -> çözüm ortağı kullanıcısını güncelleme
+        delete: /solution-partner-users/:id - DELETE   -> çözüm ortağı kullanıcısını silme
+
+    Solution Partner Commission
+        findAll: /solution-partner-commissions - GET        -> çözüm ortağı komisyonlarının datatable'ı
+        findOne: /solution-partner-commissions/:id - GET    -> çözüm ortağı komisyonu detayı
+        create: /solution-partner-commissions - POST        -> çözüm ortağı komisyonu ekleme
+        update: /solution-partner-commissions/:id - PUT     -> çözüm ortağı komisyonunu güncelleme
+        delete: /solution-partner-commissions/:id - DELETE  -> çözüm ortağı komisyonunu silme
+
+    Campaign
+        findAll: /campaigns - GET                       -> kampanyaların datatable'ı
+        findOne: /campaigns/:id - GET                   -> kampanya detayı
+        create: /campaigns - POST                       -> kampanya ekleme
+        update: /campaigns/:id - PUT                    -> kampanyayı güncelleme
+        delete: /campaigns/:id - DELETE                 -> kampanyayı silme
+
+    

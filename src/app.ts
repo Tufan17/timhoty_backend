@@ -16,6 +16,7 @@ import solutionPartnerRoutes from "./routes/solutionPartner";
 import solutionPartnerDocRoutes from "./routes/solutionPartnerDoc";
 import solutionPartnerUserRoutes from "./routes/solutionPartnerUser";
 import solutionPartnerCommissionRoutes from "./routes/solutionPartnerCommission";
+import campaignRoutes from "./routes/campaign";
 
 
 
@@ -57,7 +58,8 @@ export default async function app(fastify: FastifyInstance) {
   fastify.register(solutionPartnerCommissionRoutes, { prefix: "/solution-partner-commissions" });
 
 
-
+  // Campaign Routes
+  fastify.register(campaignRoutes, { prefix: "/campaigns" });
 
 
 

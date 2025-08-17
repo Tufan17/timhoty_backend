@@ -124,5 +124,27 @@
     "SOLUTION_PARTNER_USER_DELETED_ERROR": "Çözüm Ortakı Kullanıcı silinirken hata oluştu",
     "SOLUTION_PARTNER_USER_NOT_FOUND": "Çözüm Ortakı Kullanıcı bulunamadı",
     "SOLUTION_PARTNER_USER_ALREADY_EXISTS": "Çözüm Ortakı Kullanıcı zaten mevcut"
+  },
+  "CAMPAIGN": {
+    "CAMPAIGN_FETCHED_SUCCESS": "Kampanyalar başarıyla getirildi",
+    "CAMPAIGN_FETCHED_ERROR": "Kampanyalar getirilirken hata oluştu",
+    "CAMPAIGN_CREATED_SUCCESS": "Kampanya başarıyla oluşturuldu",
+    "CAMPAIGN_CREATED_ERROR": "Kampanya oluşturulurken hata oluştu",
+    "CAMPAIGN_UPDATED_SUCCESS": "Kampanya başarıyla güncellendi",
+    "CAMPAIGN_UPDATED_ERROR": "Kampanya güncellenirken hata oluştu",
+    "CAMPAIGN_DELETED_SUCCESS": "Kampanya başarıyla silindi",
+    "CAMPAIGN_DELETED_ERROR": "Kampanya silinirken hata oluştu",
+    "CAMPAIGN_NOT_FOUND": "Kampanya bulunamadı"
+  },
+  "CAMPAIGN_PIVOT": {
+    "CAMPAIGN_PIVOT_FETCHED_SUCCESS": "Kampanya bağlantıları başarıyla getirildi",
+    "CAMPAIGN_PIVOT_FETCHED_ERROR": "Kampanya bağlantıları getirilirken hata oluştu",
+    "CAMPAIGN_PIVOT_CREATED_SUCCESS": "Kampanya bağlantıları başarıyla oluşturuldu",
+    "CAMPAIGN_PIVOT_CREATED_ERROR": "Kampanya bağlantıları oluşturulurken hata oluştu",
+    "CAMPAIGN_PIVOT_UPDATED_SUCCESS": "Kampanya bağlantıları başarıyla güncellendi",
+    "CAMPAIGN_PIVOT_UPDATED_ERROR": "Kampanya bağlantıları güncellenirken hata oluştu",
+    "CAMPAIGN_PIVOT_DELETED_SUCCESS": "Kampanya bağlantıları başarıyla silindi",
+    "CAMPAIGN_PIVOT_DELETED_ERROR": "Kampanya bağlantıları silinirken hata oluştu",
+    "CAMPAIGN_PIVOT_NOT_FOUND": "Kampanya bağlantıları bulunamadı"
   }
 }
