@@ -159,6 +159,28 @@
     "BLOG_DELETED_ERROR": "Blog delete failed",
     "BLOG_NOT_FOUND": "Blog not found"
   },
+  "USER_GUIDE": {
+    "USER_GUIDE_FETCHED_SUCCESS": "User guides fetched successfully",
+    "USER_GUIDE_FETCHED_ERROR": "User guides fetch failed",
+    "USER_GUIDE_CREATED_SUCCESS": "User guide created successfully",
+    "USER_GUIDE_CREATED_ERROR": "User guide create failed",
+    "USER_GUIDE_UPDATED_SUCCESS": "User guide updated successfully",
+    "USER_GUIDE_UPDATED_ERROR": "User guide update failed",
+    "USER_GUIDE_DELETED_SUCCESS": "User guide deleted successfully",
+    "USER_GUIDE_DELETED_ERROR": "User guide delete failed",
+    "USER_GUIDE_NOT_FOUND": "User guide not found"
+  },
+  "FAQ": {
+    "FAQ_FETCHED_SUCCESS": "FAQs fetched successfully",
+    "FAQ_FETCHED_ERROR": "FAQs fetch failed",
+    "FAQ_CREATED_SUCCESS": "FAQ created successfully",
+    "FAQ_CREATED_ERROR": "FAQ create failed",
+    "FAQ_UPDATED_SUCCESS": "FAQ updated successfully",
+    "FAQ_UPDATED_ERROR": "FAQ update failed",
+    "FAQ_DELETED_SUCCESS": "FAQ deleted successfully",
+    "FAQ_DELETED_ERROR": "FAQ delete failed",
+    "FAQ_NOT_FOUND": "FAQ not found"
+  },
   "BLOG_PIVOT": {
     "BLOG_PIVOT_FETCHED_SUCCESS": "Blog pivots fetched successfully",
     "BLOG_PIVOT_FETCHED_ERROR": "Blog pivots fetch failed",

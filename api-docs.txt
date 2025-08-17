@@ -96,4 +96,18 @@ Timhoty Api's
         update: /contracts/:id - PUT                    -> sözleşmeyi güncelleme
         delete: /contracts/:id - DELETE                 -> sözleşmeyi silme
 
+    User Guide
+        findAll: /user-guides - GET                     -> kullanıcı kılavuzlarının datatable'ı
+        findOne: /user-guides/:id - GET                 -> kullanıcı kılavuzu detayı
+        create: /user-guides - POST                     -> kullanıcı kılavuzu ekleme
+        update: /user-guides/:id - PUT                  -> kullanıcı kılavuzunu güncelleme
+        delete: /user-guides/:id - DELETE               -> kullanıcı kılavuzunu silme
+
+    FAQ
+        findAll: /faqs - GET                            -> SSS'lerin datatable'ı
+        findOne: /faqs/:id - GET                        -> SSS detayı
+        create: /faqs - POST                            -> SSS ekleme
+        update: /faqs/:id - PUT                         -> SSS'yi güncelleme
+        delete: /faqs/:id - DELETE                      -> SSS'yi silme
+
     

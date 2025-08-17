@@ -19,6 +19,8 @@ import solutionPartnerCommissionRoutes from "./routes/solutionPartnerCommission"
 import campaignRoutes from "./routes/campaign";
 import blogRoutes from "./routes/blog";
 import contractRoutes from "./routes/contract";
+import userGuideRoutes from "./routes/userGuide";
+import faqRoutes from "./routes/faq";
 
 
 
@@ -68,6 +70,12 @@ export default async function app(fastify: FastifyInstance) {
 
   // Contract Routes
   fastify.register(contractRoutes, { prefix: "/contracts" });
+
+  // User Guide Routes
+  fastify.register(userGuideRoutes, { prefix: "/user-guides" });
+
+  // FAQ Routes
+  fastify.register(faqRoutes, { prefix: "/faqs" });
 
 
 

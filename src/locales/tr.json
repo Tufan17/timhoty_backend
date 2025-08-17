@@ -158,6 +158,28 @@
     "BLOG_DELETED_ERROR": "Blog silinirken hata oluştu",
     "BLOG_NOT_FOUND": "Blog bulunamadı"
   },
+  "USER_GUIDE": {
+    "USER_GUIDE_FETCHED_SUCCESS": "Kullanıcı kılavuzları başarıyla getirildi",
+    "USER_GUIDE_FETCHED_ERROR": "Kullanıcı kılavuzları getirilirken hata oluştu",
+    "USER_GUIDE_CREATED_SUCCESS": "Kullanıcı kılavuzu başarıyla oluşturuldu",
+    "USER_GUIDE_CREATED_ERROR": "Kullanıcı kılavuzu oluşturulurken hata oluştu",
+    "USER_GUIDE_UPDATED_SUCCESS": "Kullanıcı kılavuzu başarıyla güncellendi",
+    "USER_GUIDE_UPDATED_ERROR": "Kullanıcı kılavuzu güncellenirken hata oluştu",
+    "USER_GUIDE_DELETED_SUCCESS": "Kullanıcı kılavuzu başarıyla silindi",
+    "USER_GUIDE_DELETED_ERROR": "Kullanıcı kılavuzu silinirken hata oluştu",
+    "USER_GUIDE_NOT_FOUND": "Kullanıcı kılavuzu bulunamadı"
+  },
+  "FAQ": {
+    "FAQ_FETCHED_SUCCESS": "SSS başarıyla getirildi",
+    "FAQ_FETCHED_ERROR": "SSS getirilirken hata oluştu",
+    "FAQ_CREATED_SUCCESS": "SSS başarıyla oluşturuldu",
+    "FAQ_CREATED_ERROR": "SSS oluşturulurken hata oluştu",
+    "FAQ_UPDATED_SUCCESS": "SSS başarıyla güncellendi",
+    "FAQ_UPDATED_ERROR": "SSS güncellenirken hata oluştu",
+    "FAQ_DELETED_SUCCESS": "SSS başarıyla silindi",
+    "FAQ_DELETED_ERROR": "SSS silinirken hata oluştu",
+    "FAQ_NOT_FOUND": "SSS bulunamadı"
+  },
   "BLOG_PIVOT": {
     "BLOG_PIVOT_FETCHED_SUCCESS": "Blog bağlantıları başarıyla getirildi",
     "BLOG_PIVOT_FETCHED_ERROR": "Blog bağlantıları getirilirken hata oluştu",
