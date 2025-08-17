@@ -147,5 +147,27 @@
     "CAMPAIGN_PIVOT_DELETED_SUCCESS": "Campaign pivots deleted successfully",
     "CAMPAIGN_PIVOT_DELETED_ERROR": "Campaign pivots delete failed",
     "CAMPAIGN_PIVOT_NOT_FOUND": "Campaign pivots not found"
+  },
+  "BLOG": {
+    "BLOG_FETCHED_SUCCESS": "Blogs fetched successfully",
+    "BLOG_FETCHED_ERROR": "Blogs fetch failed",
+    "BLOG_CREATED_SUCCESS": "Blog created successfully",
+    "BLOG_CREATED_ERROR": "Blog create failed",
+    "BLOG_UPDATED_SUCCESS": "Blog updated successfully",
+    "BLOG_UPDATED_ERROR": "Blog update failed",
+    "BLOG_DELETED_SUCCESS": "Blog deleted successfully",
+    "BLOG_DELETED_ERROR": "Blog delete failed",
+    "BLOG_NOT_FOUND": "Blog not found"
+  },
+  "BLOG_PIVOT": {
+    "BLOG_PIVOT_FETCHED_SUCCESS": "Blog pivots fetched successfully",
+    "BLOG_PIVOT_FETCHED_ERROR": "Blog pivots fetch failed",
+    "BLOG_PIVOT_CREATED_SUCCESS": "Blog pivots created successfully",
+    "BLOG_PIVOT_CREATED_ERROR": "Blog pivots create failed",
+    "BLOG_PIVOT_UPDATED_SUCCESS": "Blog pivots updated successfully",
+    "BLOG_PIVOT_UPDATED_ERROR": "Blog pivots update failed",
+    "BLOG_PIVOT_DELETED_SUCCESS": "Blog pivots deleted successfully",
+    "BLOG_PIVOT_DELETED_ERROR": "Blog pivots delete failed",
+    "BLOG_PIVOT_NOT_FOUND": "Blog pivots not found"
   }
 }

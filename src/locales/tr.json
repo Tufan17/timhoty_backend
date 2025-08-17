@@ -146,5 +146,27 @@
     "CAMPAIGN_PIVOT_DELETED_SUCCESS": "Kampanya bağlantıları başarıyla silindi",
     "CAMPAIGN_PIVOT_DELETED_ERROR": "Kampanya bağlantıları silinirken hata oluştu",
     "CAMPAIGN_PIVOT_NOT_FOUND": "Kampanya bağlantıları bulunamadı"
+  },
+  "BLOG": {
+    "BLOG_FETCHED_SUCCESS": "Bloglar başarıyla getirildi",
+    "BLOG_FETCHED_ERROR": "Bloglar getirilirken hata oluştu",
+    "BLOG_CREATED_SUCCESS": "Blog başarıyla oluşturuldu",
+    "BLOG_CREATED_ERROR": "Blog oluşturulurken hata oluştu",
+    "BLOG_UPDATED_SUCCESS": "Blog başarıyla güncellendi",
+    "BLOG_UPDATED_ERROR": "Blog güncellenirken hata oluştu",
+    "BLOG_DELETED_SUCCESS": "Blog başarıyla silindi",
+    "BLOG_DELETED_ERROR": "Blog silinirken hata oluştu",
+    "BLOG_NOT_FOUND": "Blog bulunamadı"
+  },
+  "BLOG_PIVOT": {
+    "BLOG_PIVOT_FETCHED_SUCCESS": "Blog bağlantıları başarıyla getirildi",
+    "BLOG_PIVOT_FETCHED_ERROR": "Blog bağlantıları getirilirken hata oluştu",
+    "BLOG_PIVOT_CREATED_SUCCESS": "Blog bağlantıları başarıyla oluşturuldu",
+    "BLOG_PIVOT_CREATED_ERROR": "Blog bağlantıları oluşturulurken hata oluştu",
+    "BLOG_PIVOT_UPDATED_SUCCESS": "Blog bağlantıları başarıyla güncellendi",
+    "BLOG_PIVOT_UPDATED_ERROR": "Blog bağlantıları güncellenirken hata oluştu",
+    "BLOG_PIVOT_DELETED_SUCCESS": "Blog bağlantıları başarıyla silindi",
+    "BLOG_PIVOT_DELETED_ERROR": "Blog bağlantıları silinirken hata oluştu",
+    "BLOG_PIVOT_NOT_FOUND": "Blog bağlantıları bulunamadı"
   }
 }

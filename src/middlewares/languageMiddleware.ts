@@ -1,5 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import i18n from "../utils/i18n";
+import knex from '@/db/knex';
+
 
 export const languageMiddleware = async (req: FastifyRequest, res: FastifyReply) => {
   try {
@@ -13,11 +15,6 @@ export const languageMiddleware = async (req: FastifyRequest, res: FastifyReply)
     }
     if (language.includes('-')) {
       language = language.split('-')[0];
-    }
-    
-    // Desteklenen diller: tr, en
-    if (!['tr', 'en'].includes(language)) {
-      language = 'tr'; // Default olarak Türkçe
     }
     
     (req as any).t = i18n(language);
