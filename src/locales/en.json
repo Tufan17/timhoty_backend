@@ -169,5 +169,27 @@
     "BLOG_PIVOT_DELETED_SUCCESS": "Blog pivots deleted successfully",
     "BLOG_PIVOT_DELETED_ERROR": "Blog pivots delete failed",
     "BLOG_PIVOT_NOT_FOUND": "Blog pivots not found"
-  }
+  },
+  "CONTRACT": {
+    "CONTRACT_FETCHED_SUCCESS": "Contracts fetched successfully",
+    "CONTRACT_FETCHED_ERROR": "Contracts fetch failed",
+    "CONTRACT_CREATED_SUCCESS": "Contract created successfully",
+    "CONTRACT_CREATED_ERROR": "Contract create failed",
+    "CONTRACT_UPDATED_SUCCESS": "Contract updated successfully",
+    "CONTRACT_UPDATED_ERROR": "Contract update failed",
+    "CONTRACT_DELETED_SUCCESS": "Contract deleted successfully",
+    "CONTRACT_DELETED_ERROR": "Contract delete failed",
+    "CONTRACT_NOT_FOUND": "Contract not found"
+  },
+  "CONTRACT_PIVOT": {
+    "CONTRACT_PIVOT_FETCHED_SUCCESS": "Contract pivots fetched successfully",
+    "CONTRACT_PIVOT_FETCHED_ERROR": "Contract pivots fetch failed",
+    "CONTRACT_PIVOT_CREATED_SUCCESS": "Contract pivots created successfully",
+    "CONTRACT_PIVOT_CREATED_ERROR": "Contract pivots create failed",
+    "CONTRACT_PIVOT_UPDATED_SUCCESS": "Contract pivots updated successfully",
+    "CONTRACT_PIVOT_UPDATED_ERROR": "Contract pivots update failed",
+    "CONTRACT_PIVOT_DELETED_SUCCESS": "Contract pivots deleted successfully",
+    "CONTRACT_PIVOT_DELETED_ERROR": "Contract pivots delete failed",
+    "CONTRACT_PIVOT_NOT_FOUND": "Contract pivots not found"
+  }   
 }

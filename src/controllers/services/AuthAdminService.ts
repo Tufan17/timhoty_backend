@@ -35,10 +35,10 @@ export default class AuthAdminService {
           name_surname: admin.name_surname,
           language: admin.language,
           email: admin.email,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),//1 gün
         };
 
-        token = jwt.sign(body, secret, { expiresIn: "1h" });
+        token = jwt.sign(body, secret, { expiresIn: "1d" }); //1 gün
       } catch (error) {
         console.error("Error generating token:", error);
         return {

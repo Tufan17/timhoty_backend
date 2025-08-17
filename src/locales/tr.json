@@ -168,5 +168,27 @@
     "BLOG_PIVOT_DELETED_SUCCESS": "Blog bağlantıları başarıyla silindi",
     "BLOG_PIVOT_DELETED_ERROR": "Blog bağlantıları silinirken hata oluştu",
     "BLOG_PIVOT_NOT_FOUND": "Blog bağlantıları bulunamadı"
+  },
+  "CONTRACT": {
+    "CONTRACT_FETCHED_SUCCESS": "Sözleşmeler başarıyla getirildi",
+    "CONTRACT_FETCHED_ERROR": "Sözleşmeler getirilirken hata oluştu",
+    "CONTRACT_CREATED_SUCCESS": "Sözleşme başarıyla oluşturuldu",
+    "CONTRACT_CREATED_ERROR": "Sözleşme oluşturulurken hata oluştu",
+    "CONTRACT_UPDATED_SUCCESS": "Sözleşme başarıyla güncellendi",
+    "CONTRACT_UPDATED_ERROR": "Sözleşme güncellenirken hata oluştu",
+    "CONTRACT_DELETED_SUCCESS": "Sözleşme başarıyla silindi",
+    "CONTRACT_DELETED_ERROR": "Sözleşme silinirken hata oluştu",
+    "CONTRACT_NOT_FOUND": "Sözleşme bulunamadı"
+  },
+  "CONTRACT_PIVOT": { 
+    "CONTRACT_PIVOT_FETCHED_SUCCESS": "Sözleşme bağlantıları başarıyla getirildi",
+    "CONTRACT_PIVOT_FETCHED_ERROR": "Sözleşme bağlantıları getirilirken hata oluştu",
+    "CONTRACT_PIVOT_CREATED_SUCCESS": "Sözleşme bağlantıları başarıyla oluşturuldu",
+    "CONTRACT_PIVOT_CREATED_ERROR": "Sözleşme bağlantıları oluşturulurken hata oluştu",
+    "CONTRACT_PIVOT_UPDATED_SUCCESS": "Sözleşme bağlantıları başarıyla güncellendi",
+    "CONTRACT_PIVOT_UPDATED_ERROR": "Sözleşme bağlantıları güncellenirken hata oluştu",
+    "CONTRACT_PIVOT_DELETED_SUCCESS": "Sözleşme bağlantıları başarıyla silindi",
+    "CONTRACT_PIVOT_DELETED_ERROR": "Sözleşme bağlantıları silinirken hata oluştu",
+    "CONTRACT_PIVOT_NOT_FOUND": "Sözleşme bağlantıları bulunamadı"
   }
 }

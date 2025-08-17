@@ -18,6 +18,7 @@ import solutionPartnerUserRoutes from "./routes/solutionPartnerUser";
 import solutionPartnerCommissionRoutes from "./routes/solutionPartnerCommission";
 import campaignRoutes from "./routes/campaign";
 import blogRoutes from "./routes/blog";
+import contractRoutes from "./routes/contract";
 
 
 
@@ -65,6 +66,8 @@ export default async function app(fastify: FastifyInstance) {
   // Blog Routes
   fastify.register(blogRoutes, { prefix: "/blogs" }); 
 
+  // Contract Routes
+  fastify.register(contractRoutes, { prefix: "/contracts" });
 
 
 

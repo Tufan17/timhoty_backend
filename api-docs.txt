@@ -89,4 +89,11 @@ Timhoty Api's
         update: /campaigns/:id - PUT                    -> kampanyayı güncelleme
         delete: /campaigns/:id - DELETE                 -> kampanyayı silme
 
+    Contract
+        findAll: /contracts - GET                       -> sözleşmelerin datatable'ı
+        findOne: /contracts/:id - GET                   -> sözleşme detayı
+        create: /contracts - POST                       -> sözleşme ekleme
+        update: /contracts/:id - PUT                    -> sözleşmeyi güncelleme
+        delete: /contracts/:id - DELETE                 -> sözleşmeyi silme
+
     
