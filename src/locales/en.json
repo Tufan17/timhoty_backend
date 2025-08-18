@@ -9,7 +9,8 @@
     "LOGOUT_SUCCESS": "Logout successful",
     "LOGIN_SUCCESS": "Login successful",
     "TOKEN_EXPIRED": "Token expired",
-    "TOKEN_INVALID": "Token invalid"
+    "TOKEN_INVALID": "Token invalid",
+    "ADMIN_NOT_ACTIVE": "Admin not active"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Admins fetched successfully",

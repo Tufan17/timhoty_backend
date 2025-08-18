@@ -20,6 +20,11 @@ export default class AuthAdminService {
           success: false,
           message: t("AUTH.ADMIN_NOT_FOUND"),
         };
+      }else if(admin.status === false){
+        return {
+          success: false,
+          message: t("AUTH.ADMIN_NOT_ACTIVE"),
+        };
       }
       const isPasswordValid = HashPassword(password) === admin.password;
       if (!isPasswordValid) {

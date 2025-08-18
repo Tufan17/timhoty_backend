@@ -9,7 +9,8 @@
     "LOGOUT_SUCCESS": "Çıkış başarılı",
     "LOGIN_SUCCESS": "Giriş başarılı",
     "TOKEN_EXPIRED": "Token süresi doldu",
-    "TOKEN_INVALID": "Token geçersiz"
+    "TOKEN_INVALID": "Token geçersiz",
+    "ADMIN_NOT_ACTIVE": "Admin aktif değil"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Adminler başarıyla getirildi",
