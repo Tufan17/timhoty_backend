@@ -8,9 +8,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string("flag").nullable();
     table.string("code").notNullable();
     table.uuid("currency_id").references("id").inTable("currencies").nullable();
-    table.string("created_at").defaultTo(knex.fn.now());
-    table.string("updated_at").defaultTo(knex.fn.now());
-    table.string("deleted_at").nullable();
+    table.timestamp("created_at").defaultTo(knex.fn.now());
+    table.timestamp("updated_at").defaultTo(knex.fn.now());
+    table.timestamp("deleted_at").nullable();
   });
 }
 

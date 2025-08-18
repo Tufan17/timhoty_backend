@@ -265,5 +265,17 @@
     "LOGS_FETCHED_SUCCESS": "Logs fetched successfully",
     "LOGS_FETCHED_ERROR": "Logs fetch failed",
     "LOGS_NOT_FOUND": "Logs not found"
+  },
+  "NOTIFICATION": {
+    "NOTIFICATION_FETCHED_SUCCESS": "Notifications fetched successfully",
+    "NOTIFICATION_FETCHED_ERROR": "Notifications fetch failed",
+    "NOTIFICATION_CREATED_SUCCESS": "Notification created successfully",
+    "NOTIFICATION_CREATED_ERROR": "Notification create failed",
+    "NOTIFICATION_UPDATED_SUCCESS": "Notification updated successfully",
+    "NOTIFICATION_UPDATED_ERROR": "Notification update failed",
+    "NOTIFICATION_DELETED_SUCCESS": "Notification deleted successfully",
+    "NOTIFICATION_DELETED_ERROR": "Notification delete failed",
+    "NOTIFICATION_NOT_FOUND": "Notification not found",
+    "NOTIFICATION_ALREADY_EXISTS": "Notification already exists"
   }
 }

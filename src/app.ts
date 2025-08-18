@@ -25,6 +25,7 @@ import salesPartnerRoutes from "./routes/salesPartner";
 import salesPartnerDocRoutes from "./routes/salesPartnerDoc";
 import salesPartnerCommissionRoutes from "./routes/salesPartnerCommission";
 import salesPartnerUserRoutes from "./routes/salesPartnerUser";
+import notificationRoutes from "./routes/notification";
 
 
 
@@ -86,6 +87,9 @@ export default async function app(fastify: FastifyInstance) {
 
   // FAQ Routes
   fastify.register(faqRoutes, { prefix: "/faqs" });
+
+  // Notification Routes
+  fastify.register(notificationRoutes, { prefix: "/notifications" });
 
 
 

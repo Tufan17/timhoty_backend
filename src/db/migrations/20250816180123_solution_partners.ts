@@ -19,9 +19,9 @@ export async function up(knex: Knex): Promise<void> {
         table.boolean("admin_verified").notNullable().defaultTo(false);
         table.uuid("application_status_id").nullable().references("id").inTable("application_status");
         table.boolean("status").notNullable().defaultTo(false);
-        table.string("created_at").defaultTo(knex.fn.now());
-        table.string("updated_at").defaultTo(knex.fn.now());
-        table.string("deleted_at").nullable();
+        table.timestamp("created_at").defaultTo(knex.fn.now());
+        table.timestamp("updated_at").defaultTo(knex.fn.now());
+        table.timestamp("deleted_at").nullable();
     });
 }
 

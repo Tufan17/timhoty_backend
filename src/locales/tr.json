@@ -264,5 +264,17 @@
     "LOGS_FETCHED_SUCCESS": "Loglar başarıyla getirildi",
     "LOGS_FETCHED_ERROR": "Loglar getirilirken hata oluştu",
     "LOGS_NOT_FOUND": "Loglar bulunamadı"
+  },
+  "NOTIFICATION": {
+    "NOTIFICATION_FETCHED_SUCCESS": "Bildirimler başarıyla getirildi",
+    "NOTIFICATION_FETCHED_ERROR": "Bildirimler getirilirken hata oluştu",
+    "NOTIFICATION_CREATED_SUCCESS": "Bildirim başarıyla oluşturuldu",
+    "NOTIFICATION_CREATED_ERROR": "Bildirim oluşturulurken hata oluştu",
+    "NOTIFICATION_UPDATED_SUCCESS": "Bildirim başarıyla güncellendi",
+    "NOTIFICATION_UPDATED_ERROR": "Bildirim güncellenirken hata oluştu",
+    "NOTIFICATION_DELETED_SUCCESS": "Bildirim başarıyla silindi",
+    "NOTIFICATION_DELETED_ERROR": "Bildirim silinirken hata oluştu",
+    "NOTIFICATION_NOT_FOUND": "Bildirim bulunamadı",
+    "NOTIFICATION_ALREADY_EXISTS": "Bildirim zaten mevcut"
   }
 }

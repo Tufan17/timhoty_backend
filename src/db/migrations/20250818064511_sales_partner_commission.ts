@@ -9,9 +9,9 @@ export async function up(knex: Knex): Promise<void> {
         table.enum("commission_type", ["percentage", "fixed"]).notNullable().defaultTo("percentage");
         table.decimal("commission_value", 10, 2).notNullable();
         table.string("commission_currency").notNullable().defaultTo("USD");
-        table.string("created_at").defaultTo(knex.fn.now());
-        table.string("updated_at").defaultTo(knex.fn.now());
-        table.string("deleted_at").nullable();
+        table.timestamp("created_at").defaultTo(knex.fn.now());
+        table.timestamp("updated_at").defaultTo(knex.fn.now());
+        table.timestamp("deleted_at").nullable();
     });
 }
 

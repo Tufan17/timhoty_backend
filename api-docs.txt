@@ -138,4 +138,11 @@ Timhoty Api's
         update: /faqs/:id - PUT                         -> SSS'yi güncelleme
         delete: /faqs/:id - DELETE                      -> SSS'yi silme
 
+    Notification
+        findAll: /notifications - GET                   -> bildirimlerin datatable'ı
+        findOne: /notifications/:id - GET               -> bildirim detayı
+        create: /notifications - POST                   -> bildirim ekleme
+        update: /notifications/:id - PUT                -> bildirimi güncelleme
+        delete: /notifications/:id - DELETE             -> bildirimi silme
+
     

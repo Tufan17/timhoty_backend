@@ -7,9 +7,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string("symbol", 10).notNullable(); // $, €, ₺
     table.boolean("is_active").defaultTo(true); // Aktif mi
     table.enum("position", ["before", "after"]).defaultTo("before"); // Sembol pozisyonu: before/after
-    table.string("created_at").defaultTo(knex.fn.now());
-    table.string("updated_at").defaultTo(knex.fn.now());
-    table.string("deleted_at").nullable();
+    table.timestamp("created_at").defaultTo(knex.fn.now());
+    table.timestamp("updated_at").defaultTo(knex.fn.now());
+    table.timestamp("deleted_at").nullable();
   });
 }
 
