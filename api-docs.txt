@@ -21,6 +21,7 @@ Timhoty Api's
     
     Language
         findAll: /languages - GET                      -> dilerin datatable'ı 
+        active:  /languages - GET                      -> dilerin oturumsuz çağırma
         findOne: /languages/:id - GET                  -> dilin detayı
         create: /languages - POST                      -> dil ekleme
         update: /languages/:id - PUT                   -> dili güncelleme
