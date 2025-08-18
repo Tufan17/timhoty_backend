@@ -4,7 +4,10 @@ import { AuthValidation } from '@/validators/userAuthValidation'
 
 export default async function userAuthRoutes(fastify: FastifyInstance) {
   const userAuthController = new UserAuthController()
-
+  fastify.post('/login', {
+    preValidation: [AuthValidation.login],
+    handler: userAuthController.login
+  })
   fastify.post('/register', {
     preHandler: [AuthValidation.register],
     handler: userAuthController.register

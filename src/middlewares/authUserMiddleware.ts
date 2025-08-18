@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { FastifyRequest, FastifyReply } from 'fastify';
 
-export const authAdminMiddleware = async (request: FastifyRequest, reply: FastifyReply) => {
+export const authUserMiddleware = async (request: FastifyRequest, reply: FastifyReply) => {
   const authHeader = request.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
     return reply.status(401).send({
@@ -30,7 +30,7 @@ export const authAdminMiddleware = async (request: FastifyRequest, reply: Fastif
     }
 
       (request as any).user = payload;
-      (request as any).user.type = "admin";
+      (request as any).user.type = "user";
   } catch (err: any) {
     if(err.message === "jwt expired"){
       return reply.status(401).send({ 

@@ -52,50 +52,50 @@ export default async function app(fastify: FastifyInstance) {
 
   fastify.register(authRoutes, { prefix: "/auth" });
 
-  fastify.register(logsRoutes, { prefix: "/logs" });  
-  fastify.register(adminRoutes, { prefix: "/admins" });
+  fastify.register(logsRoutes, { prefix: "admin/logs" });  
+  fastify.register(adminRoutes, { prefix: "admin/admins" });
   fastify.register(adminUserRoutes, { prefix: "admin/users" });
-  fastify.register(languageRoutes, { prefix: "/languages" });
-  fastify.register(currencyRoutes, { prefix: "/currencies" });
-  fastify.register(permissionsRoutes, { prefix: "/permissions" });
+  fastify.register(languageRoutes, { prefix: "admin/languages" });
+  fastify.register(currencyRoutes, { prefix: "admin/currencies" });
+  fastify.register(permissionsRoutes, { prefix: "admin/permissions" });
   
   // Location Routes
-  fastify.register(countryRoutes, { prefix: "/countries" });
-  fastify.register(cityRoutes, { prefix: "/cities" });
+  fastify.register(countryRoutes, { prefix: "admin/countries" });
+  fastify.register(cityRoutes, { prefix: "admin/cities" });
 
   // Solution Partner Routes
-  fastify.register(solutionPartnerRoutes, { prefix: "/solution-partners" });
-  fastify.register(solutionPartnerDocRoutes, { prefix: "/solution-partner-docs" });
-  fastify.register(solutionPartnerUserRoutes, { prefix: "/solution-partner-users" });
-  fastify.register(solutionPartnerCommissionRoutes, { prefix: "/solution-partner-commissions" });
+  fastify.register(solutionPartnerRoutes, { prefix: "admin/solution-partners" });
+  fastify.register(solutionPartnerDocRoutes, { prefix: "admin/solution-partner-docs" });
+  fastify.register(solutionPartnerUserRoutes, { prefix: "admin/solution-partner-users" });
+  fastify.register(solutionPartnerCommissionRoutes, { prefix: "admin/solution-partner-commissions" });
 
   // Sales Partner Routes
-  fastify.register(salesPartnerRoutes, { prefix: "/sales-partners" });
-  fastify.register(salesPartnerDocRoutes, { prefix: "/sales-partner-docs" });
-  fastify.register(salesPartnerCommissionRoutes, { prefix: "/sales-partner-commissions" });
-  fastify.register(salesPartnerUserRoutes, { prefix: "/sales-partner-users" });
+  fastify.register(salesPartnerRoutes, { prefix: "admin/sales-partners" });
+  fastify.register(salesPartnerDocRoutes, { prefix: "admin/sales-partner-docs" });
+  fastify.register(salesPartnerCommissionRoutes, { prefix: "admin/sales-partner-commissions" });
+  fastify.register(salesPartnerUserRoutes, { prefix: "admin/sales-partner-users" });
 
 
   // Campaign Routes
-  fastify.register(campaignRoutes, { prefix: "/campaigns" });
+  fastify.register(campaignRoutes, { prefix: "admin/campaigns" });
 
   // Blog Routes
-  fastify.register(blogRoutes, { prefix: "/blogs" }); 
+  fastify.register(blogRoutes, { prefix: "admin/blogs" }); 
 
   // Contract Routes
-  fastify.register(contractRoutes, { prefix: "/contracts" });
+  fastify.register(contractRoutes, { prefix: "admin/contracts" });
 
   // User Guide Routes
-  fastify.register(userGuideRoutes, { prefix: "/user-guides" });
+  fastify.register(userGuideRoutes, { prefix: "admin/user-guides" });
 
   // FAQ Routes
-  fastify.register(faqRoutes, { prefix: "/faqs" });
+  fastify.register(faqRoutes, { prefix: "admin/faqs" });
 
   // Notification Routes
-  fastify.register(notificationRoutes, { prefix: "/notifications" });
+  fastify.register(notificationRoutes, { prefix: "admin/notifications" });
 
   // Email Subscription Routes
-  fastify.register(emailSubscriptionRoutes, { prefix: "/email-subscriptions" });
+  fastify.register(emailSubscriptionRoutes, { prefix: "admin/email-subscriptions" });
 
   // User Routes
   fastify.register(userAuthRoutes, { prefix: "/users/auth" });
