@@ -26,6 +26,7 @@ import salesPartnerDocRoutes from "./routes/salesPartnerDoc";
 import salesPartnerCommissionRoutes from "./routes/salesPartnerCommission";
 import salesPartnerUserRoutes from "./routes/salesPartnerUser";
 import notificationRoutes from "./routes/notification";
+import emailSubscriptionRoutes from "./routes/emailSubscription";
 
 
 
@@ -90,6 +91,9 @@ export default async function app(fastify: FastifyInstance) {
 
   // Notification Routes
   fastify.register(notificationRoutes, { prefix: "/notifications" });
+
+  // Email Subscription Routes
+  fastify.register(emailSubscriptionRoutes, { prefix: "/email-subscriptions" });
 
 
 

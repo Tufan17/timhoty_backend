@@ -145,4 +145,13 @@ Timhoty Api's
         update: /notifications/:id - PUT                -> bildirimi güncelleme
         delete: /notifications/:id - DELETE             -> bildirimi silme
 
+    Email Subscription
+        findAll: /email-subscriptions - GET             -> e-posta aboneliklerinin datatable'ı
+        findOne: /email-subscriptions/:id - GET         -> e-posta aboneliği detayı
+        create: /email-subscriptions - POST             -> e-posta aboneliği ekleme
+        update: /email-subscriptions/:id - PUT          -> e-posta aboneliğini güncelleme
+        delete: /email-subscriptions/:id - DELETE       -> e-posta aboneliğini silme
+        cancel: /email-subscriptions/:id/cancel - PUT   -> e-posta aboneliğini iptal etme
+        reactivate: /email-subscriptions/:id/reactivate - PUT -> e-posta aboneliğini yeniden etkinleştirme
+
     

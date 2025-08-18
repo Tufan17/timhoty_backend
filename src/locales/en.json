@@ -277,5 +277,21 @@
     "NOTIFICATION_DELETED_ERROR": "Notification delete failed",
     "NOTIFICATION_NOT_FOUND": "Notification not found",
     "NOTIFICATION_ALREADY_EXISTS": "Notification already exists"
+  },
+  "EMAIL_SUBSCRIPTION": {
+    "EMAIL_SUBSCRIPTION_FETCHED_SUCCESS": "Email subscriptions fetched successfully",
+    "EMAIL_SUBSCRIPTION_FETCHED_ERROR": "Email subscriptions fetch failed",
+    "EMAIL_SUBSCRIPTION_CREATED_SUCCESS": "Email subscription created successfully",
+    "EMAIL_SUBSCRIPTION_CREATED_ERROR": "Email subscription create failed",
+    "EMAIL_SUBSCRIPTION_UPDATED_SUCCESS": "Email subscription updated successfully",
+    "EMAIL_SUBSCRIPTION_UPDATED_ERROR": "Email subscription update failed",
+    "EMAIL_SUBSCRIPTION_DELETED_SUCCESS": "Email subscription deleted successfully",
+    "EMAIL_SUBSCRIPTION_DELETED_ERROR": "Email subscription delete failed",
+    "EMAIL_SUBSCRIPTION_NOT_FOUND": "Email subscription not found",
+    "EMAIL_SUBSCRIPTION_ALREADY_EXISTS": "Email subscription already exists",
+    "EMAIL_SUBSCRIPTION_CANCELED_SUCCESS": "Email subscription canceled successfully",
+    "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "Email subscription cancel failed",
+    "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "Email subscription reactivated successfully",
+    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "Email subscription reactivation failed"
   }
 }

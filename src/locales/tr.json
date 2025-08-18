@@ -276,5 +276,21 @@
     "NOTIFICATION_DELETED_ERROR": "Bildirim silinirken hata oluştu",
     "NOTIFICATION_NOT_FOUND": "Bildirim bulunamadı",
     "NOTIFICATION_ALREADY_EXISTS": "Bildirim zaten mevcut"
+  },
+  "EMAIL_SUBSCRIPTION": {
+    "EMAIL_SUBSCRIPTION_FETCHED_SUCCESS": "E-posta abonelikleri başarıyla getirildi",
+    "EMAIL_SUBSCRIPTION_FETCHED_ERROR": "E-posta abonelikleri getirilirken hata oluştu",
+    "EMAIL_SUBSCRIPTION_CREATED_SUCCESS": "E-posta aboneliği başarıyla oluşturuldu",
+    "EMAIL_SUBSCRIPTION_CREATED_ERROR": "E-posta aboneliği oluşturulurken hata oluştu",
+    "EMAIL_SUBSCRIPTION_UPDATED_SUCCESS": "E-posta aboneliği başarıyla güncellendi",
+    "EMAIL_SUBSCRIPTION_UPDATED_ERROR": "E-posta aboneliği güncellenirken hata oluştu",
+    "EMAIL_SUBSCRIPTION_DELETED_SUCCESS": "E-posta aboneliği başarıyla silindi",
+    "EMAIL_SUBSCRIPTION_DELETED_ERROR": "E-posta aboneliği silinirken hata oluştu",
+    "EMAIL_SUBSCRIPTION_NOT_FOUND": "E-posta aboneliği bulunamadı",
+    "EMAIL_SUBSCRIPTION_ALREADY_EXISTS": "E-posta aboneliği zaten mevcut",
+    "EMAIL_SUBSCRIPTION_CANCELED_SUCCESS": "E-posta aboneliği başarıyla iptal edildi",
+    "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "E-posta aboneliği iptal edilirken hata oluştu",
+    "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "E-posta aboneliği başarıyla yeniden etkinleştirildi",
+    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "E-posta aboneliği yeniden etkinleştirilirken hata oluştu"
   }
 }
