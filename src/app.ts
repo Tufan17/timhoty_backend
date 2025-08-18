@@ -27,6 +27,8 @@ import salesPartnerCommissionRoutes from "./routes/salesPartnerCommission";
 import salesPartnerUserRoutes from "./routes/salesPartnerUser";
 import notificationRoutes from "./routes/notification";
 import emailSubscriptionRoutes from "./routes/emailSubscription";
+import userAuthRoutes from "./routes/User/userAuth";
+import userRoutes from "./routes/User/user";
 
 
 
@@ -52,7 +54,7 @@ export default async function app(fastify: FastifyInstance) {
 
   fastify.register(logsRoutes, { prefix: "/logs" });  
   fastify.register(adminRoutes, { prefix: "/admins" });
-  fastify.register(adminUserRoutes, { prefix: "/users" });
+  fastify.register(adminUserRoutes, { prefix: "admin/users" });
   fastify.register(languageRoutes, { prefix: "/languages" });
   fastify.register(currencyRoutes, { prefix: "/currencies" });
   fastify.register(permissionsRoutes, { prefix: "/permissions" });
@@ -95,8 +97,10 @@ export default async function app(fastify: FastifyInstance) {
   // Email Subscription Routes
   fastify.register(emailSubscriptionRoutes, { prefix: "/email-subscriptions" });
 
+  // User Routes
+  fastify.register(userAuthRoutes, { prefix: "/users/auth" });
 
-
+  fastify.register(userRoutes, { prefix: "/users" });
 
 
 
