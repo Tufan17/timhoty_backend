@@ -103,6 +103,53 @@
     "SOLUTION_PARTNER_NOT_FOUND": "Solution partner not found",
     "SOLUTION_PARTNER_ALREADY_EXISTS": "Solution partner already exists"
   },
+  "SALES_PARTNER": {
+    "SALES_PARTNER_FETCHED_SUCCESS": "Sales partners fetched successfully",
+    "SALES_PARTNER_FETCHED_ERROR": "Sales partners fetch failed",
+    "SALES_PARTNER_CREATED_SUCCESS": "Sales partner created successfully",
+    "SALES_PARTNER_CREATED_ERROR": "Sales partner create failed",
+    "SALES_PARTNER_UPDATED_SUCCESS": "Sales partner updated successfully",
+    "SALES_PARTNER_UPDATED_ERROR": "Sales partner update failed",
+    "SALES_PARTNER_DELETED_SUCCESS": "Sales partner deleted successfully",
+    "SALES_PARTNER_DELETED_ERROR": "Sales partner delete failed",
+    "SALES_PARTNER_NOT_FOUND": "Sales partner not found",
+    "SALES_PARTNER_ALREADY_EXISTS": "Sales partner already exists"
+  },
+  "SALES_PARTNER_DOC": {
+    "SALES_PARTNER_DOC_FETCHED_SUCCESS": "Sales partner docs fetched successfully",
+    "SALES_PARTNER_DOC_FETCHED_ERROR": "Sales partner docs fetch failed",
+    "SALES_PARTNER_DOC_CREATED_SUCCESS": "Sales partner docs created successfully",
+    "SALES_PARTNER_DOC_CREATED_ERROR": "Sales partner docs create failed",
+    "SALES_PARTNER_DOC_UPDATED_SUCCESS": "Sales partner docs updated successfully",
+    "SALES_PARTNER_DOC_UPDATED_ERROR": "Sales partner docs update failed",
+    "SALES_PARTNER_DOC_DELETED_SUCCESS": "Sales partner docs deleted successfully",
+    "SALES_PARTNER_DOC_DELETED_ERROR": "Sales partner docs delete failed",
+    "SALES_PARTNER_DOC_NOT_FOUND": "Sales partner docs not found"
+  },
+  "SALES_PARTNER_COMMISSION": {
+    "SALES_PARTNER_COMMISSION_FETCHED_SUCCESS": "Sales partner commissions fetched successfully",
+    "SALES_PARTNER_COMMISSION_FETCHED_ERROR": "Sales partner commissions fetch failed",
+    "SALES_PARTNER_COMMISSION_CREATED_SUCCESS": "Sales partner commission created successfully",
+    "SALES_PARTNER_COMMISSION_CREATED_ERROR": "Sales partner commission create failed",
+    "SALES_PARTNER_COMMISSION_UPDATED_SUCCESS": "Sales partner commission updated successfully",
+    "SALES_PARTNER_COMMISSION_UPDATED_ERROR": "Sales partner commission update failed",
+    "SALES_PARTNER_COMMISSION_DELETED_SUCCESS": "Sales partner commission deleted successfully",
+    "SALES_PARTNER_COMMISSION_DELETED_ERROR": "Sales partner commission delete failed",
+    "SALES_PARTNER_COMMISSION_NOT_FOUND": "Sales partner commission not found",
+    "SALES_PARTNER_COMMISSION_ALREADY_EXISTS": "Sales partner commission already exists"
+  },
+  "SALES_PARTNER_USER": {
+    "SALES_PARTNER_USER_FETCHED_SUCCESS": "Sales partner users fetched successfully",
+    "SALES_PARTNER_USER_FETCHED_ERROR": "Sales partner users fetch failed",
+    "SALES_PARTNER_USER_CREATED_SUCCESS": "Sales partner user created successfully",
+    "SALES_PARTNER_USER_CREATED_ERROR": "Sales partner user create failed",
+    "SALES_PARTNER_USER_UPDATED_SUCCESS": "Sales partner user updated successfully",
+    "SALES_PARTNER_USER_UPDATED_ERROR": "Sales partner user update failed",
+    "SALES_PARTNER_USER_DELETED_SUCCESS": "Sales partner user deleted successfully",
+    "SALES_PARTNER_USER_DELETED_ERROR": "Sales partner user delete failed",
+    "SALES_PARTNER_USER_NOT_FOUND": "Sales partner user not found",
+    "SALES_PARTNER_USER_ALREADY_EXISTS": "Sales partner user already exists"
+  },
   "SOLUTION_PARTNER_DOC": {
     "SOLUTION_PARTNER_DOC_FETCHED_SUCCESS": "Solution partner docs fetched successfully",
     "SOLUTION_PARTNER_DOC_FETCHED_ERROR": "Solution partner docs fetch failed",
@@ -213,5 +260,10 @@
     "CONTRACT_PIVOT_DELETED_SUCCESS": "Contract pivots deleted successfully",
     "CONTRACT_PIVOT_DELETED_ERROR": "Contract pivots delete failed",
     "CONTRACT_PIVOT_NOT_FOUND": "Contract pivots not found"
-  }   
+  },
+  "LOGS": {
+    "LOGS_FETCHED_SUCCESS": "Logs fetched successfully",
+    "LOGS_FETCHED_ERROR": "Logs fetch failed",
+    "LOGS_NOT_FOUND": "Logs not found"
+  }
 }

@@ -1,8 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import knex from "../../db/knex";
 import SolutionPartnerDocModel from "@/models/SolutionPartnerDocModel";
-import PermissionModel from "@/models/PermissionModel";
-import SolutionPartnerModel from "@/models/SolutionPartnerModel";
 
 export default class SolutionPartnerDocController {
   async findAll(req: FastifyRequest, res: FastifyReply) {

@@ -21,6 +21,10 @@ import blogRoutes from "./routes/blog";
 import contractRoutes from "./routes/contract";
 import userGuideRoutes from "./routes/userGuide";
 import faqRoutes from "./routes/faq";
+import salesPartnerRoutes from "./routes/salesPartner";
+import salesPartnerDocRoutes from "./routes/salesPartnerDoc";
+import salesPartnerCommissionRoutes from "./routes/salesPartnerCommission";
+import salesPartnerUserRoutes from "./routes/salesPartnerUser";
 
 
 
@@ -60,6 +64,12 @@ export default async function app(fastify: FastifyInstance) {
   fastify.register(solutionPartnerDocRoutes, { prefix: "/solution-partner-docs" });
   fastify.register(solutionPartnerUserRoutes, { prefix: "/solution-partner-users" });
   fastify.register(solutionPartnerCommissionRoutes, { prefix: "/solution-partner-commissions" });
+
+  // Sales Partner Routes
+  fastify.register(salesPartnerRoutes, { prefix: "/sales-partners" });
+  fastify.register(salesPartnerDocRoutes, { prefix: "/sales-partner-docs" });
+  fastify.register(salesPartnerCommissionRoutes, { prefix: "/sales-partner-commissions" });
+  fastify.register(salesPartnerUserRoutes, { prefix: "/sales-partner-users" });
 
 
   // Campaign Routes

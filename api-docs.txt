@@ -82,6 +82,34 @@ Timhoty Api's
         update: /solution-partner-commissions/:id - PUT     -> çözüm ortağı komisyonunu güncelleme
         delete: /solution-partner-commissions/:id - DELETE  -> çözüm ortağı komisyonunu silme
 
+    Sales Partner
+        findAll: /sales-partners - GET                      -> satış ortaklarının datatable'ı
+        findOne: /sales-partners/:id - GET                  -> satış ortağı detayı
+        create: /sales-partners - POST                      -> satış ortağı ekleme
+        update: /sales-partners/:id - PUT                   -> satış ortağını güncelleme
+        delete: /sales-partners/:id - DELETE                -> satış ortağını silme
+
+    Sales Partner Doc
+        findAll: /sales-partner-docs/:sales_partner_id - GET -> satış ortağı belgelerinin datatable'ı
+        findOne: /sales-partner-docs/doc/:id - GET          -> satış ortağı belgesi detayı
+        create: /sales-partner-docs - POST                  -> satış ortağı belgesi ekleme
+        update: /sales-partner-docs/:id - PUT               -> satış ortağı belgesini güncelleme
+        delete: /sales-partner-docs/:id - DELETE            -> satış ortağı belgesini silme
+
+    Sales Partner Commission
+        findAll: /sales-partner-commissions - GET           -> satış ortağı komisyonlarının datatable'ı
+        findOne: /sales-partner-commissions/:id - GET       -> satış ortağı komisyonu detayı
+        create: /sales-partner-commissions - POST           -> satış ortağı komisyonu ekleme
+        update: /sales-partner-commissions/:id - PUT        -> satış ortağı komisyonunu güncelleme
+        delete: /sales-partner-commissions/:id - DELETE     -> satış ortağı komisyonunu silme
+
+    Sales Partner User
+        findAll: /sales-partner-users - GET                 -> satış ortağı kullanıcılarının datatable'ı
+        findOne: /sales-partner-users/:id - GET             -> satış ortağı kullanıcısı detayı
+        create: /sales-partner-users - POST                 -> satış ortağı kullanıcısı ekleme
+        update: /sales-partner-users/:id - PUT              -> satış ortağı kullanıcısını güncelleme
+        delete: /sales-partner-users/:id - DELETE           -> satış ortağı kullanıcısını silme
+
     Campaign
         findAll: /campaigns - GET                       -> kampanyaların datatable'ı
         findOne: /campaigns/:id - GET                   -> kampanya detayı

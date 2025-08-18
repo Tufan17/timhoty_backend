@@ -102,6 +102,53 @@
     "SOLUTION_PARTNER_NOT_FOUND": "Çözüm Ortakı bulunamadı",
     "SOLUTION_PARTNER_ALREADY_EXISTS": "Çözüm Ortakı zaten mevcut"
   },
+  "SALES_PARTNER": {
+    "SALES_PARTNER_FETCHED_SUCCESS": "Satış Ortakları başarıyla getirildi",
+    "SALES_PARTNER_FETCHED_ERROR": "Satış Ortakları getirilirken hata oluştu",
+    "SALES_PARTNER_CREATED_SUCCESS": "Satış Ortakı başarıyla oluşturuldu",
+    "SALES_PARTNER_CREATED_ERROR": "Satış Ortakı oluşturulurken hata oluştu",
+    "SALES_PARTNER_UPDATED_SUCCESS": "Satış Ortakı başarıyla güncellendi",
+    "SALES_PARTNER_UPDATED_ERROR": "Satış Ortakı güncellenirken hata oluştu",
+    "SALES_PARTNER_DELETED_SUCCESS": "Satış Ortakı başarıyla silindi",
+    "SALES_PARTNER_DELETED_ERROR": "Satış Ortakı silinirken hata oluştu",
+    "SALES_PARTNER_NOT_FOUND": "Satış Ortakı bulunamadı",
+    "SALES_PARTNER_ALREADY_EXISTS": "Satış Ortakı zaten mevcut"
+  },
+  "SALES_PARTNER_DOC": {
+    "SALES_PARTNER_DOC_FETCHED_SUCCESS": "Satış Ortakı Belgeleri başarıyla getirildi",
+    "SALES_PARTNER_DOC_FETCHED_ERROR": "Satış Ortakı Belgeleri getirilirken hata oluştu",
+    "SALES_PARTNER_DOC_CREATED_SUCCESS": "Satış Ortakı Belgeleri başarıyla oluşturuldu",
+    "SALES_PARTNER_DOC_CREATED_ERROR": "Satış Ortakı Belgeleri oluşturulurken hata oluştu",
+    "SALES_PARTNER_DOC_UPDATED_SUCCESS": "Satış Ortakı Belgeleri başarıyla güncellendi",
+    "SALES_PARTNER_DOC_UPDATED_ERROR": "Satış Ortakı Belgeleri güncellenirken hata oluştu",
+    "SALES_PARTNER_DOC_DELETED_SUCCESS": "Satış Ortakı Belgeleri başarıyla silindi",
+    "SALES_PARTNER_DOC_DELETED_ERROR": "Satış Ortakı Belgeleri silinirken hata oluştu",
+    "SALES_PARTNER_DOC_NOT_FOUND": "Satış Ortakı Belgeleri bulunamadı"
+  },
+  "SALES_PARTNER_COMMISSION": {
+    "SALES_PARTNER_COMMISSION_FETCHED_SUCCESS": "Satış Ortakı Komisyonları başarıyla getirildi",
+    "SALES_PARTNER_COMMISSION_FETCHED_ERROR": "Satış Ortakı Komisyonları getirilirken hata oluştu",
+    "SALES_PARTNER_COMMISSION_CREATED_SUCCESS": "Satış Ortakı Komisyonu başarıyla oluşturuldu",
+    "SALES_PARTNER_COMMISSION_CREATED_ERROR": "Satış Ortakı Komisyonu oluşturulurken hata oluştu",
+    "SALES_PARTNER_COMMISSION_UPDATED_SUCCESS": "Satış Ortakı Komisyonu başarıyla güncellendi",
+    "SALES_PARTNER_COMMISSION_UPDATED_ERROR": "Satış Ortakı Komisyonu güncellenirken hata oluştu",
+    "SALES_PARTNER_COMMISSION_DELETED_SUCCESS": "Satış Ortakı Komisyonu başarıyla silindi",
+    "SALES_PARTNER_COMMISSION_DELETED_ERROR": "Satış Ortakı Komisyonu silinirken hata oluştu",
+    "SALES_PARTNER_COMMISSION_NOT_FOUND": "Satış Ortakı Komisyonu bulunamadı",
+    "SALES_PARTNER_COMMISSION_ALREADY_EXISTS": "Satış Ortakı Komisyonu zaten mevcut"
+  },
+  "SALES_PARTNER_USER": {
+    "SALES_PARTNER_USER_FETCHED_SUCCESS": "Satış Ortakı Kullanıcıları başarıyla getirildi",
+    "SALES_PARTNER_USER_FETCHED_ERROR": "Satış Ortakı Kullanıcıları getirilirken hata oluştu",
+    "SALES_PARTNER_USER_CREATED_SUCCESS": "Satış Ortakı Kullanıcı başarıyla oluşturuldu",
+    "SALES_PARTNER_USER_CREATED_ERROR": "Satış Ortakı Kullanıcı oluşturulurken hata oluştu",
+    "SALES_PARTNER_USER_UPDATED_SUCCESS": "Satış Ortakı Kullanıcı başarıyla güncellendi",
+    "SALES_PARTNER_USER_UPDATED_ERROR": "Satış Ortakı Kullanıcı güncellenirken hata oluştu",
+    "SALES_PARTNER_USER_DELETED_SUCCESS": "Satış Ortakı Kullanıcı başarıyla silindi",
+    "SALES_PARTNER_USER_DELETED_ERROR": "Satış Ortakı Kullanıcı silinirken hata oluştu",
+    "SALES_PARTNER_USER_NOT_FOUND": "Satış Ortakı Kullanıcı bulunamadı",
+    "SALES_PARTNER_USER_ALREADY_EXISTS": "Satış Ortakı Kullanıcı zaten mevcut"
+  },
   "SOLUTION_PARTNER_DOC": {
     "SOLUTION_PARTNER_DOC_FETCHED_SUCCESS": "Çözüm Ortakı Belgeleri başarıyla getirildi",
     "SOLUTION_PARTNER_DOC_FETCHED_ERROR": "Çözüm Ortakı Belgeleri getirilirken hata oluştu",
@@ -212,5 +259,10 @@
     "CONTRACT_PIVOT_DELETED_SUCCESS": "Sözleşme bağlantıları başarıyla silindi",
     "CONTRACT_PIVOT_DELETED_ERROR": "Sözleşme bağlantıları silinirken hata oluştu",
     "CONTRACT_PIVOT_NOT_FOUND": "Sözleşme bağlantıları bulunamadı"
+  },
+  "LOGS": {
+    "LOGS_FETCHED_SUCCESS": "Loglar başarıyla getirildi",
+    "LOGS_FETCHED_ERROR": "Loglar getirilirken hata oluştu",
+    "LOGS_NOT_FOUND": "Loglar bulunamadı"
   }
 }

@@ -14,16 +14,7 @@ class LogsController {
               search = "",
             } = req.query as { page: number; limit: number; search: string };
             const query = knex("logs")
-              .whereNull("logs.deleted_at")
-              .where(function () {
-                this.where("name", "ilike", `%${search}%`);
-                if (
-                  search.toLowerCase() === "true" ||
-                  search.toLowerCase() === "false"
-                ) {
-                  this.orWhere("status", search.toLowerCase() === "true");
-                }
-              });
+              .whereNull("logs.deleted_at");
             const countResult = await query.clone().count("* as total").first();
             const total = Number(countResult?.total ?? 0);
             const totalPages = Math.ceil(total / Number(limit));
@@ -35,7 +26,7 @@ class LogsController {
       
             return res.status(200).send({
               success: true,
-              message: req.t("ADMIN.ADMIN_FETCHED_SUCCESS"),
+              message: req.t("LOGS.LOGS_FETCHED_SUCCESS"),
               data: data,
               recordsPerPageOptions: [10, 20, 50, 100],
               total: total,
@@ -47,7 +38,7 @@ class LogsController {
             console.log(error);
             return res.status(500).send({
               success: false,
-              message: req.t("ADMIN.ADMIN_FETCHED_ERROR"),
+              message: req.t("LOGS.LOGS_FETCHED_ERROR"),
             });
           }}
 
