@@ -141,7 +141,7 @@ export default class AdminController {
         name_surname: name_surname || existingAdmin.name_surname,
         phone: phone || existingAdmin.phone,
         language: language || existingAdmin.language,
-        status: status || existingAdmin.status,
+        status,
         password: password,
       };
 
