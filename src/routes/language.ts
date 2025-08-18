@@ -20,6 +20,10 @@ export default async function languageRoutes(fastify: FastifyInstance) {
     preHandler: [authAdminMiddleware],
     handler: languageController.findAll,
   });
+  fastify.get("/active", {
+    preHandler: [authAdminMiddleware],
+    handler: languageController.findAllActive,
+  });
   fastify.get("/:id", {
     preHandler: [authAdminMiddleware],
     handler: languageController.findOne,

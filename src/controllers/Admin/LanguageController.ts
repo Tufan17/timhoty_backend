@@ -70,6 +70,23 @@ export default class LanguageController {
     }
   }
 
+  async findAllActive(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const languages = await new LanguageModel().getAll();
+      return res.status(200).send({
+        success: true,
+        message: req.t("LANGUAGE.LANGUAGE_FETCHED_SUCCESS"),
+        data: languages,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("LANGUAGE.LANGUAGE_FETCHED_ERROR"),
+      });
+    }
+  }
+
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
       const { name, code } = req.body as {
