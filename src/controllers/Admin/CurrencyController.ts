@@ -17,7 +17,11 @@ export default class CurrencyController {
 
       const query = knex("currencies")
         .whereNull("currencies.deleted_at")
-        .innerJoin("currency_pivots", "currencies.id", "currency_pivots.currency_id")
+        .innerJoin(
+          "currency_pivots",
+          "currencies.id",
+          "currency_pivots.currency_id"
+        )
         .where("currency_pivots.language_code", language)
         .where(function () {
           this.where("currency_pivots.name", "ilike", `%${search}%`);
@@ -25,12 +29,15 @@ export default class CurrencyController {
             search.toLowerCase() === "true" ||
             search.toLowerCase() === "false"
           ) {
-            this.orWhere("currencies.is_active", search.toLowerCase() === "true");
+            this.orWhere(
+              "currencies.is_active",
+              search.toLowerCase() === "true"
+            );
           }
         })
         .select("currencies.*", "currency_pivots.name as name")
         .groupBy("currencies.id", "currency_pivots.name");
-        
+
       const countResult = await query.clone().count("* as total").first();
       const total = Number(countResult?.total ?? 0);
       const totalPages = Math.ceil(total / Number(limit));
@@ -62,8 +69,18 @@ export default class CurrencyController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const currency = await new CurrencyModel().oneToMany(id, "currency_pivots", "currency_id");
-      
+      const language = req.language;
+      const currency = await knex("currencies")
+        .where("id", id)
+        .innerJoin(
+          "currency_pivots",
+          "currencies.id",
+          "currency_pivots.currency_id"
+        )
+        .where("currency_pivots.language_code", language)
+        .select("currencies.*", "currency_pivots.name as name")
+        .first();
+
       return res.status(200).send({
         success: true,
         message: req.t("CURRENCY.CURRENCY_FETCHED_SUCCESS"),
@@ -112,7 +129,6 @@ export default class CurrencyController {
       });
       currency.currency_pivots = translateResult;
 
-
       return res.status(200).send({
         success: true,
         message: req.t("CURRENCY.CURRENCY_CREATED_SUCCESS"),
@@ -151,7 +167,7 @@ export default class CurrencyController {
         code: code || existingCurrency.code,
         symbol: symbol || existingCurrency.symbol,
         position: position || existingCurrency.position,
-        is_active ,
+        is_active,
       };
 
       await new CurrencyModel().update(id, body);
@@ -163,7 +179,11 @@ export default class CurrencyController {
           name,
         },
       });
-      const updatedCurrency = await new CurrencyModel().oneToMany(id, "currency_pivots", "currency_id");
+      const updatedCurrency = await new CurrencyModel().oneToMany(
+        id,
+        "currency_pivots",
+        "currency_id"
+      );
 
       return res.status(200).send({
         success: true,
@@ -192,7 +212,10 @@ export default class CurrencyController {
       }
 
       await new CurrencyModel().delete(id);
-      await knex("currency_pivots").where("currency_id", id).whereNull("deleted_at").update({ deleted_at: new Date() });
+      await knex("currency_pivots")
+        .where("currency_id", id)
+        .whereNull("deleted_at")
+        .update({ deleted_at: new Date() });
 
       return res.status(200).send({
         success: true,
