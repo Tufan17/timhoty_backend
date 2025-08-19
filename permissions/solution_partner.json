@@ -6,5 +6,7 @@
     "settings",
     "employees",
     "users",
-    "support"
+    "support",
+    "activity",
+    "reservations"
 ]

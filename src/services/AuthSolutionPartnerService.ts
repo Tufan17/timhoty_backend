@@ -8,6 +8,7 @@ import SolutionPartnerUserModel from "@/models/SolutionPartnerUserModel";
 import SolutionPartnerModel from "@/models/SolutionPartnerModel";
 import HashPassword from "@/utils/hashPassword";
 import SolutionPartnerTokenModel from "@/models/SolutionPartnerTokenModel";
+import PermissionModel from "@/models/PermissionModel";
 
 export default class AuthSolutionPartnerService {
   constructor() {}
@@ -83,6 +84,12 @@ export default class AuthSolutionPartnerService {
         expires_at: new Date(Date.now() + week),
       });
 
+      const permissions = await new PermissionModel().getSolutionPartnerPermissions(
+        solutionPartnerUser.id
+      );
+      
+
+
       return {
         success: true,
         message: t("AUTH.LOGIN_SUCCESS"),
@@ -110,6 +117,7 @@ export default class AuthSolutionPartnerService {
           application_status_id: solutionPartner.application_status_id,
           status: solutionPartner.status,
         },
+        permissions,
         token,
       };
     } catch (error) {
