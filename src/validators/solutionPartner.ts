@@ -75,3 +75,21 @@ export const solutionPartnerCommissionUpdateSchema = Joi.object({
   commission_value: Joi.number().optional(),
   commission_currency: Joi.string().optional().valid("USD", "EUR", "TRY"),
 });
+
+
+export const solutionPartnerRegisterSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+  nameSolutionPartner: Joi.string().required(),
+  phoneSolutionPartner: Joi.string().required(),
+  addressSolutionPartner: Joi.string().required(),
+  taxOffice: Joi.string().required(),
+  taxNumber: Joi.string().required(),
+  bankName: Joi.string().required(),
+  swiftNumber: Joi.string().required(),
+  accountOwner: Joi.string().required(),
+  iban: Joi.string().required(),
+  nameSurname: Joi.string().required(),
+  country: Joi.string().required(),
+  city: Joi.string().required(),
+});

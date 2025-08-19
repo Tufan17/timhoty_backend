@@ -7,6 +7,7 @@ import UserAuthController from "@/controllers/Auth/UserAuthController";
 import { AuthValidation } from "@/validators/userAuthValidation";
 import SolutionPartnerAuthController from "@/controllers/Auth/SolutionPartnerAuthController";
 import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
+import { solutionPartnerRegisterSchema } from "@/validators/solutionPartner";
 
 export default async function authRoutes(fastify: FastifyInstance) {
   const adminController = new AdminAuthController(); // Admin Auth Controller
@@ -44,6 +45,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
     preValidation: [AuthValidation.login],
     handler: solutionPartnerAuthController.login,
   });
+  fastify.post("/solution-partner/register", {
+    preValidation: [validate(solutionPartnerRegisterSchema)],
+    handler: solutionPartnerAuthController.register,
+  }); 
   fastify.post("/solution-partner/logout", {
     preHandler: [authSolutionPartnerMiddleware],
     handler: solutionPartnerAuthController.logout,

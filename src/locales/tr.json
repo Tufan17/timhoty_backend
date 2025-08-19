@@ -109,7 +109,15 @@
     "SOLUTION_PARTNER_DELETED_SUCCESS": "Çözüm Ortakı başarıyla silindi",
     "SOLUTION_PARTNER_DELETED_ERROR": "Çözüm Ortakı silinirken hata oluştu",
     "SOLUTION_PARTNER_NOT_FOUND": "Çözüm Ortakı bulunamadı",
-    "SOLUTION_PARTNER_ALREADY_EXISTS": "Çözüm Ortakı zaten mevcut"
+    "SOLUTION_PARTNER_ALREADY_EXISTS": "Çözüm Ortakı zaten mevcut",
+    "SOLUTION_PARTNER_REGISTER_SUCCESS": "Çözüm Ortakı başarıyla oluşturuldu",
+    "SOLUTION_PARTNER_REGISTER_ERROR": "Çözüm Ortakı oluşturulurken hata oluştu",
+    "SOLUTION_PARTNER_LOGIN_SUCCESS": "Çözüm Ortakı başarıyla giriş yapıldı",
+    "SOLUTION_PARTNER_LOGIN_ERROR": "Çözüm Ortakı giriş yapılırken hata oluştu",
+    "SOLUTION_PARTNER_LOGOUT_SUCCESS": "Çözüm Ortakı başarıyla çıkış yapıldı",
+    "SOLUTION_PARTNER_LOGOUT_ERROR": "Çözüm Ortakı çıkış yapılırken hata oluştu",
+    "SOLUTION_PARTNER_USER_ALREADY_EXISTS": "Çözüm Ortakı kullanıcısı zaten mevcut",
+    "SOLUTION_PARTNER_USER_NOT_FOUND": "Çözüm Ortakı kullanıcısı bulunamadı"
   },
   "SALES_PARTNER": {
     "SALES_PARTNER_FETCHED_SUCCESS": "Satış Ortakları başarıyla getirildi",

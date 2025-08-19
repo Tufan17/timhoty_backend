@@ -1,41 +1,41 @@
 import { FastifyInstance } from "fastify";
 
 // Admin Management Routes
-import adminRoutes from "./admin/admin";
-import permissionsRoutes from "./admin/permissions";
-import logsRoutes from "./admin/logs";
-import adminUserRoutes from "./admin/user";
+import adminRoutes from "./Admin/admin";
+import permissionsRoutes from "./Admin/permissions";
+import logsRoutes from "./Admin/logs";
+import adminUserRoutes from "./Admin/user";
 
 // System Configuration Routes
-import languageRoutes from "./admin/language";
-import currencyRoutes from "./admin/currency";
+import languageRoutes from "./Admin/language";
+import currencyRoutes from "./Admin/currency";
 
 // Location Management Routes
-import countryRoutes from "./admin/country";
-import cityRoutes from "./admin/city";
+import countryRoutes from "./Admin/country";
+import cityRoutes from "./Admin/city";
 
 // Solution Partner Routes
-import solutionPartnerRoutes from "./admin/solutionPartner";
-import solutionPartnerDocRoutes from "./admin/solutionPartnerDoc";
-import solutionPartnerUserRoutes from "./admin/solutionPartnerUser";
-import solutionPartnerCommissionRoutes from "./admin/solutionPartnerCommission";
+import solutionPartnerRoutes from "./Admin/solutionPartner";
+import solutionPartnerDocRoutes from "./Admin/solutionPartnerDoc";
+import solutionPartnerUserRoutes from "./Admin/solutionPartnerUser";
+import solutionPartnerCommissionRoutes from "./Admin/solutionPartnerCommission";
 
 // Sales Partner Routes
-import salesPartnerRoutes from "./admin/salesPartner";
-import salesPartnerDocRoutes from "./admin/salesPartnerDoc";
-import salesPartnerUserRoutes from "./admin/salesPartnerUser";
-import salesPartnerCommissionRoutes from "./admin/salesPartnerCommission";
+import salesPartnerRoutes from "./Admin/salesPartner";
+import salesPartnerDocRoutes from "./Admin/salesPartnerDoc";
+import salesPartnerUserRoutes from "./Admin/salesPartnerUser";
+import salesPartnerCommissionRoutes from "./Admin/salesPartnerCommission";
 
 // Content Management Routes
-import campaignRoutes from "./admin/campaign";
-import blogRoutes from "./admin/blog";
-import contractRoutes from "./admin/contract";
-import userGuideRoutes from "./admin/userGuide";
-import faqRoutes from "./admin/faq";
+import campaignRoutes from "./Admin/campaign";
+import blogRoutes from "./Admin/blog";
+import contractRoutes from "./Admin/contract";
+import userGuideRoutes from "./Admin/userGuide";
+import faqRoutes from "./Admin/faq";
 
 // Communication Routes
-import notificationRoutes from "./admin/notification";
-import emailSubscriptionRoutes from "./admin/emailSubscription";
+import notificationRoutes from "./Admin/notification";
+import emailSubscriptionRoutes from "./Admin/emailSubscription";
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
   // ===========================================

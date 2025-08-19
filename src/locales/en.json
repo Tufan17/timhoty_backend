@@ -110,7 +110,14 @@
     "SOLUTION_PARTNER_DELETED_SUCCESS": "Solution partner deleted successfully",
     "SOLUTION_PARTNER_DELETED_ERROR": "Solution partner delete failed",
     "SOLUTION_PARTNER_NOT_FOUND": "Solution partner not found",
-    "SOLUTION_PARTNER_ALREADY_EXISTS": "Solution partner already exists"
+    "SOLUTION_PARTNER_ALREADY_EXISTS": "Solution partner already exists",
+    "SOLUTION_PARTNER_REGISTER_SUCCESS": "Solution partner registered successfully",
+    "SOLUTION_PARTNER_REGISTER_ERROR": "Solution partner registration failed",
+    "SOLUTION_PARTNER_LOGIN_SUCCESS": "Solution partner logged in successfully",
+    "SOLUTION_PARTNER_LOGIN_ERROR": "Solution partner login failed",
+    "SOLUTION_PARTNER_LOGOUT_SUCCESS": "Solution partner logged out successfully",
+    "SOLUTION_PARTNER_LOGOUT_ERROR": "Solution partner logout failed",
+    "SOLUTION_PARTNER_USER_ALREADY_EXISTS": "Solution partner user already exists"
   },
   "SALES_PARTNER": {
     "SALES_PARTNER_FETCHED_SUCCESS": "Sales partners fetched successfully",

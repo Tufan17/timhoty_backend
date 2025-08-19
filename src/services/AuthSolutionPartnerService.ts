@@ -9,6 +9,7 @@ import SolutionPartnerModel from "@/models/SolutionPartnerModel";
 import HashPassword from "@/utils/hashPassword";
 import SolutionPartnerTokenModel from "@/models/SolutionPartnerTokenModel";
 import PermissionModel from "@/models/PermissionModel";
+import ApplicationStatusModel from "@/models/ApplicationStatusModel";
 
 export default class AuthSolutionPartnerService {
   constructor() {}
@@ -16,11 +17,13 @@ export default class AuthSolutionPartnerService {
   async login(email: string, password: string, t: (key: string) => string) {
     try {
       // Solution Partner User'ı email ile bul
-      const solutionPartnerUser = await new SolutionPartnerUserModel().first({ email });
+      const solutionPartnerUser = await new SolutionPartnerUserModel().first({
+        email,
+      });
       if (!solutionPartnerUser) {
         return {
           success: false,
-          message: t("AUTH.SOLUTION_PARTNER_NOT_FOUND"),
+          message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_NOT_FOUND"),
         };
       }
 
@@ -28,28 +31,29 @@ export default class AuthSolutionPartnerService {
       if (solutionPartnerUser.status === false) {
         return {
           success: false,
-          message: t("AUTH.SOLUTION_PARTNER_NOT_ACTIVE"),
+          message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_NOT_ACTIVE"),
         };
       }
 
       // Solution Partner bilgilerini al
-      const solutionPartner = await new SolutionPartnerModel().first({ 
-        id: solutionPartnerUser.solution_partner_id 
+      const solutionPartner = await new SolutionPartnerModel().first({
+        id: solutionPartnerUser.solution_partner_id,
       });
 
       if (!solutionPartner || solutionPartner.status === false) {
         return {
           success: false,
-          message: t("AUTH.SOLUTION_PARTNER_COMPANY_NOT_ACTIVE"),
+          message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_COMPANY_NOT_ACTIVE"),
         };
       }
 
       // Şifre kontrolü
-      const isPasswordValid = HashPassword(password) === solutionPartnerUser.password;
+      const isPasswordValid =
+        HashPassword(password) === solutionPartnerUser.password;
       if (!isPasswordValid) {
         return {
           success: false,
-          message: t("AUTH.INVALID_PASSWORD"),
+          message: t("SOLUTION_PARTNER.INVALID_PASSWORD"),
         };
       }
 
@@ -71,7 +75,7 @@ export default class AuthSolutionPartnerService {
         console.error("Error generating token:", error);
         return {
           success: false,
-          message: t("AUTH.TOKEN_GENERATION_ERROR"),
+          message: t("SOLUTION_PARTNER.TOKEN_GENERATION_ERROR"),
         };
       }
 
@@ -84,15 +88,14 @@ export default class AuthSolutionPartnerService {
         expires_at: new Date(Date.now() + week),
       });
 
-      const permissions = await new PermissionModel().getSolutionPartnerPermissions(
-        solutionPartnerUser.id
-      );
-      
-
+      const permissions =
+        await new PermissionModel().getSolutionPartnerPermissions(
+          solutionPartnerUser.id
+        );
 
       return {
         success: true,
-        message: t("AUTH.LOGIN_SUCCESS"),
+        message: t("SOLUTION_PARTNER.LOGIN_SUCCESS"),
         user: {
           id: solutionPartnerUser.id,
           solution_partner_id: solutionPartnerUser.solution_partner_id,
@@ -124,7 +127,7 @@ export default class AuthSolutionPartnerService {
       console.error("Solution Partner Login Error:", error);
       return {
         success: false,
-        message: t("AUTH.LOGIN_ERROR"),
+        message: t("SOLUTION_PARTNER.LOGIN_ERROR"),
       };
     }
   }
@@ -132,26 +135,28 @@ export default class AuthSolutionPartnerService {
   async logout(token: string, t: (key: string) => string) {
     try {
       // Token'ı veritabanından bul
-      const solutionPartnerToken = await new SolutionPartnerTokenModel().first({ token });
+      const solutionPartnerToken = await new SolutionPartnerTokenModel().first({
+        token,
+      });
       if (!solutionPartnerToken) {
         return {
           success: false,
-          message: t("AUTH.TOKEN_NOT_FOUND"),
+          message: t("SOLUTION_PARTNER.TOKEN_NOT_FOUND"),
         };
       }
 
       // Token'ı sil
       await new SolutionPartnerTokenModel().delete(solutionPartnerToken.id);
-      
+
       return {
         success: true,
-        message: t("AUTH.LOGOUT_SUCCESS"),
+        message: t("SOLUTION_PARTNER.LOGOUT_SUCCESS"),
       };
     } catch (error) {
       console.error("Solution Partner Logout Error:", error);
       return {
         success: false,
-        message: t("AUTH.LOGOUT_ERROR"),
+        message: t("SOLUTION_PARTNER.LOGOUT_ERROR"),
       };
     }
   }
@@ -159,11 +164,13 @@ export default class AuthSolutionPartnerService {
   async validateToken(token: string, t: (key: string) => string) {
     try {
       // Token'ı veritabanından kontrol et
-      const solutionPartnerToken = await new SolutionPartnerTokenModel().first({ token });
+      const solutionPartnerToken = await new SolutionPartnerTokenModel().first({
+        token,
+      });
       if (!solutionPartnerToken) {
         return {
           success: false,
-          message: t("AUTH.TOKEN_NOT_FOUND"),
+          message: t("SOLUTION_PARTNER.TOKEN_NOT_FOUND"),
         };
       }
 
@@ -172,23 +179,23 @@ export default class AuthSolutionPartnerService {
         await new SolutionPartnerTokenModel().delete(solutionPartnerToken.id);
         return {
           success: false,
-          message: t("AUTH.TOKEN_EXPIRED"),
+          message: t("SOLUTION_PARTNER.TOKEN_EXPIRED"),
         };
       }
 
       // JWT token'ı verify et
       try {
         const decoded = jwt.verify(token, secret) as any;
-        
+
         // Solution Partner User bilgilerini al
-        const solutionPartnerUser = await new SolutionPartnerUserModel().first({ 
-          id: decoded.id 
+        const solutionPartnerUser = await new SolutionPartnerUserModel().first({
+          id: decoded.id,
         });
-        
+
         if (!solutionPartnerUser || solutionPartnerUser.status === false) {
           return {
             success: false,
-            message: t("AUTH.SOLUTION_PARTNER_NOT_ACTIVE"),
+            message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_NOT_ACTIVE"),
           };
         }
 
@@ -200,14 +207,98 @@ export default class AuthSolutionPartnerService {
       } catch (jwtError) {
         return {
           success: false,
-          message: t("AUTH.INVALID_TOKEN"),
+          message: t("SOLUTION_PARTNER.INVALID_TOKEN"),
         };
       }
     } catch (error) {
       console.error("Token Validation Error:", error);
       return {
         success: false,
-        message: t("AUTH.TOKEN_VALIDATION_ERROR"),
+        message: t("SOLUTION_PARTNER.TOKEN_VALIDATION_ERROR"),
+      };
+    }
+  }
+
+  async register(
+    email: string,
+    password: string,
+    nameSolutionPartner: string,
+    phoneSolutionPartner: string,
+    addressSolutionPartner: string,
+    taxOffice: string,
+    taxNumber: string,
+    bankName: string,
+    swiftNumber: string,
+    accountOwner: string,
+    iban: string,
+    nameSurname: string,
+    country: string,
+    city: string,
+    language: string,
+    t: (key: string) => string
+  ) {
+    try {
+      const solutionPartnerUserCheck = await new SolutionPartnerUserModel().first({
+        email,
+      });
+      if (solutionPartnerUserCheck) {
+        return {
+          success: false,
+          message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_USER_ALREADY_EXISTS"),
+        };
+      }
+
+      const exitSolutionPartner = await new SolutionPartnerModel().first({
+        name: nameSolutionPartner,
+      });
+      if (exitSolutionPartner) {
+        return {
+          success: false,
+          message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_ALREADY_EXISTS"),
+        };
+      } 
+
+
+      const application_status = await new ApplicationStatusModel().create({
+        name: "Pending"
+      });
+
+      const solutionPartner = await new SolutionPartnerModel().create({
+        name: nameSolutionPartner,
+        phone: phoneSolutionPartner,
+        address: addressSolutionPartner,
+        tax_office: taxOffice,
+        tax_number: taxNumber,
+        bank_name: bankName,
+        swift_number: swiftNumber,
+        account_owner: accountOwner,
+        iban: iban,
+        location_id: city,
+        application_status_id: application_status?.id,
+        language_code: language,
+      });
+
+      const solutionPartnerUser = await new SolutionPartnerUserModel().create({
+        email: email,
+        password: password,
+        name_surname: nameSurname,
+        phone: phoneSolutionPartner,
+        solution_partner_id: solutionPartner.id,
+        type: "manager",
+        language_code: language,
+        status: false,
+      });
+
+      return {
+        success: true,
+        message: t("SOLUTION_PARTNER.REGISTER_SUCCESS"),
+        data: solutionPartnerUser,
+      };
+    } catch (error) {
+      console.error("Solution Partner Register Error:", error);
+      return {
+        success: false,
+        message: t("SOLUTION_PARTNER.REGISTER_ERROR"),
       };
     }
   }
