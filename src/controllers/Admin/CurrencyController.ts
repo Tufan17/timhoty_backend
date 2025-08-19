@@ -71,7 +71,7 @@ export default class CurrencyController {
       const { id } = req.params as { id: string };
       const language = req.language;
       const currency = await knex("currencies")
-        .where("id", id)
+        .where("currencies.id", id)
         .innerJoin(
           "currency_pivots",
           "currencies.id",
