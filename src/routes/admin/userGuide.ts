@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import UserGuideController from "../controllers/Admin/UserGuideController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import UserGuideController from "../../controllers/Admin/UserGuideController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { userGuideSchema, userGuideUpdateSchema } from "@/validators/userGuide";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import UserGuideModel from "@/models/UserGuideModel";
 import { validate } from "@/middlewares/validate";
 

@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import CampaignController from "../controllers/Admin/CampaignController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import CampaignController from "../../controllers/Admin/CampaignController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { campaignSchema, campaignUpdateSchema } from "@/validators/campaign";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import CampaignModel from "@/models/CampaignModel";
 import { validateFormData } from "@/middlewares/validateFormData";
 

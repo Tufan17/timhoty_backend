@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import CurrencyController from "../controllers/Admin/CurrencyController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { validate } from "../middlewares/validate";
+import CurrencyController from "../../controllers/Admin/CurrencyController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { validate } from "../../middlewares/validate";
 import { currencySchema, currencyUpdateSchema } from "@/validators/currency";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import CurrencyModel from "@/models/CurrencyModel";
 
 export default async function currencyRoutes(fastify: FastifyInstance) {

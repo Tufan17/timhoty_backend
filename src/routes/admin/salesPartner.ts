@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import SalesPartnerController from "../controllers/Admin/SalesPartnerController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { validate } from "../middlewares/validate";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
-import SalesPartnerModel from "../models/SalesPartnerModel";
+import SalesPartnerController from "../../controllers/Admin/SalesPartnerController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { validate } from "../../middlewares/validate";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
+import SalesPartnerModel from "../../models/SalesPartnerModel";
 import { salesPartnerSchema, salesPartnerUpdateSchema } from "@/validators/salesPartner";
 
 export default async function salesPartnerRoutes(fastify: FastifyInstance) {

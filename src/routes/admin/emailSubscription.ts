@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import EmailSubscriptionController from "../controllers/Admin/EmailSubscriptionController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import EmailSubscriptionController from "../../controllers/Admin/EmailSubscriptionController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import { emailSubscriptionSchema, emailSubscriptionUpdateSchema } from "@/validators/emailSubscription";
 import EmailSubscriptionModel from "@/models/EmailSubscriptionModel";
 import { validate } from "@/middlewares/validate";

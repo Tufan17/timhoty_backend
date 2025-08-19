@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import CountryController from "../controllers/Admin/CountryController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import CountryController from "../../controllers/Admin/CountryController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { countrySchema, countryUpdateSchema } from "@/validators/country";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import CountryModel from "@/models/CountryModel";
 import { validateFormData } from "@/middlewares/validateFormData";
 

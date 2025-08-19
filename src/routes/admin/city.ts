@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import CityController from "../controllers/Admin/CityController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { citySchema, cityUpdateSchema, cityQuerySchema } from "../validators/city";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
-import CityModel from "../models/CityModel";
-import { validateFormData } from "../middlewares/validateFormData";
-import { validateQuery } from "../middlewares/validateQuery";
+import CityController from "../../controllers/Admin/CityController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { citySchema, cityUpdateSchema, cityQuerySchema } from "../../validators/city";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
+import CityModel from "../../models/CityModel";
+import { validateFormData } from "../../middlewares/validateFormData";
+import { validateQuery } from "../../middlewares/validateQuery";
 
 export default async function cityRoutes(fastify: FastifyInstance) {
   const cityController = new CityController();

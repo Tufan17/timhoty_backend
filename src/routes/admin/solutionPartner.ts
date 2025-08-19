@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import SolutionPartnerController from "../controllers/Admin/SolutionPartnerController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { validate } from "../middlewares/validate";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
-import SolutionPartnerModel from "../models/SolutionPartnerModel";
+import SolutionPartnerController from "../../controllers/Admin/SolutionPartnerController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { validate } from "../../middlewares/validate";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
+import SolutionPartnerModel from "../../models/SolutionPartnerModel";
 import { solutionPartnerSchema, solutionPartnerUpdateSchema } from "@/validators/solutionPartner";
 
 export default async function adminRoutes(fastify: FastifyInstance) {

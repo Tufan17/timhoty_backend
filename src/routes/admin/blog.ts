@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import BlogController from "../controllers/Admin/BlogController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import BlogController from "../../controllers/Admin/BlogController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { blogSchema, blogUpdateSchema } from "@/validators/blog";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import BlogModel from "@/models/BlogModel";
 import { validateFormData } from "@/middlewares/validateFormData";
 

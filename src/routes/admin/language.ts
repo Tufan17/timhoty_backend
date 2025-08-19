@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import LanguageController from "../controllers/Admin/LanguageController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { validate } from "../middlewares/validate";
+import LanguageController from "../../controllers/Admin/LanguageController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { validate } from "../../middlewares/validate";
 import { languageSchema, languageUpdateSchema } from "@/validators/language";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import LanguageModel from "@/models/LanguageModel";
 
 export default async function languageRoutes(fastify: FastifyInstance) {

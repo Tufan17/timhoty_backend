@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import NotificationController from "../controllers/Admin/NotificationController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import NotificationController from "../../controllers/Admin/NotificationController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import { notificationSchema, notificationUpdateSchema } from "@/validators/notification";
 import NotificationModel from "@/models/NotificationModel";
 import { validate } from "@/middlewares/validate";

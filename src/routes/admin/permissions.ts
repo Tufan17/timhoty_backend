@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import PermissionController from "../controllers/PermissionController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { validate } from "../middlewares/validate";
+import PermissionController from "../../controllers/PermissionController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { validate } from "../../middlewares/validate";
 import {
   permissionSchema,
   permissionTotalSchema,

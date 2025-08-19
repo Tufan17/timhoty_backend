@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import ContractController from "../controllers/Admin/ContractController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import ContractController from "../../controllers/Admin/ContractController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { contractSchema, contractUpdateSchema } from "@/validators/contract";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import ContractModel from "@/models/ContractModel";
 import { validate } from "@/middlewares/validate";
 

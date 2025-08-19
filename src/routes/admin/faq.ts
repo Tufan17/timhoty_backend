@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import FaqController from "../controllers/Admin/FaqController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import FaqController from "../../controllers/Admin/FaqController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { faqSchema, faqUpdateSchema } from "@/validators/faq";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import FaqModel from "@/models/FaqModel";
 import { validate } from "@/middlewares/validate";
 

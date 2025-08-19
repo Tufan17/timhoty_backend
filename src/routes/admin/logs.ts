@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
-import LogsController from "../controllers/LogsController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
+import LogsController from "../../controllers/LogsController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 
 export default async function permissionRoutes(fastify: FastifyInstance) {
   const controller = new LogsController();

@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import SalesPartnerCommissionController from "../controllers/Admin/SalesPartnerCommissionController";
-import { authAdminMiddleware } from "../middlewares/authAdminMiddleware";
-import { makeAuditLogger } from "../middlewares/logMiddleware";
+import SalesPartnerCommissionController from "../../controllers/Admin/SalesPartnerCommissionController";
+import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
+import { makeAuditLogger } from "../../middlewares/logMiddleware";
 import { salesPartnerCommissionSchema, salesPartnerCommissionUpdateSchema } from "@/validators/salesPartner";
 import SalesPartnerCommissionModel from "@/models/SalesPartnerCommissionModel";
 import { validate } from "@/middlewares/validate";
