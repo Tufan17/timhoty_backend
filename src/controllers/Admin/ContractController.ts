@@ -96,6 +96,7 @@ export default class ContractController {
           title,
           description,
         },
+        language_code: req.language,
       });
       contract.contract_pivots = translateResult;
 
@@ -145,6 +146,7 @@ export default class ContractController {
           title,
           description,
         },
+        language_code: req.language,
       });
       const updatedContract = await new ContractModel().oneToMany(id, "contract_pivots", "contract_id");
 

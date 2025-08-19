@@ -106,6 +106,7 @@ export default class CampaignController {
           title,
           description,
         },
+        language_code: req.language,
       });
       campaign.campaign_pivots = translateResult;
 
@@ -152,8 +153,8 @@ export default class CampaignController {
         end_date: end_date || existingCampaign.end_date,
         photo_url: photo_url || existingCampaign.photo_url,
         service_type: service_type || existingCampaign.service_type,
-        status: status || existingCampaign.status || true,
-        highlight: highlight || existingCampaign.highlight || false,
+        status,
+        highlight,
       };
 
       await new CampaignModel().update(id, body);

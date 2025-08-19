@@ -90,6 +90,7 @@ export default class UserGuideController {
           title,
           description,
         },
+        language_code: req.language,
       });
       userGuide.user_guide_pivots = translateResult;
 
@@ -139,6 +140,7 @@ export default class UserGuideController {
           title,
           description,
         },
+        language_code: req.language,
       });
       const updatedUserGuide = await new UserGuideModel().oneToMany(id, "user_guide_pivots", "user_guide_id");
 

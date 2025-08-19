@@ -120,9 +120,10 @@ export default class CountryController {
         target: "country_pivots",
         target_id_key: "country_id",
         target_id: country.id,
+        language_code: req.language,
         data: {
           name
-        },
+        },    
       });
       country.country_pivots = translateResult;
 
@@ -178,6 +179,7 @@ export default class CountryController {
         data: {
           name,
         },
+        language_code: req.language,
       });
       const updatedCountry = await new CountryModel().oneToMany(id, "country_pivots", "country_id");
 

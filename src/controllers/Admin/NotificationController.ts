@@ -106,6 +106,7 @@ export default class NotificationController {
           title,
           description,
         },
+        language_code: req.language,
       });
       notification.notification_pivots = translateResult;
 
@@ -180,6 +181,7 @@ export default class NotificationController {
           title,
           description,
         },
+        language_code: req.language,
       });
       updatedNotification.notification_pivots = translateResult;
       return res.status(200).send({

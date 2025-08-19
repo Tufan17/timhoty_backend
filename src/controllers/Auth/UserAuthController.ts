@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import AuthUserService from "../services/AuthUserService";
+import AuthUserService from "../../services/AuthUserService";
 
 export default class UserAuthController {
 

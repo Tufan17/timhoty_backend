@@ -7,10 +7,18 @@
     "LOGIN_ERROR": "Login error",
     "TOKEN_NOT_FOUND": "Token not found",
     "LOGOUT_SUCCESS": "Logout successful",
+    "LOGOUT_ERROR": "Logout error",
     "LOGIN_SUCCESS": "Login successful",
     "TOKEN_EXPIRED": "Token expired",
     "TOKEN_INVALID": "Token invalid",
-    "ADMIN_NOT_ACTIVE": "Admin not active"
+    "INVALID_TOKEN": "Invalid token",
+    "TOKEN_VALIDATION_ERROR": "Token validation error",
+    "ADMIN_NOT_ACTIVE": "Admin not active",
+    "SOLUTION_PARTNER_NOT_FOUND": "Solution partner user not found",
+    "SOLUTION_PARTNER_NOT_ACTIVE": "Solution partner user not active",
+    "SOLUTION_PARTNER_COMPANY_NOT_ACTIVE": "Solution partner company not active",
+    "PROFILE_SUCCESS": "Profile retrieved successfully",
+    "PROFILE_ERROR": "Profile retrieval failed"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Admins fetched successfully",

@@ -7,9 +7,10 @@ interface TranslateProps {
   target_id: string;
   target_id_key: string;
   data: Record<string, any>;
+  language_code?: string;
 }
 
-export const translateCreate = async ({ target, target_id, target_id_key, data }: TranslateProps) => {
+export const translateCreate = async ({ target, target_id, target_id_key, data, language_code }: TranslateProps) => {
  try{
     const languageModel = new LanguageModel();
     const languages = await languageModel.getAll("code", { deleted_at: null });
@@ -20,11 +21,16 @@ export const translateCreate = async ({ target, target_id, target_id_key, data }
         language_code: language.code,
       };
       for (const key in data) {
+        if(language_code!=language.code){
         const translatedText = await translateText({
           text: data[key],
           targetLanguage: language.code,
+          sourceLanguage: language_code ,
         });
         translatedData[key] = translatedText.translatedText;
+        }else{
+          translatedData[key] = data[key];
+        }
       }
       let newData=await knex(target).insert(translatedData).returning('*'); 
       newDatas.push(newData[0]);
@@ -37,7 +43,7 @@ export const translateCreate = async ({ target, target_id, target_id_key, data }
 };
 
 
-export const translateUpdate = async ({ target, target_id, target_id_key, data }: TranslateProps) => {
+export const translateUpdate = async ({ target, target_id, target_id_key, data, language_code }: TranslateProps) => {
   try{
     const languageModel = new LanguageModel();
     const languages = await languageModel.getAll("code", { deleted_at: null });
@@ -47,11 +53,17 @@ export const translateUpdate = async ({ target, target_id, target_id_key, data }
         language_code: language.code,
       };
       for (const key in data) {
+        if(language_code!=language.code){
         const translatedText = await translateText({
           text: data[key],
           targetLanguage: language.code,
+          sourceLanguage: language_code,
         });
+
         translatedData[key] = translatedText.translatedText;
+        }else{
+          translatedData[key] = data[key];
+        }
       }
       await knex(target).where(target_id_key, target_id).where("language_code", language.code).update(translatedData);
     }

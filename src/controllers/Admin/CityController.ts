@@ -88,11 +88,11 @@ export default class CityController {
 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { name, country_id, number_plate, photo } = req.body as {
+      const { name, country_id, number_plate="", photo="" } = req.body as {
         name: string;
         country_id: string;
-        number_plate: string;
-        photo: string;
+        number_plate?: string;
+        photo?: string;
       };
       const language = req.language || "en";
       const existingCity = await knex("cities")
@@ -123,6 +123,7 @@ export default class CityController {
         data: {
           name,
         },
+        language_code: req.language,
       });
       city.city_pivots = translateResult;
 
@@ -173,6 +174,7 @@ export default class CityController {
         data: {
           name,
         },
+        language_code: req.language,
       });
       const updatedCityPivots = await new CityModel().oneToMany(
         id,

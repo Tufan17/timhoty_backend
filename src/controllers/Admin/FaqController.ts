@@ -93,6 +93,7 @@ export default class FaqController {
           title,
           description,
         },
+        language_code: req.language,
       });
       faq.faq_pivots = translateResult;
 
@@ -144,6 +145,7 @@ export default class FaqController {
           title,
           description,
         },
+        language_code: req.language,
       });
       const updatedFaq = await new FaqModel().oneToMany(id, "faq_pivots", "faq_id");
 

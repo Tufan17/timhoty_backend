@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import AuthAdminService from "../services/AuthAdminService";
+import AuthAdminService from "../../services/AuthAdminService";
 
 export default class AdminAuthController {
   // Admin Login

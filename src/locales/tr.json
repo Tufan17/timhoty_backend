@@ -7,10 +7,18 @@
     "LOGIN_ERROR": "Giriş hatası",
     "TOKEN_NOT_FOUND": "Token bulunamadı",
     "LOGOUT_SUCCESS": "Çıkış başarılı",
+    "LOGOUT_ERROR": "Çıkış hatası",
     "LOGIN_SUCCESS": "Giriş başarılı",
     "TOKEN_EXPIRED": "Token süresi doldu",
     "TOKEN_INVALID": "Token geçersiz",
-    "ADMIN_NOT_ACTIVE": "Admin aktif değil"
+    "INVALID_TOKEN": "Geçersiz token",
+    "TOKEN_VALIDATION_ERROR": "Token doğrulama hatası",
+    "ADMIN_NOT_ACTIVE": "Admin aktif değil",
+    "SOLUTION_PARTNER_NOT_FOUND": "Çözüm ortağı kullanıcısı bulunamadı",
+    "SOLUTION_PARTNER_NOT_ACTIVE": "Çözüm ortağı kullanıcısı aktif değil",
+    "SOLUTION_PARTNER_COMPANY_NOT_ACTIVE": "Çözüm ortağı şirketi aktif değil",
+    "PROFILE_SUCCESS": "Profil başarıyla getirildi",
+    "PROFILE_ERROR": "Profil getirme işlemi başarısız"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Adminler başarıyla getirildi",

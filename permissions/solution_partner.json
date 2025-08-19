@@ -1,8 +1,10 @@
 [
-    "policy",
-    "customer",
-    "accounting",
-    "employee",
-    "dealer",
+    "hotel",
+    "rental",
+    "tour",
+    "visa",
+    "settings",
+    "employees",
+    "users",
     "support"
 ]

@@ -1,4 +1,4 @@
-import AdminTokenModel from "../../models/Admin/AdminTokenModel.js";
+import AdminTokenModel from "../models/Admin/AdminTokenModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import path from "path";

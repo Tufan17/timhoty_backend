@@ -102,6 +102,7 @@ export default class BlogController {
           title,
           description,
         },
+        language_code: req.language,
       });
       blog.blog_pivots = translateResult;
 
@@ -157,6 +158,7 @@ export default class BlogController {
           title,
           description,
         },
+        language_code: req.language,
       });
       const updatedBlog = await new BlogModel().oneToMany(id, "blog_pivots", "blog_id");
 
