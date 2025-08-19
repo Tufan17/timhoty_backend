@@ -100,7 +100,7 @@ export default class CountryController {
 
       const existingCurrency = await new CurrencyModel().first({ id: currency_id });
 
-      if (!existingCurrency) {
+      if (currency_id && !existingCurrency) {
         return res.status(400).send({
           success: false,
           message: req.t("CURRENCY.CURRENCY_NOT_FOUND"),

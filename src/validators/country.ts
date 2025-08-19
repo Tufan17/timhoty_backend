@@ -6,7 +6,7 @@ export const countrySchema = Joi.object({
   phone_code: Joi.string().required(),
   timezone: Joi.string().required(),
   flag: Joi.string().required(),
-  currency_id: Joi.string().required(),
+  currency_id: Joi.string().uuid().optional().allow(null),
 });
 
 export const countryUpdateSchema = Joi.object({
@@ -15,7 +15,7 @@ export const countryUpdateSchema = Joi.object({
   phone_code: Joi.string().optional(),
   timezone: Joi.string().optional(),
   flag: Joi.string().optional(),
-  currency_id: Joi.string().optional(),
+  currency_id: Joi.string().uuid().optional().allow(null),
 });
 
 
