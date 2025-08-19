@@ -9,7 +9,7 @@
     "faq",
     "location",
     "campaign",
-    "Muhasebe",
+    "accounting",
     "tours",
     "customers",
     "sales-partner",
@@ -17,5 +17,8 @@
     "proformars",
     "reservations",
     "notifications",
-    "settings"
+    "settings",
+    "countries",
+    "cities",
+    "languages"
 ]
