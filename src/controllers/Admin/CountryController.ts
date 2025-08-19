@@ -98,13 +98,15 @@ export default class CountryController {
         });
       }
 
-      const existingCurrency = await new CurrencyModel().first({ id: currency_id });
+      if (currency_id) {
+        const existingCurrency = await new CurrencyModel().first({ 'currencies.id': currency_id });
 
-      if (currency_id && !existingCurrency) {
-        return res.status(400).send({
-          success: false,
-          message: req.t("CURRENCY.CURRENCY_NOT_FOUND"),
-        });
+        if (!existingCurrency) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("CURRENCY.CURRENCY_NOT_FOUND"),
+          });
+        }
       }
 
       const country = await new CountryModel().create({
