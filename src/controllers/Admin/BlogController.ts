@@ -144,8 +144,8 @@ export default class BlogController {
       let body: any = {
         photo_url: photo_url || existingBlog.photo_url,
         service_type: service_type || existingBlog.service_type,
-        status: status || existingBlog.status || true,
-        highlight: highlight || existingBlog.highlight || false,
+        status,
+        highlight,
       };
 
       await new BlogModel().update(id, body);

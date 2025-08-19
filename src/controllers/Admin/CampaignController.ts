@@ -95,8 +95,8 @@ export default class CampaignController {
         end_date,
         photo_url,
         service_type,
-        status: status || true,
-        highlight: highlight || false,
+        status,
+        highlight,
       });
       const translateResult = await translateCreate({
         target: "campaign_pivots",

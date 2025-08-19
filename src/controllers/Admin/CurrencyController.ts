@@ -151,7 +151,7 @@ export default class CurrencyController {
         code: code || existingCurrency.code,
         symbol: symbol || existingCurrency.symbol,
         position: position || existingCurrency.position,
-        is_active: is_active || existingCurrency.is_active,
+        is_active ,
       };
 
       await new CurrencyModel().update(id, body);
