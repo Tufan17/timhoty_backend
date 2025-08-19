@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../db/knex";
 import CountryModel from "@/models/CountryModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";
+import CurrencyModel from "@/models/CurrencyModel";
 
 export default class CountryController {
   async findAll(req: FastifyRequest, res: FastifyReply) {
@@ -96,6 +97,16 @@ export default class CountryController {
           message: req.t("COUNTRY.COUNTRY_ALREADY_EXISTS"),
         });
       }
+
+      const existingCurrency = await new CurrencyModel().first({ id: currency_id });
+
+      if (!existingCurrency) {
+        return res.status(400).send({
+          success: false,
+          message: req.t("CURRENCY.CURRENCY_NOT_FOUND"),
+        });
+      }
+
       const country = await new CountryModel().create({
         code,
         phone_code,
