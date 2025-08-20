@@ -35,7 +35,21 @@ export default class CityController {
         .select("cities.*", "city_pivots.name as name")
         .groupBy("cities.id", "city_pivots.name");
 
-      const countResult = await query.clone().count("* as total").first();
+      const countQuery = knex("cities")
+        .whereNull("cities.deleted_at")
+        .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+        .where("city_pivots.language_code", language)
+        .where(function () {
+          if (country_id) {
+            this.where("cities.country_id", country_id);
+          }
+        })
+        .where(function () {
+          this.where("city_pivots.name", "ilike", `%${search}%`);
+        })
+        .countDistinct("cities.id as total");
+
+      const countResult = await countQuery.first();
       const total = Number(countResult?.total ?? 0);
       const totalPages = Math.ceil(total / Number(limit));
       const data = await query
