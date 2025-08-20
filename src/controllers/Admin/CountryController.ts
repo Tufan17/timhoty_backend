@@ -17,7 +17,11 @@ export default class CountryController {
 
       const query = knex("countries")
         .whereNull("countries.deleted_at")
-        .innerJoin("country_pivots", "countries.id", "country_pivots.country_id")
+        .innerJoin(
+          "country_pivots",
+          "countries.id",
+          "country_pivots.country_id"
+        )
         .where("country_pivots.language_code", language)
         .where(function () {
           this.where("country_pivots.name", "ilike", `%${search}%`);
@@ -25,12 +29,15 @@ export default class CountryController {
             search.toLowerCase() === "true" ||
             search.toLowerCase() === "false"
           ) {
-            this.orWhere("countries.is_active", search.toLowerCase() === "true");
+            this.orWhere(
+              "countries.is_active",
+              search.toLowerCase() === "true"
+            );
           }
         })
         .select("countries.*", "country_pivots.name as name")
         .groupBy("countries.id", "country_pivots.name");
-        
+
       const countResult = await query.clone().count("* as total").first();
       const total = Number(countResult?.total ?? 0);
       const totalPages = Math.ceil(total / Number(limit));
@@ -62,8 +69,23 @@ export default class CountryController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const country = await new CountryModel().oneToMany(id, "country_pivots", "country_id");
-      
+      const country = await knex("countries")
+        .where("countries.id", id)
+        .whereNull("countries.deleted_at")
+        .innerJoin(
+          "country_pivots", 
+          "countries.id",
+          "country_pivots.country_id"
+        )
+        .innerJoin("currencies", "countries.currency_id", "currencies.id")
+        .where("country_pivots.language_code", req.language)
+        .select(
+          "countries.*",
+          "country_pivots.name as name",
+          "currencies.code as currency_code"
+        )
+        .first();
+
       return res.status(200).send({
         success: true,
         message: req.t("COUNTRY.COUNTRY_FETCHED_SUCCESS"),
@@ -80,14 +102,15 @@ export default class CountryController {
 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { name, phone_code, timezone, flag, code, currency_id } = req.body as {
-        name: string;
-        phone_code: string;
-        timezone: string;
-        flag: string;
-        code: string;
-        currency_id: string;
-      };
+      const { name, phone_code, timezone, flag, code, currency_id } =
+        req.body as {
+          name: string;
+          phone_code: string;
+          timezone: string;
+          flag: string;
+          code: string;
+          currency_id: string;
+        };
 
       const existingCountry = await new CountryModel().first({ code });
 
@@ -99,7 +122,9 @@ export default class CountryController {
       }
 
       if (currency_id) {
-        const existingCurrency = await new CurrencyModel().first({ 'currencies.id': currency_id });
+        const existingCurrency = await new CurrencyModel().first({
+          "currencies.id": currency_id,
+        });
 
         if (!existingCurrency) {
           return res.status(400).send({
@@ -122,11 +147,10 @@ export default class CountryController {
         target_id: country.id,
         language_code: req.language,
         data: {
-          name
-        },    
+          name,
+        },
       });
       country.country_pivots = translateResult;
-
 
       return res.status(200).send({
         success: true,
@@ -145,14 +169,15 @@ export default class CountryController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { name, phone_code, timezone, flag, code, currency_id } = req.body as {
-        name: string;
-        phone_code: string;
-        timezone: string;
-        flag: string;
-        code: string;
-        currency_id: string;
-      };
+      const { name, phone_code, timezone, flag, code, currency_id } =
+        req.body as {
+          name: string;
+          phone_code: string;
+          timezone: string;
+          flag: string;
+          code: string;
+          currency_id: string;
+        };
 
       const existingCountry = await new CountryModel().first({ id });
 
@@ -181,7 +206,11 @@ export default class CountryController {
         },
         language_code: req.language,
       });
-      const updatedCountry = await new CountryModel().oneToMany(id, "country_pivots", "country_id");
+      const updatedCountry = await new CountryModel().oneToMany(
+        id,
+        "country_pivots",
+        "country_id"
+      );
 
       return res.status(200).send({
         success: true,
@@ -200,7 +229,7 @@ export default class CountryController {
   async delete(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-    const existingCountry = await new CountryModel().first({ id });
+      const existingCountry = await new CountryModel().first({ id });
 
       if (!existingCountry) {
         return res.status(404).send({
@@ -210,8 +239,14 @@ export default class CountryController {
       }
 
       await new CountryModel().delete(id);
-      await knex("country_pivots").where("country_id", id).whereNull("deleted_at").update({ deleted_at: new Date() });
-
+      await knex("country_pivots")
+        .where("country_id", id)
+        .whereNull("deleted_at")
+        .update({ deleted_at: new Date() });
+      await knex("cities")
+        .where("country_id", id)
+        .whereNull("deleted_at")
+        .update({ deleted_at: new Date() });
       return res.status(200).send({
         success: true,
         message: req.t("COUNTRY.COUNTRY_DELETED_SUCCESS"),
