@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { FastifyRequest, FastifyReply } from 'fastify';
+import AdminTokenModel from '@/models/Admin/AdminTokenModel';
 
 export const authAdminMiddleware = async (request: FastifyRequest, reply: FastifyReply) => {
   const authHeader = request.headers.authorization
@@ -27,6 +28,15 @@ export const authAdminMiddleware = async (request: FastifyRequest, reply: Fastif
         success: false,
         message: request.t('AUTH.TOKEN_INVALID')
       })
+    }
+
+
+    const adminToken = await new AdminTokenModel().first({ token });
+    if (!adminToken) {
+      return reply.status(401).send({
+        success: false,
+        message: request.t('AUTH.TOKEN_NOT_FOUND')
+      });
     }
 
       (request as any).user = payload;
