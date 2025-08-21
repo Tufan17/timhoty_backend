@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import knex from "../../db/knex";
+import knex from "../../../db/knex";
 import HotelModel from "@/models/HotelModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";
 import CityModel from "@/models/CityModel";
@@ -210,6 +210,14 @@ export default class HotelController {
         .where("hotel_opportunity_pivots.language_code", req.language)
         .select("hotel_opportunities.*", "hotel_opportunity_pivots.category", "hotel_opportunity_pivots.description");
       hotel.hotel_opportunities = hotelOpportunities;
+
+      const hotelFeatures = await knex("hotel_features")
+        .where("hotel_features.hotel_id", id)
+        .whereNull("hotel_features.deleted_at")
+        .innerJoin("hotel_feature_pivots", "hotel_features.id", "hotel_feature_pivots.hotel_feature_id")
+        .where("hotel_feature_pivots.language_code", req.language)
+        .select("hotel_features.*", "hotel_feature_pivots.name");
+      hotel.hotel_features = hotelFeatures;
 
       return res.status(200).send({
         success: true,

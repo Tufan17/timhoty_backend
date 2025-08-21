@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import HotelOpportunityController from "../../../controllers/SolutionPartner/HotelOpportunityController";
+import HotelOpportunityController from "../../../controllers/SolutionPartner/Hotel/HotelOpportunityController";
 import { hotelOpportunitySchema, hotelOpportunityUpdateSchema, hotelOpportunityQuerySchema } from "../../../validators/Hotel/hotelOpportunity";
 import { makeAuditLogger } from "../../../middlewares/logMiddleware";
 import { validateQuery } from "../../../middlewares/validateQuery";

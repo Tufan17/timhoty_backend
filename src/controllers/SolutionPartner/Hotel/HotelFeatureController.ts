@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import knex from "../../db/knex";
+import knex from "../../../db/knex";
 import HotelFeatureModel from "@/models/HotelFeatureModel";
 import HotelFeaturePivotModel from "@/models/HotelFeaturePivotModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";

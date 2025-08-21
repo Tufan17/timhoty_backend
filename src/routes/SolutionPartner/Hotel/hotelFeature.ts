@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
-import HotelFeatureController from "../../../controllers/SolutionPartner/HotelFeatureController";
-import { hotelFeatureSchema, hotelFeatureUpdateSchema, hotelFeatureQuerySchema } from "../../../validators/Hotel/hotel";
+import HotelFeatureController from "../../../controllers/SolutionPartner/Hotel/HotelFeatureController";
+import { hotelFeatureSchema, hotelFeatureUpdateSchema, hotelFeatureQuerySchema } from "../../../validators/Hotel/hotelFeature";
 import { makeAuditLogger } from "../../../middlewares/logMiddleware";
 import { validateQuery } from "../../../middlewares/validateQuery";
 import { validate } from "../../../middlewares/validate";

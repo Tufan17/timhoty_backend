@@ -332,5 +332,17 @@
     "HOTEL_OPPORTUNITY_DELETED_ERROR": "Otel fırsatı silinirken hata oluştu",
     "HOTEL_OPPORTUNITY_NOT_FOUND": "Otel fırsatı bulunamadı",
     "HOTEL_OPPORTUNITY_ALREADY_EXISTS": "Otel fırsatı zaten mevcut"
+  },
+  "HOTEL_FEATURE": {
+    "HOTEL_FEATURE_FETCHED_SUCCESS": "Otel özellikleri başarıyla getirildi",
+    "HOTEL_FEATURE_FETCHED_ERROR": "Otel özellikleri getirilirken hata oluştu",
+    "HOTEL_FEATURE_CREATED_SUCCESS": "Otel özelliği başarıyla oluşturuldu",
+    "HOTEL_FEATURE_CREATED_ERROR": "Otel özelliği oluşturulurken hata oluştu",
+    "HOTEL_FEATURE_UPDATED_SUCCESS": "Otel özelliği başarıyla güncellendi",
+    "HOTEL_FEATURE_UPDATED_ERROR": "Otel özelliği güncellenirken hata oluştu",
+    "HOTEL_FEATURE_DELETED_SUCCESS": "Otel özelliği başarıyla silindi",
+    "HOTEL_FEATURE_DELETED_ERROR": "Otel özelliği silinirken hata oluştu",
+    "HOTEL_FEATURE_NOT_FOUND": "Otel özelliği bulunamadı",
+    "HOTEL_FEATURE_ALREADY_EXISTS": "Otel özelliği zaten mevcut"
   }
 }

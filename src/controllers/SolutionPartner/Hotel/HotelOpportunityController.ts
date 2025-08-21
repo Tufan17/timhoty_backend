@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import knex from "../../db/knex";
+import knex from "../../../db/knex";
 import HotelOpportunityModel from "@/models/HotelOpportunityModel";
 import HotelOpportunityPivotModel from "@/models/HotelOpportunityPivotModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";

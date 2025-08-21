@@ -17,5 +17,6 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
     fastify.register(hotelRoutes, { prefix: "/hotels" });
     fastify.register(hotelOpportunityRoutes, { prefix: "/hotel-opportunities" });
     fastify.register(hotelFeatureRoutes, { prefix: "/hotel-features" });
+    
 }
 
