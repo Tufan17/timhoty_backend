@@ -102,7 +102,7 @@ export default class LanguageController {
           message: req.t("LANGUAGE.LANGUAGE_ALREADY_EXISTS"),
         });
       }
-      await new LanguageModel().create({
+      await new LanguageModel().createLanguage({
         code:code.toLowerCase(),
         name:name,
       });
