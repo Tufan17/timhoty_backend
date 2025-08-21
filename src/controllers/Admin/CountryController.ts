@@ -77,14 +77,29 @@ export default class CountryController {
           "countries.id",
           "country_pivots.country_id"
         )
-        .innerJoin("currencies", "countries.currency_id", "currencies.id")
         .where("country_pivots.language_code", req.language)
         .select(
           "countries.*",
           "country_pivots.name as name",
-          "currencies.code as currency_code"
         )
         .first();
+
+      if (!country) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("COUNTRY.COUNTRY_NOT_FOUND"),
+        });
+      }
+
+      const currency = await knex("currencies")
+        .where("currencies.id", country.currency_id)
+        .leftJoin("currency_pivots", "currencies.id", "currency_pivots.currency_id")
+        .where("currency_pivots.language_code", req.language)
+        .whereNull("currencies.deleted_at")
+        .first();
+      if (currency) {
+        country.currency = currency;
+      }
 
       return res.status(200).send({
         success: true,
