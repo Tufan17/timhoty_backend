@@ -7,7 +7,7 @@ class HotelRoomModel extends BaseModel {
   static columns = [
     'id',
     'hotel_id',
-    
+    'refund_days',
     'created_at',
     'updated_at',
     'deleted_at',

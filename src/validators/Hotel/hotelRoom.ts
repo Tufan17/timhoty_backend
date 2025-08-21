@@ -5,7 +5,7 @@ export const hotelRoomSchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().required(),
   refund_policy: Joi.string().required(),
-  refund_days: Joi.number().optional(),
+  refund_days: Joi.number().required(),
 });
 
 export const hotelRoomUpdateSchema = Joi.object({

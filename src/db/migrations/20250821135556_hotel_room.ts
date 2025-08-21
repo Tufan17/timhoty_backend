@@ -6,7 +6,6 @@ export async function up(knex: Knex): Promise<void> {
         table.uuid("id").primary().defaultTo(knex.raw('gen_random_uuid()'))
         table.uuid("hotel_id").notNullable().references("id").inTable("hotels").onDelete("CASCADE");
         table.integer("refund_days");
-
         table.timestamp('created_at').defaultTo(knex.fn.now());
         table.timestamp('updated_at').defaultTo(knex.fn.now());
         table.timestamp('deleted_at').nullable();

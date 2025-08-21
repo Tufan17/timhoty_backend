@@ -176,12 +176,14 @@ export default class HotelRoomController {
         hotel_id,
         name,
         description,
-        refund_policy
+        refund_policy,
+        refund_days,
       } = req.body as {
         hotel_id: string;
         name: string;
         description: string;
         refund_policy: string;
+        refund_days: number;
       };
 
       // Validate hotel_id
@@ -199,6 +201,7 @@ export default class HotelRoomController {
       // Create hotel room
       const hotelRoom = await new HotelRoomModel().create({
         hotel_id,
+        refund_days,
       });
 
       // Create translations
@@ -237,15 +240,37 @@ export default class HotelRoomController {
         hotel_id,
         name,
         description,
-        refund_policy
+        refund_policy,
+        refund_days,
       } = req.body as {
         hotel_id?: string;
         name?: string;
         description?: string;
         refund_policy?: string;
+        refund_days?: number;
       };
 
-      const existingHotelRoom = await new HotelRoomModel().first({ id });
+      // Check if anything to update
+      if (!hotel_id && !name && !description && !refund_policy && refund_days === undefined) {
+        return res.status(400).send({
+          success: false,
+          message: req.t("HOTEL_ROOM.NO_UPDATE_DATA"),
+        });
+      }
+
+      // Prepare parallel operations
+      const operations = [];
+
+      // Check hotel room existence
+      operations.push(new HotelRoomModel().first({ id }));
+
+      // Validate hotel if hotel_id is provided
+      if (hotel_id) {
+        operations.push(new HotelModel().first({ "hotels.id": hotel_id }));
+      }
+
+      const results = await Promise.all(operations);
+      const existingHotelRoom = results[0];
 
       if (!existingHotelRoom) {
         return res.status(404).send({
@@ -254,47 +279,62 @@ export default class HotelRoomController {
         });
       }
 
-      // Validate hotel_id if provided
-      if (hotel_id) {
-        const existingHotel = await new HotelModel().first({
-          "hotels.id": hotel_id,
-        });
-
-        if (!existingHotel) {
-          return res.status(400).send({
-            success: false,
-            message: req.t("HOTEL.HOTEL_NOT_FOUND"),
-          });
-        }
-      }
-
-      // Update hotel room if hotel_id is provided
-      if (hotel_id) {
-        await new HotelRoomModel().update(id, {
-          hotel_id: hotel_id !== undefined ? hotel_id : existingHotelRoom.hotel_id,
+      // Check hotel existence if hotel_id was provided
+      if (hotel_id && !results[1]) {
+        return res.status(400).send({
+          success: false,
+          message: req.t("HOTEL.HOTEL_NOT_FOUND"),
         });
       }
-      
+
+      // Prepare update operations
+      const updateOperations = [];
+
+      // Update hotel room if hotel_id or refund_days changed
+      if (hotel_id || refund_days !== undefined) {
+        const updateData: any = {};
+        if (hotel_id) updateData.hotel_id = hotel_id;
+        if (refund_days !== undefined) updateData.refund_days = refund_days;
+        
+        updateOperations.push(new HotelRoomModel().update(id, updateData));
+      }
+
       // Update translations if provided
       if (name || description || refund_policy) {
-        await translateUpdate({
+        const translateData: any = {};
+        if (name) translateData.name = name;
+        if (description) translateData.description = description;
+        if (refund_policy) translateData.refund_policy = refund_policy;
+
+        updateOperations.push(translateUpdate({
           target: "hotel_room_pivots",
           target_id_key: "hotel_room_id",
           target_id: id,
-          data: {
-            ...(name && { name }),
-            ...(description && { description }),
-            ...(refund_policy && { refund_policy }),
-          },
+          data: translateData,
           language_code: (req as any).language,
-        });
+        }));
       }
 
-      const updatedHotelRoom = await new HotelRoomModel().oneToMany(
-        id,
-        "hotel_room_pivots",
-        "hotel_room_id"
-      );
+      // Execute all updates in parallel
+      const updateResults = await Promise.all(updateOperations);
+      
+      let updatedHotelRoom = existingHotelRoom;
+      let hotel_room_pivots = null;
+
+      // Process results
+      if (hotel_id || refund_days !== undefined) {
+        updatedHotelRoom = updateResults[0] || existingHotelRoom;
+        if (name || description || refund_policy) {
+          hotel_room_pivots = updateResults[1];
+        }
+      } else if (name || description || refund_policy) {
+        hotel_room_pivots = updateResults[0];
+      }
+
+      // Attach pivot data if available
+      if (hotel_room_pivots) {
+        updatedHotelRoom = { ...updatedHotelRoom, hotel_room_pivots };
+      }
 
       return res.status(200).send({
         success: true,
