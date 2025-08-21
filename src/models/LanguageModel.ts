@@ -15,11 +15,13 @@ class LanguageModel extends BaseModel {
   async createLanguage(data: any) {
 
     const existingLanguage = await knex("languages").where("code", data.code).first();
-    existingLanguage.deleted_at = null;
-    await knex("languages")
-      .insert(existingLanguage)
-      .onConflict('code')
-      .merge(['deleted_at']);
+    if (existingLanguage) {
+      await knex("languages")
+        .where("code", data.code)
+        .update({ deleted_at: null });
+    } else {
+      await knex("languages").insert(data);
+    }
   }
    
 }
