@@ -1,14 +1,10 @@
 import type { Knex } from "knex";
 
+
 export async function up(knex: Knex): Promise<void> {
-    await knex.schema.createTable("hotel_pivots", (table) => {
+    return knex.schema.createTable("hotel_opportunities", (table) => {
         table.uuid("id").primary().defaultTo(knex.raw('gen_random_uuid()'))
         table.uuid("hotel_id").notNullable().references("id").inTable("hotels").onDelete("CASCADE");
-        table.string("name");
-        table.text("general_info");
-        table.text("hotel_info");
-        table.text("refund_policy");
-        table.string("language_code").notNullable().defaultTo("en");
         table.timestamp('created_at').defaultTo(knex.fn.now());
         table.timestamp('updated_at').defaultTo(knex.fn.now());
         table.timestamp('deleted_at').nullable();
@@ -17,6 +13,6 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-    await knex.schema.dropTable("hotel_pivots");
+    return knex.schema.dropTable("hotel_opportunities");
 }
 

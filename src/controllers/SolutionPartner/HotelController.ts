@@ -162,11 +162,54 @@ export default class HotelController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const hotel = await new HotelModel().oneToMany(
-        id,
-        "hotel_pivots",
-        "hotel_id"
-      );
+      const hotel = await knex("hotels")
+        .whereNull("hotels.deleted_at")
+        .where("hotels.id", id)
+        .select(
+          "hotels.*", 
+          "hotel_pivots.name as name",
+          "hotel_pivots.general_info",
+          "hotel_pivots.hotel_info",
+          "hotel_pivots.refund_policy"
+        )
+        .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
+        .where("hotel_pivots.language_code", req.language).first();
+
+        if(!hotel){
+          return res.status(404).send({
+            success: false,
+            message: req.t("HOTEL.HOTEL_NOT_FOUND"),
+          });
+        }
+
+
+
+        if(hotel.location_id){
+          const city = await knex("cities")
+            .where("cities.id", hotel.location_id)
+            .whereNull("cities.deleted_at")
+            .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+            .where("country_pivots.language_code", req.language)
+            .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+            .where("city_pivots.language_code", req.language)
+            .whereNull("cities.deleted_at")
+            .whereNull("country_pivots.deleted_at")
+            .whereNull("city_pivots.deleted_at")
+            .select( 
+              "country_pivots.name as country_name",
+              "city_pivots.name as city_name"
+            ).first();
+            hotel.location = city;
+            hotel.address = `${city.country_name}, ${city.city_name}`;
+        }
+
+      const hotelOpportunities = await knex("hotel_opportunities")
+        .where("hotel_opportunities.hotel_id", id)
+        .whereNull("hotel_opportunities.deleted_at")
+        .innerJoin("hotel_opportunity_pivots", "hotel_opportunities.id", "hotel_opportunity_pivots.hotel_opportunity_id")
+        .where("hotel_opportunity_pivots.language_code", req.language)
+        .select("hotel_opportunities.*", "hotel_opportunity_pivots.category", "hotel_opportunity_pivots.description");
+      hotel.hotel_opportunities = hotelOpportunities;
 
       return res.status(200).send({
         success: true,
@@ -174,7 +217,7 @@ export default class HotelController {
         data: hotel,
       });
     } catch (error) {
-      console.log(error);
+      console.log(error); 
       return res.status(500).send({
         success: false,
         message: req.t("HOTEL.HOTEL_FETCHED_ERROR"),

@@ -4,7 +4,7 @@ import type { Knex } from "knex";
 export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable("campaign_pivots", (table) => {
         table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
-        table.uuid("campaign_id").notNullable().references("id").inTable("campaigns");
+        table.uuid("campaign_id").notNullable().references("id").inTable("campaigns").onDelete("CASCADE");
         table.text("title").notNullable();
         table.text("description").notNullable();
         table.string("language_code").notNullable().defaultTo("en");

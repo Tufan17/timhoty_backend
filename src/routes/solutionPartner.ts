@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import cityRoutes from "./SolutionPartner/city";
 import countryRoutes from "./SolutionPartner/country";
 import hotelRoutes from "./SolutionPartner/Hotel/hotel";
+import hotelOpportunityRoutes from "./SolutionPartner/Hotel/hotelOpportunity";
 
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
@@ -13,5 +14,6 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
     // HOTEL ROUTES
     // ===========================================
     fastify.register(hotelRoutes, { prefix: "/hotels" });
+    fastify.register(hotelOpportunityRoutes, { prefix: "/hotel-opportunities" });
 }
 

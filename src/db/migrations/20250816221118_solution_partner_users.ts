@@ -3,7 +3,7 @@ import type { Knex } from "knex";
 export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable("solution_partner_users", (table) => {
         table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
-        table.uuid("solution_partner_id").notNullable().references("id").inTable("solution_partners");
+        table.uuid("solution_partner_id").notNullable().references("id").inTable("solution_partners").onDelete("CASCADE");
         table.enum("type", ["manager", "worker"]).notNullable().defaultTo("worker");
         table.string("name_surname").notNullable();
         table.string("phone").notNullable();

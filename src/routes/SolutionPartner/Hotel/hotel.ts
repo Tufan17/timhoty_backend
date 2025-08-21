@@ -29,6 +29,7 @@ export default async function hotelRoutes(fastify: FastifyInstance) {
     preHandler: [authSolutionPartnerMiddleware],
     handler: hotelController.findOne,
   });
+  
   fastify.post("/", {
     preHandler: [authSolutionPartnerMiddleware, hotelAuditLogger],
     preValidation: [validate(hotelSchema)],

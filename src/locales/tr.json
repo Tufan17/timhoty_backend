@@ -309,5 +309,28 @@
     "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "E-posta aboneliği iptal edilirken hata oluştu",
     "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "E-posta aboneliği başarıyla yeniden etkinleştirildi",
     "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "E-posta aboneliği yeniden etkinleştirilirken hata oluştu"
+  },
+  "HOTEL": {
+    "HOTEL_FETCHED_SUCCESS": "Otel başarıyla getirildi",
+    "HOTEL_FETCHED_ERROR": "Otel getirilirken hata oluştu",
+    "HOTEL_CREATED_SUCCESS": "Otel başarıyla oluşturuldu",
+    "HOTEL_CREATED_ERROR": "Otel oluşturulurken hata oluştu",
+    "HOTEL_UPDATED_SUCCESS": "Otel başarıyla güncellendi",
+    "HOTEL_UPDATED_ERROR": "Otel güncellenirken hata oluştu",
+    "HOTEL_DELETED_SUCCESS": "Otel başarıyla silindi",
+    "HOTEL_DELETED_ERROR": "Otel silinirken hata oluştu",
+    "HOTEL_NOT_FOUND": "Otel bulunamadı"
+  },
+  "HOTEL_OPPORTUNITY": {
+    "HOTEL_OPPORTUNITY_FETCHED_SUCCESS": "Otel fırsatları başarıyla getirildi",
+    "HOTEL_OPPORTUNITY_FETCHED_ERROR": "Otel fırsatları getirilirken hata oluştu",
+    "HOTEL_OPPORTUNITY_CREATED_SUCCESS": "Otel fırsatı başarıyla oluşturuldu",
+    "HOTEL_OPPORTUNITY_CREATED_ERROR": "Otel fırsatı oluşturulurken hata oluştu",
+    "HOTEL_OPPORTUNITY_UPDATED_SUCCESS": "Otel fırsatı başarıyla güncellendi",
+    "HOTEL_OPPORTUNITY_UPDATED_ERROR": "Otel fırsatı güncellenirken hata oluştu",
+    "HOTEL_OPPORTUNITY_DELETED_SUCCESS": "Otel fırsatı başarıyla silindi",
+    "HOTEL_OPPORTUNITY_DELETED_ERROR": "Otel fırsatı silinirken hata oluştu",
+    "HOTEL_OPPORTUNITY_NOT_FOUND": "Otel fırsatı bulunamadı",
+    "HOTEL_OPPORTUNITY_ALREADY_EXISTS": "Otel fırsatı zaten mevcut"
   }
 }

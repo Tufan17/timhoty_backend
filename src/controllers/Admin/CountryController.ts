@@ -150,6 +150,7 @@ export default class CountryController {
           name,
         },
       });
+      
       country.country_pivots = translateResult;
 
       return res.status(200).send({

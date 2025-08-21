@@ -309,5 +309,28 @@
     "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "Email subscription cancel failed",
     "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "Email subscription reactivated successfully",
     "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "Email subscription reactivation failed"
+  },
+  "HOTEL": {
+    "HOTEL_FETCHED_SUCCESS": "Hotels fetched successfully",
+    "HOTEL_FETCHED_ERROR": "Hotels fetch failed",
+    "HOTEL_CREATED_SUCCESS": "Hotel created successfully",
+    "HOTEL_CREATED_ERROR": "Hotel create failed",
+    "HOTEL_UPDATED_SUCCESS": "Hotel updated successfully",
+    "HOTEL_UPDATED_ERROR": "Hotel update failed",
+    "HOTEL_DELETED_SUCCESS": "Hotel deleted successfully",
+    "HOTEL_DELETED_ERROR": "Hotel delete failed",
+    "HOTEL_NOT_FOUND": "Hotel not found"
+  },
+  "HOTEL_OPPORTUNITY": {
+    "HOTEL_OPPORTUNITY_FETCHED_SUCCESS": "Hotel opportunities fetched successfully",
+    "HOTEL_OPPORTUNITY_FETCHED_ERROR": "Hotel opportunities fetch failed",
+    "HOTEL_OPPORTUNITY_CREATED_SUCCESS": "Hotel opportunity created successfully",
+    "HOTEL_OPPORTUNITY_CREATED_ERROR": "Hotel opportunity create failed",
+    "HOTEL_OPPORTUNITY_UPDATED_SUCCESS": "Hotel opportunity updated successfully",
+    "HOTEL_OPPORTUNITY_UPDATED_ERROR": "Hotel opportunity update failed",
+    "HOTEL_OPPORTUNITY_DELETED_SUCCESS": "Hotel opportunity deleted successfully",
+    "HOTEL_OPPORTUNITY_DELETED_ERROR": "Hotel opportunity delete failed",
+    "HOTEL_OPPORTUNITY_NOT_FOUND": "Hotel opportunity not found",
+    "HOTEL_OPPORTUNITY_ALREADY_EXISTS": "Hotel opportunity already exists"
   }
 }

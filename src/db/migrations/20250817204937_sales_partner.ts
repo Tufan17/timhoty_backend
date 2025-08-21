@@ -4,7 +4,7 @@ import type { Knex } from "knex";
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable("sales_partners", (table) => {
     table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
-    table.uuid("location_id").notNullable().references("id").inTable("cities");
+    table.uuid("location_id").notNullable().references("id").inTable("cities").onDelete("CASCADE");
     table.string("name").notNullable();
     table.string("phone").notNullable();
     table.string("whatsapp_no").nullable();

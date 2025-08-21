@@ -14,6 +14,12 @@ export const translateCreate = async ({ target, target_id, target_id_key, data, 
  try{
     const languageModel = new LanguageModel();
     const languages = await languageModel.getAll("code", { deleted_at: null });
+
+    if(languages.length==0){
+      return false;
+    }
+
+
     let newDatas:any[]=[];
     for (const language of languages) {
       const translatedData: Record<string, any> = {
