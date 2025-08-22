@@ -61,8 +61,21 @@ export default class BlogController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const blog = await new BlogModel().oneToMany(id, "blog_pivots", "blog_id");
-      
+      const blog = await knex("blogs")
+        .where("blogs.id", id)
+        .whereNull("blogs.deleted_at")
+        .leftJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id") 
+        .where("blog_pivots.language_code", req.language)
+        .select("blogs.*", "blog_pivots.title as title", "blog_pivots.description as description")
+        .groupBy("blogs.id", "blog_pivots.title", "blog_pivots.description")
+        .first();
+
+      if (!blog) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("BLOG.BLOG_NOT_FOUND"),
+        });
+      }
       return res.status(200).send({
         success: true,
         message: req.t("BLOG.BLOG_FETCHED_SUCCESS"),
