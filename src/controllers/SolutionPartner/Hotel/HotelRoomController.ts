@@ -133,36 +133,46 @@ export default class HotelRoomController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const language = (req as any).language;
-
-      const hotelRoom = await knex("hotel_rooms")
+      const hotel = await knex("hotel_rooms")
         .whereNull("hotel_rooms.deleted_at")
         .where("hotel_rooms.id", id)
         .select(
           "hotel_rooms.*", 
-          "hotel_room_pivots.name",
+          "hotel_room_pivots.name as name",
           "hotel_room_pivots.description",
           "hotel_room_pivots.refund_policy"
         )
         .innerJoin("hotel_room_pivots", "hotel_rooms.id", "hotel_room_pivots.hotel_room_id")
-        .where("hotel_room_pivots.language_code", language)
-        .whereNull("hotel_room_pivots.deleted_at")
+        .where("hotel_room_pivots.language_code", req.language)
         .first();
 
-      if (!hotelRoom) {
-        return res.status(404).send({
-          success: false,
-          message: req.t("HOTEL_ROOM.HOTEL_ROOM_NOT_FOUND"),
-        });
-      }
+        if(!hotel){
+          return res.status(404).send({
+            success: false,
+            message: req.t("HOTEL_ROOM.HOTEL_ROOM_NOT_FOUND"),
+          });
+        }
+
+        if(hotel.hotel_id){
+          const hotelInfo = await knex("hotels")
+            .where("hotels.id", hotel.hotel_id)
+            .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id") 
+            .where("hotel_pivots.language_code", req.language)
+            .whereNull("hotels.deleted_at")
+            .select(
+              "hotels.*",
+              "hotel_pivots.name as name"
+            ).first();
+            hotel.hotel = hotelInfo;
+        }
 
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL_ROOM.HOTEL_ROOM_FETCHED_SUCCESS"),
-        data: hotelRoom,
+        data: hotel,
       });
     } catch (error) {
-      console.log(error);
+      console.log(error); 
       return res.status(500).send({
         success: false,
         message: req.t("HOTEL_ROOM.HOTEL_ROOM_FETCHED_ERROR"),
