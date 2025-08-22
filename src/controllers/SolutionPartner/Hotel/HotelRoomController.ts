@@ -166,6 +166,14 @@ export default class HotelRoomController {
             hotel.hotel = hotelInfo;
         }
 
+        const hotelRoomOpportunities = await knex("hotel_room_opportunities")
+          .where("hotel_room_opportunities.hotel_room_id", id)
+          .whereNull("hotel_room_opportunities.deleted_at")
+          .innerJoin("hotel_room_opportunity_pivots", "hotel_room_opportunities.id", "hotel_room_opportunity_pivots.hotel_room_opportunity_id")
+          .where("hotel_room_opportunity_pivots.language_code", req.language)
+          .select("hotel_room_opportunities.*", "hotel_room_opportunity_pivots.name");
+        hotel.hotel_room_opportunities = hotelRoomOpportunities;
+
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL_ROOM.HOTEL_ROOM_FETCHED_SUCCESS"),
