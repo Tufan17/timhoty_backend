@@ -100,6 +100,8 @@
     "CITY_ALREADY_EXISTS": "Şehir zaten mevcut"
   },
   "SOLUTION_PARTNER": {
+    "LOGIN_ERROR": "Çözüm Ortakı giriş yapılırken hata oluştu",
+    "NO_TOKEN_PROVIDED": "Çözüm Ortakı token bulunamadı",
     "SOLUTION_PARTNER_FETCHED_SUCCESS": "Çözüm Ortakları başarıyla getirildi",
     "SOLUTION_PARTNER_FETCHED_ERROR": "Çözüm Ortakları getirilirken hata oluştu",
     "SOLUTION_PARTNER_CREATED_SUCCESS": "Çözüm Ortakı başarıyla oluşturuldu",
@@ -344,5 +346,19 @@
     "HOTEL_FEATURE_DELETED_ERROR": "Otel özelliği silinirken hata oluştu",
     "HOTEL_FEATURE_NOT_FOUND": "Otel özelliği bulunamadı",
     "HOTEL_FEATURE_ALREADY_EXISTS": "Otel özelliği zaten mevcut"
+  },
+  "HOTEL_ROOM_PACKAGE": {
+    "HOTEL_ROOM_PACKAGE_FETCHED_SUCCESS": "Otel paketleri başarıyla getirildi",
+    "HOTEL_ROOM_PACKAGE_FETCHED_ERROR": "Otel paketleri getirilirken hata oluştu",
+    "HOTEL_ROOM_PACKAGE_CREATED_SUCCESS": "Otel paket başarıyla oluşturuldu",
+    "HOTEL_ROOM_PACKAGE_CREATED_ERROR": "Otel paket oluşturulurken hata oluştu",
+    "HOTEL_ROOM_PACKAGE_UPDATED_SUCCESS": "Otel paket başarıyla güncellendi",
+    "HOTEL_ROOM_PACKAGE_UPDATED_ERROR": "Otel paket güncellenirken hata oluştu",
+    "HOTEL_ROOM_PACKAGE_DELETED_SUCCESS": "Otel paket başarıyla silindi",
+    "HOTEL_ROOM_PACKAGE_DELETED_ERROR": "Otel paket silinirken hata oluştu",
+    "HOTEL_ROOM_PACKAGE_NOT_FOUND": "Otel paket bulunamadı",
+    "HOTEL_ROOM_PACKAGE_ALREADY_EXISTS": "Otel paket zaten mevcut",
+    "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Otel paket tarihleri çakışıyor",
+    "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Otel paket fiyatları sayısı hatalı"
   }
 }

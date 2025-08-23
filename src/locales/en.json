@@ -101,6 +101,8 @@
     "CITY_ALREADY_EXISTS": "City already exists"
   },
   "SOLUTION_PARTNER": {
+    "LOGIN_ERROR": "Solution partner login failed",
+    "NO_TOKEN_PROVIDED": "Solution partner token not found",
     "SOLUTION_PARTNER_FETCHED_SUCCESS": "Solution partners fetched successfully",
     "SOLUTION_PARTNER_FETCHED_ERROR": "Solution partners fetch failed",
     "SOLUTION_PARTNER_CREATED_SUCCESS": "Solution partner created successfully",
@@ -332,5 +334,19 @@
     "HOTEL_OPPORTUNITY_DELETED_ERROR": "Hotel opportunity delete failed",
     "HOTEL_OPPORTUNITY_NOT_FOUND": "Hotel opportunity not found",
     "HOTEL_OPPORTUNITY_ALREADY_EXISTS": "Hotel opportunity already exists"
+  },
+  "HOTEL_ROOM_PACKAGE": {
+    "HOTEL_ROOM_PACKAGE_FETCHED_SUCCESS": "Hotel room packages fetched successfully",
+    "HOTEL_ROOM_PACKAGE_FETCHED_ERROR": "Hotel room packages fetch failed",
+    "HOTEL_ROOM_PACKAGE_CREATED_SUCCESS": "Hotel room package created successfully",
+    "HOTEL_ROOM_PACKAGE_CREATED_ERROR": "Hotel room package create failed",
+    "HOTEL_ROOM_PACKAGE_UPDATED_SUCCESS": "Hotel room package updated successfully",
+    "HOTEL_ROOM_PACKAGE_UPDATED_ERROR": "Hotel room package update failed",
+    "HOTEL_ROOM_PACKAGE_DELETED_SUCCESS": "Hotel room package deleted successfully",
+    "HOTEL_ROOM_PACKAGE_DELETED_ERROR": "Hotel room package delete failed",
+    "HOTEL_ROOM_PACKAGE_NOT_FOUND": "Hotel room package not found",
+    "HOTEL_ROOM_PACKAGE_ALREADY_EXISTS": "Hotel room package already exists",
+    "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Hotel room package date range error",
+    "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Hotel room package price count error"
   }
 }
