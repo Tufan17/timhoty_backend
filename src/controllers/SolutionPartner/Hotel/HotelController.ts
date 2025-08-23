@@ -228,6 +228,15 @@ export default class HotelController {
         .select("hotel_rooms.*", "hotel_room_pivots.name", "hotel_room_pivots.description", "hotel_room_pivots.refund_policy");
       hotel.hotel_rooms = hotelRooms;
 
+      const hotelGalleries = await knex("hotel_galleries")
+        .where("hotel_galleries.hotel_id", id)
+        .whereNull("hotel_galleries.deleted_at")
+        .leftJoin("hotel_gallery_pivot", "hotel_galleries.id", "hotel_gallery_pivot.hotel_gallery_id")
+        .where("hotel_gallery_pivot.language_code", req.language)
+        .whereNull("hotel_gallery_pivot.deleted_at")
+        .select("hotel_galleries.*", "hotel_gallery_pivot.category");
+      hotel.hotel_galleries = hotelGalleries;
+
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL.HOTEL_FETCHED_SUCCESS"),
