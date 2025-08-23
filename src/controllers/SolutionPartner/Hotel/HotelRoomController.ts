@@ -177,10 +177,17 @@ export default class HotelRoomController {
 
         const hotelRoomFeatures = await knex("hotel_room_features")
           .where("hotel_room_features.hotel_room_id", id)
+          .whereNull("hotel_room_features.deleted_at")
           .innerJoin("hotel_room_feature_pivots", "hotel_room_features.id", "hotel_room_feature_pivots.hotel_room_feature_id")
           .where("hotel_room_feature_pivots.language_code", req.language)
           .select("hotel_room_features.*", "hotel_room_feature_pivots.name");
         hotel.hotel_room_features = hotelRoomFeatures;
+
+        const hotelRoomImages = await knex("hotel_room_images")
+          .where("hotel_room_images.hotel_room_id", id)
+          .whereNull("hotel_room_images.deleted_at")
+          .select("hotel_room_images.*");
+        hotel.hotel_room_images = hotelRoomImages;
 
       return res.status(200).send({
         success: true,

@@ -7,7 +7,9 @@ export async function up(knex: Knex): Promise<void> {
         table.uuid("hotel_room_id").references("id").inTable("hotel_rooms");
         table.string("name");
         table.boolean("status").defaultTo(true);
-        table.timestamps(true, true);
+        table.timestamp('created_at').defaultTo(knex.fn.now());
+        table.timestamp('updated_at').defaultTo(knex.fn.now());
+        table.timestamp('deleted_at').nullable();
     });
 
 }

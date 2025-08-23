@@ -325,9 +325,7 @@ export default class HotelRoomFeatureController {
   async delete(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const existingFeature = await new HotelRoomFeatureModel().first({
-        id,
-      });
+      const existingFeature = await new HotelRoomFeatureModel().exists({ id });
 
       if (!existingFeature) {
         return res.status(404).send({
@@ -339,9 +337,7 @@ export default class HotelRoomFeatureController {
       await new HotelRoomFeatureModel().delete(id);
       await knex("hotel_room_feature_pivots")
         .where("hotel_room_feature_id", id)
-        .whereNull("deleted_at")
         .update({ deleted_at: new Date() });
-
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL_ROOM_FEATURE.DELETED_SUCCESS"),
