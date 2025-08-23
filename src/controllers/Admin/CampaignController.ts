@@ -61,8 +61,20 @@ export default class CampaignController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const campaign = await new CampaignModel().oneToMany(id, "campaign_pivots", "campaign_id");
-      
+      const campaign = await knex("campaigns")
+        .where("campaigns.id", id)
+        .whereNull("campaigns.deleted_at")
+        .innerJoin("campaign_pivots", "campaigns.id", "campaign_pivots.campaign_id")
+        .where("campaign_pivots.language_code", req.language)
+        .select("campaigns.*", "campaign_pivots.title as title","campaign_pivots.description as description")
+        .groupBy("campaigns.id", "campaign_pivots.title","campaign_pivots.description")
+        .first();
+      if (!campaign) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("CAMPAIGN.CAMPAIGN_NOT_FOUND"),
+        });
+      }
       return res.status(200).send({
         success: true,
         message: req.t("CAMPAIGN.CAMPAIGN_FETCHED_SUCCESS"),
