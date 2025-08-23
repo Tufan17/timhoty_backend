@@ -6,6 +6,7 @@ import hotelOpportunityRoutes from "./SolutionPartner/Hotel/hotelOpportunity";
 import hotelFeatureRoutes from "./SolutionPartner/Hotel/hotelFeature";
 import hotelRoomRoutes from "./SolutionPartner/Hotel/hotelRoom";
 import hotelRoomOpportunityRoutes from "./SolutionPartner/Hotel/hotelRoomOpportunity";
+import hotelRoomFeatureRoutes from "./SolutionPartner/Hotel/hotelRoomFeature";
 
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
@@ -21,6 +22,6 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
     fastify.register(hotelFeatureRoutes, { prefix: "/hotel-features" });
     fastify.register(hotelRoomRoutes, { prefix: "/hotel-rooms" });
     fastify.register(hotelRoomOpportunityRoutes, { prefix: "/hotel-room-opportunities" });
-    
+    fastify.register(hotelRoomFeatureRoutes, { prefix: "/hotel-room-features" });
 }
 
