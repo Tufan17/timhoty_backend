@@ -321,7 +321,22 @@
     "HOTEL_UPDATED_ERROR": "Otel güncellenirken hata oluştu",
     "HOTEL_DELETED_SUCCESS": "Otel başarıyla silindi",
     "HOTEL_DELETED_ERROR": "Otel silinirken hata oluştu",
-    "HOTEL_NOT_FOUND": "Otel bulunamadı"
+    "HOTEL_NOT_FOUND": "Otel bulunamadı",
+    "HOTEL_SEND_FOR_APPROVAL_SUCCESS": "Otel onaya başarıyla gönderildi",
+    "HOTEL_SEND_FOR_APPROVAL_ERROR": "Otel onaya gönderilirken hata oluştu"
+  },
+  "VISA": {
+    "VISA_FETCHED_SUCCESS": "Vize başarıyla getirildi",
+    "VISA_FETCHED_ERROR": "Vize getirilirken hata oluştu",
+    "VISA_CREATED_SUCCESS": "Vize başarıyla oluşturuldu",
+    "VISA_CREATED_ERROR": "Vize oluşturulurken hata oluştu",
+    "VISA_UPDATED_SUCCESS": "Vize başarıyla güncellendi",
+    "VISA_UPDATED_ERROR": "Vize güncellenirken hata oluştu",
+    "VISA_DELETED_SUCCESS": "Vize başarıyla silindi",
+    "VISA_DELETED_ERROR": "Vize silinirken hata oluştu",
+    "VISA_NOT_FOUND": "Vize bulunamadı",
+    "VISA_SEND_FOR_APPROVAL_SUCCESS": "Vize onaya başarıyla gönderildi",
+    "VISA_SEND_FOR_APPROVAL_ERROR": "Vize onaya gönderilirken hata oluştu"
   },
   "HOTEL_OPPORTUNITY": {
     "HOTEL_OPPORTUNITY_FETCHED_SUCCESS": "Otel fırsatları başarıyla getirildi",
