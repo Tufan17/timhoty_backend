@@ -193,6 +193,18 @@ export class HotelRoomPackageController {
         prices,
       } = req.body as CreatePackageBody;
 
+
+      const existingHotelRoom = await new HotelRoomPackageModel().exists({
+         hotel_room_id,
+      });
+
+      if (existingHotelRoom) {
+        return res.status(400).send({
+          success: false,
+          message: req.t("HOTEL_ROOM_PACKAGE.HOTEL_ROOM_PACKAGE_ALREADY_EXISTS"),
+        });
+      }
+
       // tarihlerler kendli içinde çakışıyor mu ve constant_price true ise prices sadece 1 tane olmalı
       if (constant_price) {
         if (prices.length > 1) {
@@ -380,24 +392,21 @@ export class HotelRoomPackageController {
       }
 
       // Update package
-      await knex
+      await knex("hotel_room_packages")
         .update({
           hotel_room_id,
           discount,
           total_tax_amount,
           constant_price,
         })
-        .from("hotel_room_packages")
-        .where("hotel_room_packages.id", id)
-        .whereNull("hotel_room_package_prices.deleted_at")
-        .whereNull("hotel_room_packages.deleted_at");
+        .where("id", id)
+        .whereNull("deleted_at");
 
       // Delete old prices
-      await knex
-        .delete()
-        .from("hotel_room_package_prices")
+      await knex("hotel_room_package_prices")
+        .del()
         .where("hotel_room_package_id", id)
-        .whereNull("hotel_room_package_prices.deleted_at");
+        .whereNull("deleted_at");
 
       // Create new prices
       let pricesModel = [];

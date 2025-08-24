@@ -359,6 +359,7 @@
     "HOTEL_ROOM_PACKAGE_NOT_FOUND": "Otel paket bulunamadı",
     "HOTEL_ROOM_PACKAGE_ALREADY_EXISTS": "Otel paket zaten mevcut",
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Otel paket tarihleri çakışıyor",
-    "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Otel paket fiyatları sayısı hatalı"
+    "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Otel paket fiyatları sayısı hatalı",
+    "DATE_RANGE_ERROR": "Tarihler çakışıyor"
   }
 }
