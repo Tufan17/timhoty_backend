@@ -12,21 +12,40 @@ export default class NotificationController {
         search = "",
       } = req.query as { page: number; limit: number; search: string };
       const language = req.language;
-      const query = knex("notifications")
-        .whereNull("notifications.deleted_at")
+
+      // First get total count using a separate query
+      const countResult = await knex("notifications")
         .leftJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+        .whereNull("notifications.deleted_at")
         .where("notification_pivots.language_code", language)
         .where(function () {
           this.where("service_type", "ilike", `%${search}%`)
             .orWhere("type", "ilike", `%${search}%`)
             .orWhere("notification_pivots.title", "ilike", `%${search}%`)
             .orWhere("notification_pivots.description", "ilike", `%${search}%`);
-        });
-      const countResult = await query.clone().count("* as total").first();
+        })
+        .countDistinct("notifications.id as total")
+        .first();
+
       const total = Number(countResult?.total ?? 0);
       const totalPages = Math.ceil(total / Number(limit));
-      const data = await query
-        .clone()
+
+      // Then get paginated data with a separate query
+      const data = await knex("notifications")
+        .select([
+          "notifications.*",
+          "notification_pivots.title",
+          "notification_pivots.description"
+        ])
+        .leftJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+        .whereNull("notifications.deleted_at")
+        .where("notification_pivots.language_code", language)
+        .where(function () {
+          this.where("service_type", "ilike", `%${search}%`)
+            .orWhere("type", "ilike", `%${search}%`)
+            .orWhere("notification_pivots.title", "ilike", `%${search}%`)
+            .orWhere("notification_pivots.description", "ilike", `%${search}%`);
+        })
         .orderBy("notifications.created_at", "asc")
         .limit(Number(limit))
         .offset((Number(page) - 1) * Number(limit));
@@ -36,8 +55,8 @@ export default class NotificationController {
         message: req.t("NOTIFICATION.NOTIFICATION_FETCHED_SUCCESS"),
         data: data.map((item: any) => ({
           ...item,
-          title: item.notification_pivots.title,
-          description: item.notification_pivots.description,
+          title: item.title || null,
+          description: item.description || null,
         })),
         recordsPerPageOptions: [10, 20, 50, 100],
         total: total,
