@@ -18,6 +18,10 @@ export default async function countryRoutes(fastify: FastifyInstance) {
 
   fastify.get("/", {
     preHandler: [authAdminMiddleware],
+    handler: countryController.dataTable,
+  });
+  fastify.get("/all", {
+    preHandler: [authAdminMiddleware],
     handler: countryController.findAll,
   });
   fastify.get("/:id", {

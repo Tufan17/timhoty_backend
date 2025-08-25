@@ -19,6 +19,10 @@ export default async function cityRoutes(fastify: FastifyInstance) {
   fastify.get("/", {
     preHandler: [authAdminMiddleware],
     preValidation: [validateQuery(cityQuerySchema)],
+    handler: cityController.dataTable,
+  });
+  fastify.get("/all", {
+    preHandler: [authAdminMiddleware],
     handler: cityController.findAll,
   });
   fastify.get("/:id", {
