@@ -1,11 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../../db/knex";
-import VisaModel from "@/models/VisaModel";
-import { translateCreate, translateUpdate } from "@/helper/translate";
 import CityModel from "@/models/CityModel";
-import SolutionPartnerModel from "@/models/SolutionPartnerModel";
-import VisaGalleryModel from "@/models/VisaGalleryModel";
-import VisaFeatureModel from "@/models/VisaFeatureModel";
+import VisaModel from "@/models/VisaModel";
+import { translateCreate } from "@/helper/translate";
 
 export default class VisaController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -83,7 +80,7 @@ export default class VisaController {
           }
         });
 
-      // Toplam sayım (benzersiz vize)
+      // Toplam sayım (benzersiz otel)
       const countRow = await base
         .clone()
         .clearSelect()
@@ -97,10 +94,10 @@ export default class VisaController {
       // Veri seçimi
       const data = await base
         .clone()
-        .distinct("visas.id") // aynı vize birden fazla pivot kaydına düşmesin
+        .distinct("visas.id") // aynı visa birden fazla pivot kaydına düşmesin
         .select(
           "visas.*",
-          knex.ref("visa_pivots.title").as("title"),
+          "visa_pivots.title as name", // Changed from visa_pivots.name to visa_pivots.title
           "visa_pivots.general_info",
           "visa_pivots.visa_info",
           "visa_pivots.refund_policy",
@@ -139,23 +136,11 @@ export default class VisaController {
 
   async findAll(req: FastifyRequest, res: FastifyReply) {
     try {
-      const language = req.language;
-      const visas = await knex("visas")
-        .whereNull("visas.deleted_at")
-        .select(
-          "visas.*",
-          "visa_pivots.title as title",
-          "visa_pivots.general_info",
-          "visa_pivots.visa_info",
-          "visa_pivots.refund_policy"
-        )
-        .innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-        .where("visa_pivots.language_code", language);
-
+      const visas = await knex("visas").whereNull("visas.deleted_at");
       return res.status(200).send({
         success: true,
         message: req.t("VISA.VISA_FETCHED_SUCCESS"),
-        data: visas as any,
+        data: visas,
       });
     } catch (error) {
       console.log(error);
@@ -166,86 +151,8 @@ export default class VisaController {
     }
   }
 
-  async findOne(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { id } = req.params as { id: string };
-      const visa = await knex("visas")
-        .whereNull("visas.deleted_at")
-        .where("visas.id", id)
-        .select(
-          "visas.*",
-          "visa_pivots.title as title",
-          "visa_pivots.general_info",
-          "visa_pivots.visa_info",
-          "visa_pivots.refund_policy"
-        )
-        .innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-        .where("visa_pivots.language_code", req.language)
-        .first();
 
-      if (!visa) {
-        return res.status(404).send({
-          success: false,
-          message: req.t("VISA.VISA_NOT_FOUND"),
-        });
-      }
-
-      if (visa.location_id) {
-        const city = await knex("cities")
-          .where("cities.id", visa.location_id)
-          .whereNull("cities.deleted_at")
-          .innerJoin(
-            "country_pivots",
-            "cities.country_id",
-            "country_pivots.country_id"
-          )
-          .where("country_pivots.language_code", req.language)
-          .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
-          .where("city_pivots.language_code", req.language)
-          .whereNull("cities.deleted_at")
-          .whereNull("country_pivots.deleted_at")
-          .whereNull("city_pivots.deleted_at")
-          .select(
-            "country_pivots.name as country_name",
-            "city_pivots.name as city_name"
-          )
-          .first();
-        visa.location = city;
-        visa.address = `${city.country_name}, ${city.city_name}`;
-      }
-
-      const visaFeatures = await knex("visa_features")
-        .where("visa_features.visa_id", id)
-        .whereNull("visa_features.deleted_at")
-        .innerJoin(
-          "visa_feature_pivots",
-          "visa_features.id",
-          "visa_feature_pivots.visa_feature_id"
-        )
-        .where("visa_feature_pivots.language_code", req.language)
-        .select("visa_features.*", "visa_feature_pivots.name");
-      visa.visa_features = visaFeatures;
-
-      const visaGalleries = await knex("visa_galleries")
-        .where("visa_galleries.visa_id", id)
-        .whereNull("visa_galleries.deleted_at")
-        .select("visa_galleries.*");
-      visa.visa_galleries = visaGalleries;
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("VISA.VISA_FETCHED_SUCCESS"),
-        data: visa,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("VISA.VISA_FETCHED_ERROR"),
-      });
-    }
-  }
-
+ 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
       // Get the authenticated solution partner from the request
@@ -253,23 +160,21 @@ export default class VisaController {
 
       const {
         location_id,
-        refund_days,
-        approval_period,
         status = false,
         highlight = false,
+        refund_days,
         title,
         general_info,
-        visa_info,
+        hotel_info,
         refund_policy,
       } = req.body as {
         location_id: string;
-        refund_days?: number;
-        approval_period?: number;
         status?: boolean;
         highlight?: boolean;
+        refund_days?: number;
         title: string;
         general_info: string;
-        visa_info: string;
+        hotel_info: string;
         refund_policy: string;
       };
 
@@ -289,11 +194,10 @@ export default class VisaController {
 
       const visa = await new VisaModel().create({
         location_id,
-        refund_days,
-        approval_period,
         solution_partner_id: solutionPartnerUser?.solution_partner_id,
         status: false,
         highlight,
+        refund_days,
       });
 
       const translateResult = await translateCreate({
@@ -304,7 +208,7 @@ export default class VisaController {
         data: {
           title,
           general_info,
-          visa_info,
+          hotel_info,
           refund_policy,
         },
       });
@@ -320,174 +224,6 @@ export default class VisaController {
       return res.status(500).send({
         success: false,
         message: req.t("VISA.VISA_CREATED_ERROR"),
-      });
-    }
-  }
-
-  async update(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { id } = req.params as { id: string };
-      const {
-        location_id,
-        refund_days,
-        approval_period,
-        solution_partner_id,
-        status,
-        highlight,
-        title,
-        general_info,
-        visa_info,
-        refund_policy,
-      } = req.body as {
-        location_id?: string;
-        approval_period?: number;
-        solution_partner_id?: string;
-        status?: boolean;
-        highlight?: boolean;
-        title?: string;
-        general_info?: string;
-        visa_info?: string;
-        refund_policy?: string;
-        refund_days?: number;
-      };
-
-      const existingVisa = await new VisaModel().first({ id });
-
-      if (!existingVisa) {
-        return res.status(404).send({
-          success: false,
-          message: req.t("VISA.VISA_NOT_FOUND"),
-        });
-      }
-
-      // Validate location_id if provided
-      if (location_id) {
-        const existingCity = await new CityModel().first({
-          "cities.id": location_id,
-        });
-
-        if (!existingCity) {
-          return res.status(400).send({
-            success: false,
-            message: req.t("CITY.CITY_NOT_FOUND"),
-          });
-        }
-      }
-
-      // Validate solution_partner_id if provided
-      if (solution_partner_id) {
-        const existingSolutionPartner = await new SolutionPartnerModel().first({
-          "solution_partners.id": solution_partner_id,
-        });
-
-        if (!existingSolutionPartner) {
-          return res.status(400).send({
-            success: false,
-            message: req.t("SOLUTION_PARTNER.SOLUTION_PARTNER_NOT_FOUND"),
-          });
-        }
-      }
-
-      let body: any = {
-        location_id:
-          location_id !== undefined ? location_id : existingVisa.location_id,
-        approval_period:
-          approval_period !== undefined
-            ? approval_period
-            : existingVisa.approval_period,
-        solution_partner_id:
-          solution_partner_id !== undefined
-            ? solution_partner_id
-            : existingVisa.solution_partner_id,
-        status: status !== undefined ? status : existingVisa.status,
-        highlight:
-          highlight !== undefined ? highlight : existingVisa.highlight,
-        refund_days:
-          refund_days !== undefined ? refund_days : existingVisa.refund_days,
-      };
-
-      await new VisaModel().update(id, body);
-
-      // Update translations if provided
-      if (title || general_info || visa_info || refund_policy) {
-        await translateUpdate({
-            target: "visa_pivots",      
-          target_id_key: "visa_id",
-          target_id: id,
-          data: {
-            ...(title && { title }),
-            ...(general_info && { general_info }),
-            ...(visa_info && { visa_info }),
-            ...(refund_policy && { refund_policy }),
-          },
-          language_code: req.language,
-        });
-      }
-
-      const updatedVisa = await new VisaModel().oneToMany(
-        id,
-        "visa_pivots",
-        "visa_id"
-      );
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("VISA.VISA_UPDATED_SUCCESS"),
-        data: updatedVisa,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("VISA.VISA_UPDATED_ERROR"),
-      });
-    }
-  }
-
-  async delete(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { id } = req.params as { id: string };
-      const existingVisa = await new VisaModel().first({ id });
-
-      if (!existingVisa) {
-        return res.status(404).send({
-          success: false,
-          message: req.t("VISA.VISA_NOT_FOUND"),
-        });
-      }
-
-      await new VisaModel().delete(id);
-      await knex("visa_pivots")
-        .where("visa_id", id)
-        .whereNull("deleted_at")
-        .update({ deleted_at: new Date() });
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("VISA.VISA_DELETED_SUCCESS"),
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("VISA.VISA_DELETED_ERROR"),
-      });
-    }
-  }
-
-  async sendForApproval(req: FastifyRequest, res: FastifyReply) {
-    try {
-   
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("VISA.VISA_SEND_FOR_APPROVAL_SUCCESS"),
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("VISA.VISA_SEND_FOR_APPROVAL_ERROR"),
       });
     }
   }

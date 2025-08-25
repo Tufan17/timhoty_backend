@@ -1,0 +1,38 @@
+import { FastifyInstance } from "fastify";
+import VisaController from "../../../controllers/SolutionPartner/Visa/VisaController";
+import { visaSchema, visaUpdateSchema, visaQuerySchema } from "../../../validators/Visa/visa";
+import { makeAuditLogger } from "../../../middlewares/logMiddleware";
+import { validateQuery } from "../../../middlewares/validateQuery";
+import { validate } from "../../../middlewares/validate";
+import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
+import VisaModel from "@/models/VisaModel";
+
+export default async function visaRoutes(fastify: FastifyInstance) {
+  const visaController = new VisaController();
+  
+  const visaAuditLogger = makeAuditLogger({
+    targetName: "visas",
+    model: new VisaModel(),
+    idParam: "id",
+    getUser: (request) => (request as any).user || {}
+  });
+
+  fastify.get("/", {
+    preHandler: [authSolutionPartnerMiddleware],
+    preValidation: [validateQuery(visaQuerySchema)],
+    handler: visaController.dataTable,
+  });
+
+  fastify.get("/all", {
+    preHandler: [authSolutionPartnerMiddleware],
+    handler: visaController.findAll,
+  });
+
+  fastify.post("/", {
+    preHandler: [authSolutionPartnerMiddleware],
+    preValidation: [validate(visaSchema)],
+    handler: visaController.create,
+  });
+
+ 
+}
