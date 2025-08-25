@@ -97,7 +97,7 @@ export default class VisaController {
         .distinct("visas.id") // aynı visa birden fazla pivot kaydına düşmesin
         .select(
           "visas.*",
-          "visa_pivots.title as name", // Changed from visa_pivots.name to visa_pivots.title
+          "visa_pivots.title as title", // Changed from visa_pivots.name to visa_pivots.title
           "visa_pivots.general_info",
           "visa_pivots.visa_info",
           "visa_pivots.refund_policy",
@@ -151,8 +151,6 @@ export default class VisaController {
     }
   }
 
-
- 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
       // Get the authenticated solution partner from the request
@@ -160,21 +158,19 @@ export default class VisaController {
 
       const {
         location_id,
-        status = false,
         highlight = false,
         refund_days,
         title,
         general_info,
-        hotel_info,
+        visa_info,
         refund_policy,
       } = req.body as {
         location_id: string;
-        status?: boolean;
         highlight?: boolean;
         refund_days?: number;
         title: string;
         general_info: string;
-        hotel_info: string;
+        visa_info: string;
         refund_policy: string;
       };
 
@@ -199,7 +195,7 @@ export default class VisaController {
         highlight,
         refund_days,
       });
-
+ 
       const translateResult = await translateCreate({
         target: "visa_pivots",
         target_id_key: "visa_id",
@@ -208,7 +204,7 @@ export default class VisaController {
         data: {
           title,
           general_info,
-          hotel_info,
+          visa_info,
           refund_policy,
         },
       });
@@ -224,6 +220,69 @@ export default class VisaController {
       return res.status(500).send({
         success: false,
         message: req.t("VISA.VISA_CREATED_ERROR"),
+      });
+    }
+  }
+
+  async findOne(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const visa = await knex("visas")
+        .whereNull("visas.deleted_at")
+        .where("visas.id", id)
+        .select(
+          "visas.*",
+          "visa_pivots.title as title",
+          "visa_pivots.general_info",
+          "visa_pivots.visa_info",
+          "visa_pivots.refund_policy"
+        )
+        .innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
+        .where("visa_pivots.language_code", req.language)
+        .first();
+
+      if (!visa) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("VISA.VISA_NOT_FOUND"),
+        });
+      }
+
+      if (visa.location_id) {
+        const city = await knex("cities")
+          .where("cities.id", visa.location_id)
+          .whereNull("cities.deleted_at")
+          .innerJoin(
+            "country_pivots",
+            "cities.country_id",
+            "country_pivots.country_id"
+          )
+          .where("country_pivots.language_code", req.language)
+          .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+          .where("city_pivots.language_code", req.language)
+          .whereNull("cities.deleted_at")
+          .whereNull("country_pivots.deleted_at")
+          .whereNull("city_pivots.deleted_at")
+          .select(
+            "country_pivots.name as country_name",
+            "city_pivots.name as city_name"
+          )
+          .first();
+        visa.location = city;
+        visa.address = `${city.country_name}, ${city.city_name}`;
+      }
+
+ 
+      return res.status(200).send({
+        success: true,
+        message: req.t("VISA.VISA_FETCHED_SUCCESS"),
+        data: visa,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("VISA.VISA_FETCHED_ERROR"),
       });
     }
   }

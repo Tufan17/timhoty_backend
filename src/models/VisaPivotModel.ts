@@ -8,7 +8,7 @@ class VisaPivotModel extends BaseModel {
     'id',
     'visa_id',
     'title',
-    'general_info',
+    'description',
     'visa_info',
     'refund_policy',
     'language_code',

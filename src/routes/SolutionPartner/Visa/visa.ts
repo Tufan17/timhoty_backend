@@ -7,6 +7,7 @@ import { validate } from "../../../middlewares/validate";
 import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
 import VisaModel from "@/models/VisaModel";
 
+
 export default async function visaRoutes(fastify: FastifyInstance) {
   const visaController = new VisaController();
   
@@ -22,7 +23,10 @@ export default async function visaRoutes(fastify: FastifyInstance) {
     preValidation: [validateQuery(visaQuerySchema)],
     handler: visaController.dataTable,
   });
-
+  fastify.get("/:id", {
+    preHandler: [authSolutionPartnerMiddleware],
+    handler: visaController.findOne,
+  })
   fastify.get("/all", {
     preHandler: [authSolutionPartnerMiddleware],
     handler: visaController.findAll,
@@ -33,6 +37,7 @@ export default async function visaRoutes(fastify: FastifyInstance) {
     preValidation: [validate(visaSchema)],
     handler: visaController.create,
   });
+
 
  
 }
