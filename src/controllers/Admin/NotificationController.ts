@@ -15,7 +15,11 @@ export default class NotificationController {
 
       // First get total count using a separate query
       const countResult = await knex("notifications")
-        .leftJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+        .leftJoin(
+          "notification_pivots",
+          "notifications.id",
+          "notification_pivots.notification_id"
+        )
         .whereNull("notifications.deleted_at")
         .where("notification_pivots.language_code", language)
         .where(function () {
@@ -35,9 +39,13 @@ export default class NotificationController {
         .select([
           "notifications.*",
           "notification_pivots.title",
-          "notification_pivots.description"
+          "notification_pivots.description",
         ])
-        .leftJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+        .leftJoin(
+          "notification_pivots",
+          "notifications.id",
+          "notification_pivots.notification_id"
+        )
         .whereNull("notifications.deleted_at")
         .where("notification_pivots.language_code", language)
         .where(function () {
@@ -76,8 +84,13 @@ export default class NotificationController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const notification = await new NotificationModel().first({ id });
-      
+      const notification = await knex("notifications")
+        .innerJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+        .where("notifications.id", id)
+        .where("notification_pivots.language_code", req.language)
+        .select("notifications.*", "notification_pivots.title", "notification_pivots.description")
+        .first();
+
       if (!notification) {
         return res.status(404).send({
           success: false,
@@ -101,12 +114,7 @@ export default class NotificationController {
 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { 
-        service_type,
-        type,
-        title,
-        description,
-       } = req.body as {
+      const { service_type, type, title, description } = req.body as {
         service_type: string;
         type: string;
         title: string;
@@ -146,12 +154,7 @@ export default class NotificationController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { 
-        service_type, 
-        type,
-        title,
-        description,
-      } = req.body as {
+      const { service_type, type, title, description } = req.body as {
         service_type?: string;
         type?: string;
         title?: string;
@@ -168,17 +171,25 @@ export default class NotificationController {
       }
 
       // Check for duplicate service_type and type combination if updating
-      if ((service_type && service_type !== existingNotification.service_type) || 
-          (type && type !== existingNotification.type)) {
-        const checkServiceType = service_type || existingNotification.service_type;
+      if (
+        (service_type && service_type !== existingNotification.service_type) ||
+        (type && type !== existingNotification.type)
+      ) {
+        const checkServiceType =
+          service_type || existingNotification.service_type;
         const checkType = type || existingNotification.type;
-        
-        const existingNotificationByCombo = await new NotificationModel().first({ 
-          service_type: checkServiceType, 
-          type: checkType 
-        });
 
-        if (existingNotificationByCombo && existingNotificationByCombo.id !== id) {
+        const existingNotificationByCombo = await new NotificationModel().first(
+          {
+            service_type: checkServiceType,
+            type: checkType,
+          }
+        );
+
+        if (
+          existingNotificationByCombo &&
+          existingNotificationByCombo.id !== id
+        ) {
           return res.status(400).send({
             success: false,
             message: req.t("NOTIFICATION.NOTIFICATION_ALREADY_EXISTS"),
@@ -191,7 +202,10 @@ export default class NotificationController {
         type: type || existingNotification.type,
       };
 
-      const updatedNotification = await new NotificationModel().update(id, body);
+      const updatedNotification = await new NotificationModel().update(
+        id,
+        body
+      );
       const translateResult = await translateCreate({
         target: "notification_pivots",
         target_id_key: "notification_id",
