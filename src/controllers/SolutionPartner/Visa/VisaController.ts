@@ -2,8 +2,9 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../../db/knex";
 import CityModel from "@/models/CityModel";
 import VisaModel from "@/models/VisaModel";
-import { translateCreate } from "@/helper/translate";
-
+import { translateCreate, translateUpdate } from "@/helper/translate";
+import SolutionPartnerModel from "@/models/SolutionPartnerModel";
+import VisaPivotModel from "@/models/VisaPivotModel";
 export default class VisaController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
     try {
@@ -151,79 +152,6 @@ export default class VisaController {
     }
   }
 
-  async create(req: FastifyRequest, res: FastifyReply) {
-    try {
-      // Get the authenticated solution partner from the request
-      const solutionPartnerUser = (req as any).user;
-
-      const {
-        location_id,
-        highlight = false,
-        refund_days,
-        title,
-        general_info,
-        visa_info,
-        refund_policy,
-      } = req.body as {
-        location_id: string;
-        highlight?: boolean;
-        refund_days?: number;
-        title: string;
-        general_info: string;
-        visa_info: string;
-        refund_policy: string;
-      };
-
-      // Validate location_id
-      if (location_id) {
-        const existingCity = await new CityModel().first({
-          "cities.id": location_id,
-        });
-
-        if (!existingCity) {
-          return res.status(400).send({
-            success: false,
-            message: req.t("CITY.CITY_NOT_FOUND"),
-          });
-        }
-      }
-
-      const visa = await new VisaModel().create({
-        location_id,
-        solution_partner_id: solutionPartnerUser?.solution_partner_id,
-        status: false,
-        highlight,
-        refund_days,
-      });
- 
-      const translateResult = await translateCreate({
-        target: "visa_pivots",
-        target_id_key: "visa_id",
-        target_id: visa.id,
-        language_code: req.language,
-        data: {
-          title,
-          general_info,
-          visa_info,
-          refund_policy,
-        },
-      });
-      visa.visa_pivots = translateResult;
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("VISA.VISA_CREATED_SUCCESS"),
-        data: visa,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("VISA.VISA_CREATED_ERROR"),
-      });
-    }
-  }
-
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
@@ -265,14 +193,15 @@ export default class VisaController {
           .whereNull("city_pivots.deleted_at")
           .select(
             "country_pivots.name as country_name",
-            "city_pivots.name as city_name"
+            "city_pivots.name as city_name",
+            "cities.country_id as country_id"
           )
           .first();
         visa.location = city;
         visa.address = `${city.country_name}, ${city.city_name}`;
+        visa.country_id = city.country_id;
       }
 
- 
       return res.status(200).send({
         success: true,
         message: req.t("VISA.VISA_FETCHED_SUCCESS"),
@@ -286,4 +215,231 @@ export default class VisaController {
       });
     }
   }
+
+  async create(req: FastifyRequest, res: FastifyReply) {
+    try {
+      // Get the authenticated solution partner from the request
+      const solutionPartnerUser = (req as any).user;
+
+      const {
+        location_id,
+        highlight = false,
+        refund_days,
+        title,
+        general_info,
+        visa_info,
+        refund_policy,
+        approval_period,
+      } = req.body as {
+        location_id: string;
+        highlight?: boolean;
+        refund_days?: number;
+        title: string;
+        general_info: string;
+        visa_info: string;
+        refund_policy: string;
+        approval_period?: number;
+      };
+
+      // Validate location_id
+      if (location_id) {
+        const existingCity = await new CityModel().first({
+          "cities.id": location_id,
+        });
+
+        if (!existingCity) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("CITY.CITY_NOT_FOUND"),
+          });
+        }
+      }
+
+      const visa = await new VisaModel().create({
+        location_id,
+        solution_partner_id: solutionPartnerUser?.solution_partner_id,
+        status: false,
+        highlight,
+        refund_days,
+        approval_period,
+      });
+
+      const translateResult = await translateCreate({
+        target: "visa_pivots",
+        target_id_key: "visa_id",
+        target_id: visa.id,
+        language_code: req.language,
+        data: {
+          title,
+          general_info,
+          visa_info,
+          refund_policy,
+        },
+      });
+      visa.visa_pivots = translateResult;
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("VISA.VISA_CREATED_SUCCESS"),
+        data: visa,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("VISA.VISA_CREATED_ERROR"),
+      });
+    }
+  }
+
+  async update(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const {
+        location_id,
+        solution_partner_id,
+        status,
+        highlight,
+        refund_days,
+        title,
+        general_info,
+        visa_info,
+        refund_policy,
+        approval_period,
+      } = req.body as {
+        location_id?: string;
+        solution_partner_id?: string;
+        status?: boolean;
+        highlight?: boolean;
+        refund_days?: number;
+        title?: string;
+        general_info?: string;
+        visa_info?: string;
+        refund_policy?: string;
+        approval_period?: number;
+      };
+
+      const existingVisa = await new VisaModel().first({ id });
+
+      if (!existingVisa) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("VISA.VISA_NOT_FOUND"),
+        });
+      }
+
+      // Validate location_id if provided
+      if (location_id) {
+        const existingCity = await new CityModel().first({
+          "cities.id": location_id,
+        });
+
+        if (!existingCity) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("CITY.CITY_NOT_FOUND"),
+          });
+        }
+      }
+
+      // Validate solution_partner_id if provided
+      if (solution_partner_id) {
+        const existingSolutionPartner = await new SolutionPartnerModel().first({
+          "solution_partners.id": solution_partner_id,
+        });
+
+        if (!existingSolutionPartner) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("SOLUTION_PARTNER.SOLUTION_PARTNER_NOT_FOUND"),
+          });
+        }
+      }
+
+      let body: any = {
+        location_id:
+          location_id !== undefined ? location_id : existingVisa.location_id,
+        solution_partner_id:
+          solution_partner_id !== undefined
+            ? solution_partner_id
+            : existingVisa.solution_partner_id,
+        status: status !== undefined ? status : existingVisa.status,
+        highlight: highlight !== undefined ? highlight : existingVisa.highlight,
+        refund_days:
+          refund_days !== undefined ? refund_days : existingVisa.refund_days,
+        approval_period:
+          approval_period != null
+            ? approval_period
+            : existingVisa.approval_period,
+      };
+
+      await new VisaModel().update(id, body);
+
+      // Update translations if provided
+      if (title || general_info || visa_info || refund_policy) {
+        await translateUpdate({
+          target: "visa_pivots",
+          target_id_key: "visa_id",
+          target_id: id,
+          data: {
+            ...(title && { title }),
+            ...(general_info && { general_info }),
+            ...(visa_info && { visa_info }),
+            ...(refund_policy && { refund_policy }),
+          },
+          language_code: req.language,
+        });
+      }
+
+      const updatedVisa = await new VisaModel().oneToMany(
+        id,
+        "visa_pivots",
+        "visa_id"
+      );
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("VISA.VISA_UPDATED_SUCCESS"),
+        data: updatedVisa,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("VISA.VISA_UPDATED_ERROR"),
+      });
+    }
+  }
+
+  async delete(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const existingVisa = await new VisaModel().first({ id });
+
+      if (!existingVisa) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("VISA.VISA_NOT_FOUND"),
+        });
+      }
+
+      await new VisaModel().delete(id);
+      await knex("visa_pivots")
+        .where("visa_id", id)
+        .whereNull("deleted_at")
+        .update({ deleted_at: new Date() });
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("VISA.VISA_DELETED_SUCCESS"),
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("VISA.VISA_DELETED_ERROR"),
+      });
+    }
+  }
 }
+

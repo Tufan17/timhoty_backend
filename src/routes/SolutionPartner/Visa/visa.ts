@@ -38,6 +38,14 @@ export default async function visaRoutes(fastify: FastifyInstance) {
     handler: visaController.create,
   });
 
+  fastify.put("/:id", {
+    preHandler: [authSolutionPartnerMiddleware],
+    preValidation: [validate(visaUpdateSchema)],
+    handler: visaController.update,
+  });
 
- 
+  fastify.delete("/:id", {
+    preHandler: [authSolutionPartnerMiddleware],
+    handler: visaController.delete,
+  });
 }
