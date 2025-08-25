@@ -184,7 +184,7 @@ export default class SolutionPartnerController {
         iban: iban || existingAdmin.iban,
         language_code: language_code.toLowerCase() || existingAdmin.language_code,
         location_id: location_id || existingAdmin.location_id,
-        status: status || existingAdmin.status,
+        status
       };
 
 
