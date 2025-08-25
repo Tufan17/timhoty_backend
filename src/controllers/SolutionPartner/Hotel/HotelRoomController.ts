@@ -189,6 +189,50 @@ export default class HotelRoomController {
           .select("hotel_room_images.*");
         hotel.hotel_room_images = hotelRoomImages;
 
+        const hotelRoomPackages = await knex
+          .select(
+            "hotel_room_packages.*",
+            knex.raw(`json_agg(
+              json_build_object(
+                'id', hotel_room_package_prices.id,
+                'hotel_room_package_id', hotel_room_package_prices.hotel_room_package_id,
+                'main_price', hotel_room_package_prices.main_price,
+                'child_price', hotel_room_package_prices.child_price,
+                'currency_id', hotel_room_package_prices.currency_id,
+                'start_date', hotel_room_package_prices.start_date,
+                'end_date', hotel_room_package_prices.end_date,
+                'created_at', hotel_room_package_prices.created_at,
+                'updated_at', hotel_room_package_prices.updated_at,
+                'deleted_at', hotel_room_package_prices.deleted_at,
+                'currency', json_build_object(
+                  'id', currencies.id,
+                  'code', currencies.code,
+                  'symbol', currencies.symbol,
+                  'is_active', currencies.is_active,
+                  'position', currencies.position,
+                  'created_at', currencies.created_at,
+                  'updated_at', currencies.updated_at,
+                  'deleted_at', currencies.deleted_at
+                )
+              )
+            ) as prices`)
+          )
+          .from("hotel_room_packages")
+          .leftJoin(
+            "hotel_room_package_prices",
+            "hotel_room_packages.id",
+            "hotel_room_package_prices.hotel_room_package_id"
+          )
+          .leftJoin("currencies", "hotel_room_package_prices.currency_id", "currencies.id")
+          .where("hotel_room_packages.hotel_room_id", id)
+          .whereNull("hotel_room_package_prices.deleted_at")
+          .whereNull("hotel_room_packages.deleted_at")
+          .groupBy("hotel_room_packages.id")
+          .first();
+        hotel.hotel_room_packages = hotelRoomPackages;
+
+       
+
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL_ROOM.HOTEL_ROOM_FETCHED_SUCCESS"),

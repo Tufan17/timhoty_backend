@@ -10,12 +10,16 @@ import hotelRoomFeatureRoutes from "./SolutionPartner/Hotel/hotelRoomFeature";
 import hotelRoomImageRoutes from "./SolutionPartner/Hotel/hotelRoomImage";
 import hotelRoomPackageRoutes from "./SolutionPartner/Hotel/hotelRoomPackage";
 import hotelGalleryRoutes from "./SolutionPartner/Hotel/hotelGallery";
+import currencyRoutes from "./SolutionPartner/currency";
 
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 
     fastify.register(countryRoutes, { prefix: "/countries" });
     fastify.register(cityRoutes, { prefix: "/cities" });
+
+    fastify.register(currencyRoutes, { prefix: "/currencies" });
+
 
     // ===========================================
     // HOTEL ROUTES

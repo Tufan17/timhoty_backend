@@ -4,6 +4,14 @@ import HotelModel from "@/models/HotelModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";
 import CityModel from "@/models/CityModel";
 import SolutionPartnerModel from "@/models/SolutionPartnerModel";
+import HotelRoomModel from "@/models/HotelRoomModel";
+import HotelGalleryModel from "@/models/HotelGalleryModel";
+import HotelOpportunityModel from "@/models/HotelOpportunityModel";
+import HotelFeatureModel from "@/models/HotelFeatureModel";
+import HotelRoomFeatureModel from "@/models/HotelRoomFeatureModel";
+import HotelRoomImageModel from "@/models/HotelRoomImageModel";
+import HotelRoomOpportunityModel from "@/models/HotelRoomOpportunityModel";
+import HotelRoomPackageModel from "@/models/HotelRoomPackageModel";
 
 export default class HotelController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -37,7 +45,11 @@ export default class HotelController {
         .whereNull("hotels.deleted_at")
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
         .innerJoin("cities", "hotels.location_id", "cities.id")
-        .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+        .innerJoin(
+          "country_pivots",
+          "cities.country_id",
+          "country_pivots.country_id"
+        )
         .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
         .where("hotel_pivots.language_code", language)
         .where("country_pivots.language_code", language)
@@ -49,11 +61,14 @@ export default class HotelController {
         .modify((qb) => {
           // solution_partner_id (önce user'dan, yoksa query)
           if (spFromUser) qb.where("hotels.solution_partner_id", spFromUser);
-          else if (solution_partner_id) qb.where("hotels.solution_partner_id", solution_partner_id);
+          else if (solution_partner_id)
+            qb.where("hotels.solution_partner_id", solution_partner_id);
 
           if (typeof status !== "undefined") qb.where("hotels.status", status);
-          if (typeof admin_approval !== "undefined") qb.where("hotels.admin_approval", admin_approval);
-          if (typeof highlight !== "undefined") qb.where("hotels.highlight", highlight);
+          if (typeof admin_approval !== "undefined")
+            qb.where("hotels.admin_approval", admin_approval);
+          if (typeof highlight !== "undefined")
+            qb.where("hotels.highlight", highlight);
           if (location_id) qb.where("hotels.location_id", location_id);
 
           if (search) {
@@ -101,20 +116,18 @@ export default class HotelController {
         .orderBy("hotels.created_at", "desc")
         .limit(Number(limit))
         .offset((Number(page) - 1) * Number(limit));
-        
-       const newData = data.map((item:any)=>{
-          return {
-            ...item,
-            address: `${item.country_name || ''}, ${item.city_name || ''}`.trim()
-          }
-        });
 
-
+      const newData = data.map((item: any) => {
+        return {
+          ...item,
+          address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+        };
+      });
 
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL.HOTEL_FETCHED_SUCCESS"),
-        data:newData,
+        data: newData,
         recordsPerPageOptions: [10, 20, 50, 100],
         total,
         totalPages,
@@ -136,7 +149,7 @@ export default class HotelController {
       const hotels = await knex("hotels")
         .whereNull("hotels.deleted_at")
         .select(
-          "hotels.*", 
+          "hotels.*",
           "hotel_pivots.name as name",
           "hotel_pivots.general_info",
           "hotel_pivots.hotel_info",
@@ -144,7 +157,7 @@ export default class HotelController {
         )
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
         .where("hotel_pivots.language_code", language);
-      
+
       return res.status(200).send({
         success: true,
         message: req.t("HOTEL.HOTEL_FETCHED_SUCCESS"),
@@ -166,72 +179,100 @@ export default class HotelController {
         .whereNull("hotels.deleted_at")
         .where("hotels.id", id)
         .select(
-          "hotels.*", 
+          "hotels.*",
           "hotel_pivots.name as name",
           "hotel_pivots.general_info",
           "hotel_pivots.hotel_info",
           "hotel_pivots.refund_policy"
         )
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
-        .where("hotel_pivots.language_code", req.language).first();
+        .where("hotel_pivots.language_code", req.language)
+        .first();
 
-        if(!hotel){
-          return res.status(404).send({
-            success: false,
-            message: req.t("HOTEL.HOTEL_NOT_FOUND"),
-          });
-        }
+      if (!hotel) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("HOTEL.HOTEL_NOT_FOUND"),
+        });
+      }
 
-
-
-        if(hotel.location_id){
-          const city = await knex("cities")
-            .where("cities.id", hotel.location_id)
-            .whereNull("cities.deleted_at")
-            .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-            .where("country_pivots.language_code", req.language)
-            .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
-            .where("city_pivots.language_code", req.language)
-            .whereNull("cities.deleted_at")
-            .whereNull("country_pivots.deleted_at")
-            .whereNull("city_pivots.deleted_at")
-            .select( 
-              "country_pivots.name as country_name",
-              "city_pivots.name as city_name"
-            ).first();
-            hotel.location = city;
-            hotel.address = `${city.country_name}, ${city.city_name}`;
-        }
+      if (hotel.location_id) {
+        const city = await knex("cities")
+          .where("cities.id", hotel.location_id)
+          .whereNull("cities.deleted_at")
+          .innerJoin(
+            "country_pivots",
+            "cities.country_id",
+            "country_pivots.country_id"
+          )
+          .where("country_pivots.language_code", req.language)
+          .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+          .where("city_pivots.language_code", req.language)
+          .whereNull("cities.deleted_at")
+          .whereNull("country_pivots.deleted_at")
+          .whereNull("city_pivots.deleted_at")
+          .select(
+            "country_pivots.name as country_name",
+            "city_pivots.name as city_name"
+          )
+          .first();
+        hotel.location = city;
+        hotel.address = `${city.country_name}, ${city.city_name}`;
+      }
 
       const hotelOpportunities = await knex("hotel_opportunities")
         .where("hotel_opportunities.hotel_id", id)
         .whereNull("hotel_opportunities.deleted_at")
-        .innerJoin("hotel_opportunity_pivots", "hotel_opportunities.id", "hotel_opportunity_pivots.hotel_opportunity_id")
+        .innerJoin(
+          "hotel_opportunity_pivots",
+          "hotel_opportunities.id",
+          "hotel_opportunity_pivots.hotel_opportunity_id"
+        )
         .where("hotel_opportunity_pivots.language_code", req.language)
-        .select("hotel_opportunities.*", "hotel_opportunity_pivots.category", "hotel_opportunity_pivots.description");
+        .select(
+          "hotel_opportunities.*",
+          "hotel_opportunity_pivots.category",
+          "hotel_opportunity_pivots.description"
+        );
       hotel.hotel_opportunities = hotelOpportunities;
 
       const hotelFeatures = await knex("hotel_features")
         .where("hotel_features.hotel_id", id)
         .whereNull("hotel_features.deleted_at")
-        .innerJoin("hotel_feature_pivots", "hotel_features.id", "hotel_feature_pivots.hotel_feature_id")
+        .innerJoin(
+          "hotel_feature_pivots",
+          "hotel_features.id",
+          "hotel_feature_pivots.hotel_feature_id"
+        )
         .where("hotel_feature_pivots.language_code", req.language)
         .select("hotel_features.*", "hotel_feature_pivots.name");
       hotel.hotel_features = hotelFeatures;
 
-
       const hotelRooms = await knex("hotel_rooms")
         .where("hotel_rooms.hotel_id", id)
         .whereNull("hotel_rooms.deleted_at")
-        .innerJoin("hotel_room_pivots", "hotel_rooms.id", "hotel_room_pivots.hotel_room_id")
+        .innerJoin(
+          "hotel_room_pivots",
+          "hotel_rooms.id",
+          "hotel_room_pivots.hotel_room_id"
+        )
         .where("hotel_room_pivots.language_code", req.language)
-        .select("hotel_rooms.*", "hotel_room_pivots.name", "hotel_room_pivots.description", "hotel_room_pivots.refund_policy");
+        .select(
+          "hotel_rooms.*",
+          "hotel_room_pivots.name",
+          "hotel_room_pivots.description",
+          "hotel_room_pivots.refund_policy"
+        );
       hotel.hotel_rooms = hotelRooms;
 
       const hotelGalleries = await knex("hotel_galleries")
         .where("hotel_galleries.hotel_id", id)
         .whereNull("hotel_galleries.deleted_at")
-        .leftJoin("hotel_gallery_pivot", "hotel_galleries.id", "hotel_gallery_pivot.hotel_gallery_id")
+        .leftJoin(
+          "hotel_gallery_pivot",
+          "hotel_galleries.id",
+          "hotel_gallery_pivot.hotel_gallery_id"
+        )
         .where("hotel_gallery_pivot.language_code", req.language)
         .whereNull("hotel_gallery_pivot.deleted_at")
         .select("hotel_galleries.*", "hotel_gallery_pivot.category");
@@ -243,7 +284,7 @@ export default class HotelController {
         data: hotel,
       });
     } catch (error) {
-      console.log(error); 
+      console.log(error);
       return res.status(500).send({
         success: false,
         message: req.t("HOTEL.HOTEL_FETCHED_ERROR"),
@@ -255,8 +296,8 @@ export default class HotelController {
     try {
       // Get the authenticated solution partner from the request
       const solutionPartnerUser = (req as any).user;
-      
-      const { 
+
+      const {
         location_id,
         pool = false,
         private_beach = false,
@@ -269,7 +310,7 @@ export default class HotelController {
         name,
         general_info,
         hotel_info,
-        refund_policy
+        refund_policy,
       } = req.body as {
         location_id: string;
         pool?: boolean;
@@ -344,7 +385,7 @@ export default class HotelController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { 
+      const {
         location_id,
         pool,
         private_beach,
@@ -358,7 +399,7 @@ export default class HotelController {
         name,
         general_info,
         hotel_info,
-        refund_policy
+        refund_policy,
       } = req.body as {
         location_id?: string;
         pool?: boolean;
@@ -414,20 +455,35 @@ export default class HotelController {
       }
 
       let body: any = {
-        location_id: location_id !== undefined ? location_id : existingHotel.location_id,
+        location_id:
+          location_id !== undefined ? location_id : existingHotel.location_id,
         pool: pool !== undefined ? pool : existingHotel.pool,
-        private_beach: private_beach !== undefined ? private_beach : existingHotel.private_beach,
+        private_beach:
+          private_beach !== undefined
+            ? private_beach
+            : existingHotel.private_beach,
         transfer: transfer !== undefined ? transfer : existingHotel.transfer,
-        map_location: map_location !== undefined ? map_location : existingHotel.map_location,
-        free_age_limit: free_age_limit !== undefined ? free_age_limit : existingHotel.free_age_limit,
-        solution_partner_id: solution_partner_id !== undefined ? solution_partner_id : existingHotel.solution_partner_id,
+        map_location:
+          map_location !== undefined
+            ? map_location
+            : existingHotel.map_location,
+        free_age_limit:
+          free_age_limit !== undefined
+            ? free_age_limit
+            : existingHotel.free_age_limit,
+        solution_partner_id:
+          solution_partner_id !== undefined
+            ? solution_partner_id
+            : existingHotel.solution_partner_id,
         status: status !== undefined ? status : existingHotel.status,
-        highlight: highlight !== undefined ? highlight : existingHotel.highlight,
-        refund_days: refund_days !== undefined ? refund_days : existingHotel.refund_days,
+        highlight:
+          highlight !== undefined ? highlight : existingHotel.highlight,
+        refund_days:
+          refund_days !== undefined ? refund_days : existingHotel.refund_days,
       };
 
       await new HotelModel().update(id, body);
-      
+
       // Update translations if provided
       if (name || general_info || hotel_info || refund_policy) {
         await translateUpdate({
@@ -494,5 +550,74 @@ export default class HotelController {
       });
     }
   }
-}
 
+  async sendForApproval(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      let hotel = await new HotelModel().exists({ id });
+      let hotelRoom = await new HotelRoomModel().first({ hotel_id: id });
+      let hotelGalleries = await new HotelGalleryModel().exists({
+        hotel_id: id,
+      });
+      let hotelOpportunities = await new HotelOpportunityModel().exists({
+        hotel_id: id,
+      });
+      let hotelFeatures = await new HotelFeatureModel().exists({
+        hotel_id: id,
+      });
+      let hotelRoomOpportunities = await new HotelRoomOpportunityModel().exists(
+        { hotel_room_id: hotelRoom?.id }
+      );
+      let hotelRoomFeatures = await new HotelRoomFeatureModel().exists({
+        hotel_room_id: hotelRoom?.id,
+      });
+      let hotelRoomImages = await new HotelRoomImageModel().exists({
+        hotel_room_id: hotelRoom?.id,
+      });
+      let hotelRoomPackages = await new HotelRoomPackageModel().exists({
+        hotel_room_id: hotelRoom?.id,
+      });
+
+      const data = {
+        hotel,
+        hotelRooms: hotelRoom ? true : false,
+        hotelGalleries,
+        hotelOpportunities,
+        hotelFeatures,
+        hotelRoomOpportunities,
+        hotelRoomFeatures,
+        hotelRoomImages,
+        hotelRoomPackages,
+      };
+
+      if (
+        hotel || hotelRoom
+          ? true
+          : false ||
+            hotelGalleries ||
+            hotelOpportunities ||
+            hotelFeatures ||
+            hotelRoomOpportunities ||
+            hotelRoomFeatures ||
+            hotelRoomImages ||
+            hotelRoomPackages
+      ) {
+        await new HotelModel().update(id, {
+          status: true,
+        });
+      }
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("HOTEL.HOTEL_SEND_FOR_APPROVAL_SUCCESS"),
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("HOTEL.HOTEL_SEND_FOR_APPROVAL_ERROR"),
+      });
+    }
+  }
+}

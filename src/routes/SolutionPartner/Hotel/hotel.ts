@@ -23,7 +23,11 @@ export default async function hotelRoutes(fastify: FastifyInstance) {
   fastify.get("/all", {
     handler: hotelController.findAll,
   });
-    
+   
+  fastify.post("/send-for-approval/:id", {
+    preHandler: [authSolutionPartnerMiddleware],
+    handler: hotelController.sendForApproval,
+  });
     
   fastify.get("/:id", {
     preHandler: [authSolutionPartnerMiddleware],

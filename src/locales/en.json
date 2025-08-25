@@ -321,7 +321,22 @@
     "HOTEL_UPDATED_ERROR": "Hotel update failed",
     "HOTEL_DELETED_SUCCESS": "Hotel deleted successfully",
     "HOTEL_DELETED_ERROR": "Hotel delete failed",
-    "HOTEL_NOT_FOUND": "Hotel not found"
+    "HOTEL_NOT_FOUND": "Hotel not found",
+    "HOTEL_SEND_FOR_APPROVAL_SUCCESS": "Hotel sent for approval successfully",
+    "HOTEL_SEND_FOR_APPROVAL_ERROR": "Hotel send for approval failed"
+  },
+  "VISA": {
+    "VISA_FETCHED_SUCCESS": "Visas fetched successfully",
+    "VISA_FETCHED_ERROR": "Visas fetch failed",
+    "VISA_CREATED_SUCCESS": "Visa created successfully",
+    "VISA_CREATED_ERROR": "Visa create failed",
+    "VISA_UPDATED_SUCCESS": "Visa updated successfully",
+    "VISA_UPDATED_ERROR": "Visa update failed",
+    "VISA_DELETED_SUCCESS": "Visa deleted successfully",
+    "VISA_DELETED_ERROR": "Visa delete failed",
+    "VISA_NOT_FOUND": "Visa not found",
+    "VISA_SEND_FOR_APPROVAL_SUCCESS": "Visa sent for approval successfully",
+    "VISA_SEND_FOR_APPROVAL_ERROR": "Visa send for approval failed"
   },
   "HOTEL_OPPORTUNITY": {
     "HOTEL_OPPORTUNITY_FETCHED_SUCCESS": "Hotel opportunities fetched successfully",
