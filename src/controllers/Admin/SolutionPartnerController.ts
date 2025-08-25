@@ -64,7 +64,7 @@ export default class SolutionPartnerController {
     try {
       const { id } = req.params as { id: string };
       const admin = await new SolutionPartnerModel().first({ id });
-      const permissions = await new PermissionModel().getAdminPermissions(id);
+      const permissions = await new PermissionModel().getSolutionPartnerPermissions(id);
       return res.status(200).send({
         success: true,
         message: req.t("SOLUTION_PARTNER.SOLUTION_PARTNER_FETCHED_SUCCESS"),
