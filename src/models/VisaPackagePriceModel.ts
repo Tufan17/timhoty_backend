@@ -1,12 +1,12 @@
 import BaseModel from "@/models/BaseModel";
 
-class HotelRoomPackagePriceModel extends BaseModel {
+class VisaPackagePriceModel extends BaseModel {
   constructor() {
-    super("hotel_room_package_prices");
+    super("visa_package_prices");
   }
   static columns = [
     'id',
-    'hotel_room_package_id',
+    'visa_package_id',
     'main_price',
     'child_price',
     'currency_id',
@@ -19,4 +19,4 @@ class HotelRoomPackagePriceModel extends BaseModel {
    
 }
 
-export default HotelRoomPackagePriceModel;
+export default VisaPackagePriceModel;

@@ -1,13 +1,18 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import HotelRoomPackageModel from "@/models/HotelRoomPackageModel";
-import HotelRoomPackagePriceModel from "@/models/HotelRoomPackagePriceModel";
+import VisaPackagePriceModel from "@/models/VisaPackagePriceModel";
 import knex from "@/db/knex";
+import VisaPackageModel from "@/models/VisaPackageModel";
+import { translateCreate } from "@/helper/translate";
 
 interface CreatePackageBody {
-  hotel_room_id: string;
+  visa_id: string;
   discount?: number;
   total_tax_amount?: number;
   constant_price: boolean;
+  name: string;
+  description: string;
+  refund_policy: string;
+  refund_days: number;
   prices: Array<{
     main_price: number;
     child_price?: number;
@@ -30,7 +35,7 @@ interface UpdatePackageBody {
   }>;
 }
 
-export class HotelRoomPackageController {
+export class VisaPackageController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
     try {
       const {
@@ -186,22 +191,26 @@ export class HotelRoomPackageController {
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
       const {
-        hotel_room_id,
+        visa_id,
         discount,
         total_tax_amount,
         constant_price,
+        name,
+        description,
+        refund_policy,
+        refund_days,
         prices,
       } = req.body as CreatePackageBody;
 
 
-      const existingHotelRoom = await new HotelRoomPackageModel().exists({
-         hotel_room_id,
+      const existingVisaPackage = await new VisaPackageModel().exists({
+         visa_id,
       });
 
-      if (existingHotelRoom) {
+      if (existingVisaPackage) {
         return res.status(400).send({
           success: false,
-          message: req.t("HOTEL_ROOM_PACKAGE.HOTEL_ROOM_PACKAGE_ALREADY_EXISTS"),
+          message: req.t("VISA_PACKAGE.VISA_PACKAGE_ALREADY_EXISTS"),
         });
       }
 
@@ -243,16 +252,29 @@ export class HotelRoomPackageController {
           message: req.t("HOTEL_ROOM_PACKAGE.DATE_RANGE_ERROR"),
         });
       }
-      const packageModel = await new HotelRoomPackageModel().create({
-        hotel_room_id,
+      const packageModel = await new VisaPackageModel().create({
+        visa_id,
         discount,
         total_tax_amount,
         constant_price,
       });
+
+      const translateResult = await translateCreate({
+        target: "visa_package_pivots",
+        target_id_key: "visa_package_id",
+        target_id: packageModel.id,
+        language_code: (req as any).language,
+        data: {
+          name,
+          description,
+          refund_policy,
+        },
+      });
+
       let pricesModel = [];
       for (const price of prices) {
-        const priceModel = await new HotelRoomPackagePriceModel().create({
-          hotel_room_package_id: packageModel.id,
+        const priceModel = await new VisaPackagePriceModel().create({
+          visa_package_id: packageModel.id,
           main_price: price.main_price,
           child_price: price.child_price,
           currency_id: price.currency_id,
@@ -265,7 +287,7 @@ export class HotelRoomPackageController {
       packageModel.prices = pricesModel;
       return res.status(200).send({
         success: true,
-        message: req.t("HOTEL_ROOM_PACKAGE.CREATED_SUCCESS"),
+        message: req.t("VISA_PACKAGE.CREATED_SUCCESS"),
         data: packageModel,
       });
     } catch (error) {
@@ -282,25 +304,25 @@ export class HotelRoomPackageController {
       const { id } = req.params as { id: string };
       const packageModel = await knex
         .select(
-          "hotel_room_packages.*",
-          knex.raw("json_agg(hotel_room_package_prices.*) as prices")
+          "visa_packages.*",
+          knex.raw("json_agg(visa_package_prices.*) as prices")
         )
-        .from("hotel_room_packages")
+        .from("visa_packages")
         .leftJoin(
-          "hotel_room_package_prices",
-          "hotel_room_packages.id",
-          "hotel_room_package_prices.hotel_room_package_id"
+          "visa_package_prices",
+          "visa_packages.id",
+          "visa_package_prices.visa_package_id"
         )
-        .where("hotel_room_packages.id", id)
-        .whereNull("hotel_room_package_prices.deleted_at")
-        .whereNull("hotel_room_packages.deleted_at")
-        .groupBy("hotel_room_packages.id")
+        .where("visa_packages.id", id)
+        .whereNull("visa_package_prices.deleted_at")
+        .whereNull("visa_packages.deleted_at")
+        .groupBy("visa_packages.id")
         .first();
 
       if (!packageModel) {
         return res.status(404).send({
           success: false,
-          message: req.t("HOTEL_ROOM_PACKAGE.NOT_FOUND"),
+          message: req.t("VISA_PACKAGE.NOT_FOUND"),
         });
       }
 
@@ -321,7 +343,7 @@ export class HotelRoomPackageController {
     try {
       const { id } = req.params as { id: number };
       const {
-        hotel_room_id,
+        visa_id,
         discount,
         total_tax_amount,
         constant_price,
@@ -330,25 +352,25 @@ export class HotelRoomPackageController {
 
       const packageModel = await knex
         .select(
-          "hotel_room_packages.*",
-          knex.raw("json_agg(hotel_room_package_prices.*) as prices")
+            "visa_packages.*",
+          knex.raw("json_agg(visa_package_prices.*) as prices")
         )
-        .from("hotel_room_packages")
+        .from("visa_packages")
         .leftJoin(
-          "hotel_room_package_prices",
-          "hotel_room_packages.id",
-          "hotel_room_package_prices.hotel_room_package_id"
+          "visa_package_prices",
+          "visa_packages.id",
+          "visa_package_prices.visa_package_id"
         )
-        .where("hotel_room_packages.id", id)
-        .whereNull("hotel_room_package_prices.deleted_at")
-        .whereNull("hotel_room_packages.deleted_at")
-        .groupBy("hotel_room_packages.id")
+        .where("visa_packages.id", id)
+        .whereNull("visa_package_prices.deleted_at")
+        .whereNull("visa_packages.deleted_at")
+        .groupBy("visa_packages.id")
         .first();
 
       if (!packageModel) {
         return res.status(404).send({
           success: false,
-          message: req.t("HOTEL_ROOM_PACKAGE.NOT_FOUND"),
+          message: req.t("VISA_PACKAGE.NOT_FOUND"),
         });
       }
 
@@ -392,9 +414,9 @@ export class HotelRoomPackageController {
       }
 
       // Update package
-      await knex("hotel_room_packages")
+      await knex("visa_packages")
         .update({
-          hotel_room_id,
+          visa_id,
           discount,
           total_tax_amount,
           constant_price,
@@ -403,16 +425,16 @@ export class HotelRoomPackageController {
         .whereNull("deleted_at");
 
       // Delete old prices
-      await knex("hotel_room_package_prices")
+      await knex("visa_package_prices")
         .del()
-        .where("hotel_room_package_id", id)
+        .where("visa_package_id", id)
         .whereNull("deleted_at");
 
       // Create new prices
       let pricesModel = [];
       for (const price of prices) {
-        const priceModel = await new HotelRoomPackagePriceModel().create({
-          hotel_room_package_id: id,
+        const priceModel = await new VisaPackagePriceModel().create({
+          visa_package_id: id,
           main_price: price.main_price,
           child_price: price.child_price,
           currency_id: price.currency_id,
@@ -425,24 +447,24 @@ export class HotelRoomPackageController {
       // Get updated package with prices
       const updatedPackage = await knex
         .select(
-          "hotel_room_packages.*",
-          knex.raw("json_agg(hotel_room_package_prices.*) as prices")
+          "visa_packages.*",
+          knex.raw("json_agg(visa_package_prices.*) as prices")
         )
-        .from("hotel_room_packages")
+        .from("visa_packages")
         .leftJoin(
-          "hotel_room_package_prices",
-          "hotel_room_packages.id",
-          "hotel_room_package_prices.hotel_room_package_id"
+          "visa_package_prices",
+          "visa_packages.id",
+          "visa_package_prices.visa_package_id"
         )
-        .where("hotel_room_packages.id", id)
-        .whereNull("hotel_room_package_prices.deleted_at")
-        .whereNull("hotel_room_packages.deleted_at")
-        .groupBy("hotel_room_packages.id")
+        .where("visa_packages.id", id)
+        .whereNull("visa_package_prices.deleted_at")
+        .whereNull("visa_packages.deleted_at")
+        .groupBy("visa_packages.id")
         .first();
 
       return res.status(200).send({
         success: true,
-        message: req.t("HOTEL_ROOM_PACKAGE.UPDATED_SUCCESS"),
+        message: req.t("VISA_PACKAGE.UPDATED_SUCCESS"),
         data: updatedPackage,
       });
     } catch (error) {
@@ -458,14 +480,14 @@ export class HotelRoomPackageController {
     try {
       const { id } = req.params as { id: string };
 
-      const existingPackage = await new HotelRoomPackageModel().exists({
+      const existingPackage = await new VisaPackageModel().exists({
         id,
       });
 
       if (!existingPackage) {
         return res.status(404).send({
           success: false,
-          message: req.t("HOTEL_ROOM_PACKAGE.NOT_FOUND"),
+          message: req.t("VISA_PACKAGE.NOT_FOUND"),
         });
       }
 
@@ -474,20 +496,20 @@ export class HotelRoomPackageController {
         .update({
             deleted_at: new Date(),
           })
-          .from("hotel_room_packages")
-          .where("hotel_room_packages.id", id);
+          .from("visa_packages")
+          .where("visa_packages.id", id);
 
         await trx
           .update({
             deleted_at: new Date(),
           })
-          .from("hotel_room_package_prices")
-          .where("hotel_room_package_id", id);
+          .from("visa_package_prices")
+          .where("visa_package_id", id);
       });
 
       return res.status(200).send({
         success: true,
-        message: req.t("HOTEL_ROOM_PACKAGE.DELETED_SUCCESS"),
+        message: req.t("VISA_PACKAGE.DELETED_SUCCESS"),
       });
     } catch (error) {
       console.log(error);

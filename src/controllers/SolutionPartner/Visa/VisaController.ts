@@ -227,6 +227,20 @@ export default class VisaController {
       .select("visa_galleries.*", "visa_gallery_pivot.category");
     visa.visa_galleries = visaGalleries;
 
+      // "refund_days" alanı visa_package_pivots tablosunda yok, bu yüzden select'ten çıkarıyoruz.
+      const visaPackages = await knex("visa_packages")
+        .where("visa_packages.visa_id", id)
+        .leftJoin("visa_package_pivots", "visa_packages.id", "visa_package_pivots.visa_package_id")
+        .where("visa_package_pivots.language_code", req.language)
+        .whereNull("visa_packages.deleted_at")
+        .select(
+          "visa_packages.*",
+          "visa_package_pivots.name",
+          "visa_package_pivots.description",
+          "visa_package_pivots.refund_policy"
+        ).first();
+      visa.visa_packages = visaPackages;
+
 
       return res.status(200).send({
         success: true,

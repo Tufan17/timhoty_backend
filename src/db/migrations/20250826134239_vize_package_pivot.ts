@@ -1,13 +1,14 @@
 import type { Knex } from "knex";
 
+
 export async function up(knex: Knex): Promise<void> {
-    return knex.schema.createTable("hotel_room_pivots", (table) => {
-        table.uuid("id").primary().defaultTo(knex.raw('gen_random_uuid()'))
-        table.uuid("hotel_room_id").notNullable().references("id").inTable("hotel_rooms").onDelete("CASCADE");
+    await knex.schema.createTable("visa_package_pivots", (table) => {
+        table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
+        table.uuid("visa_package_id").references("id").inTable("visa_packages").onDelete("CASCADE");
+        table.string("language_code");
         table.string("name").notNullable();
         table.text("description").nullable();
         table.text("refund_policy").nullable();
-        table.string("language_code").notNullable().defaultTo("en");
         table.timestamp('created_at').defaultTo(knex.fn.now());
         table.timestamp('updated_at').defaultTo(knex.fn.now());
         table.timestamp('deleted_at').nullable();
@@ -16,6 +17,6 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-    return knex.schema.dropTable("hotel_room_pivots");
+    await knex.schema.dropTable("visa_packages");
 }
 

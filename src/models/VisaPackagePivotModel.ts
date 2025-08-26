@@ -1,16 +1,16 @@
 import BaseModel from "@/models/BaseModel";
 
-class HotelRoomPivotModel extends BaseModel {
+class VisaPackagePivotModel extends BaseModel {
   constructor() {
-    super("hotel_room_pivots");
+    super("visa_package_pivots");
   }
   static columns = [
     'id',
-    'hotel_room_id',
+    'visa_package_id',
+    'language_code',
     'name',
     'description',
     'refund_policy',
-    'language_code',
     'created_at',
     'updated_at',
     'deleted_at',
@@ -18,4 +18,4 @@ class HotelRoomPivotModel extends BaseModel {
    
 }
 
-export default HotelRoomPivotModel;
+export default VisaPackagePivotModel;
