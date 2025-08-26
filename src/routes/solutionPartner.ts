@@ -13,6 +13,7 @@ import hotelGalleryRoutes from "./SolutionPartner/Hotel/hotelGallery";
 import currencyRoutes from "./SolutionPartner/currency";
 import visaRoutes from "./SolutionPartner/Visa/visa";
 import visaFeatureRoutes from "./SolutionPartner/Visa/visaFeature";
+import visaGalleryRoutes from "./SolutionPartner/Visa/visaGallery";
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 
@@ -40,6 +41,7 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
     // ===========================================
     fastify.register(visaRoutes, { prefix: "/visas" });
     fastify.register(visaFeatureRoutes, { prefix: "/visa-features" });
+    fastify.register(visaGalleryRoutes, { prefix: "/visa-galleries" });
 
 }
 

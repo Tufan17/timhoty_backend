@@ -214,6 +214,20 @@ export default class VisaController {
         .select("visa_features.*", "visa_feature_pivots.name");
       visa.visa_features = visaFeatures;
 
+      const visaGalleries = await knex("visa_galleries")
+      .where("visa_galleries.visa_id", id)
+      .whereNull("visa_galleries.deleted_at")
+      .leftJoin(
+        "visa_gallery_pivot",
+        "visa_galleries.id",
+        "visa_gallery_pivot.visa_gallery_id"
+      )
+      .where("visa_gallery_pivot.language_code", req.language)
+      .whereNull("visa_gallery_pivot.deleted_at")
+      .select("visa_galleries.*", "visa_gallery_pivot.category");
+    visa.visa_galleries = visaGalleries;
+
+
       return res.status(200).send({
         success: true,
         message: req.t("VISA.VISA_FETCHED_SUCCESS"),
