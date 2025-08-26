@@ -102,6 +102,8 @@
   "SOLUTION_PARTNER": {
     "LOGIN_ERROR": "Çözüm Ortakı giriş yapılırken hata oluştu",
     "NO_TOKEN_PROVIDED": "Çözüm Ortakı token bulunamadı",
+    "REGISTER_SUCCESS": "Çözüm Ortakı başarıyla oluşturuldu",
+    "REGISTER_ERROR": "Çözüm Ortakı oluşturulurken hata oluştu",
     "SOLUTION_PARTNER_FETCHED_SUCCESS": "Çözüm Ortakları başarıyla getirildi",
     "SOLUTION_PARTNER_FETCHED_ERROR": "Çözüm Ortakları getirilirken hata oluştu",
     "SOLUTION_PARTNER_CREATED_SUCCESS": "Çözüm Ortakı başarıyla oluşturuldu",
