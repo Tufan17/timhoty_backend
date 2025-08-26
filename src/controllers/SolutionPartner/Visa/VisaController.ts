@@ -202,6 +202,18 @@ export default class VisaController {
         visa.country_id = city.country_id;
       }
 
+      const visaFeatures = await knex("visa_features")
+        .where("visa_features.visa_id", id)
+        .whereNull("visa_features.deleted_at")
+        .innerJoin(
+          "visa_feature_pivots",
+          "visa_features.id",
+          "visa_feature_pivots.visa_feature_id"
+        )
+        .where("visa_feature_pivots.language_code", req.language)
+        .select("visa_features.*", "visa_feature_pivots.name");
+      visa.visa_features = visaFeatures;
+
       return res.status(200).send({
         success: true,
         message: req.t("VISA.VISA_FETCHED_SUCCESS"),
@@ -442,4 +454,3 @@ export default class VisaController {
     }
   }
 }
-
