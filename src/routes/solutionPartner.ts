@@ -14,38 +14,41 @@ import currencyRoutes from "./SolutionPartner/currency";
 import visaRoutes from "./SolutionPartner/Visa/visa";
 import visaFeatureRoutes from "./SolutionPartner/Visa/visaFeature";
 import visaGalleryRoutes from "./SolutionPartner/Visa/visaGallery";
+import visaPackageFeatureRoutes from "./SolutionPartner/Visa/visaPackageFeature";
 import visaPackageRoutes from "./SolutionPartner/Visa/VisaPackage";
 import visaPackageImageRoutes from "./SolutionPartner/Visa/VisaPackageImage";
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
+  fastify.register(countryRoutes, { prefix: "/countries" });
+  fastify.register(cityRoutes, { prefix: "/cities" });
 
-    fastify.register(countryRoutes, { prefix: "/countries" });
-    fastify.register(cityRoutes, { prefix: "/cities" });
+  fastify.register(currencyRoutes, { prefix: "/currencies" });
 
-    fastify.register(currencyRoutes, { prefix: "/currencies" });
+  // ===========================================
+  // HOTEL ROUTES
+  // ===========================================
+  fastify.register(hotelRoutes, { prefix: "/hotels" });
+  fastify.register(hotelOpportunityRoutes, { prefix: "/hotel-opportunities" });
+  fastify.register(hotelFeatureRoutes, { prefix: "/hotel-features" });
+  fastify.register(hotelRoomRoutes, { prefix: "/hotel-rooms" });
+  fastify.register(hotelRoomOpportunityRoutes, {
+    prefix: "/hotel-room-opportunities",
+  });
+  fastify.register(hotelRoomFeatureRoutes, { prefix: "/hotel-room-features" });
+  fastify.register(hotelRoomImageRoutes, { prefix: "/hotel-room-images" });
+  fastify.register(hotelRoomPackageRoutes, { prefix: "/hotel-room-packages" });
+  fastify.register(hotelGalleryRoutes, { prefix: "/hotel-galleries" });
 
+  // ===========================================
+  // VISA ROUTES
+  // ===========================================
+  fastify.register(visaRoutes, { prefix: "/visas" });
+  fastify.register(visaFeatureRoutes, { prefix: "/visa-features" });
+  fastify.register(visaGalleryRoutes, { prefix: "/visa-galleries" });
+  fastify.register(visaPackageRoutes, { prefix: "/visa-packages" });
+  fastify.register(visaPackageImageRoutes, { prefix: "/visa-package-images" });
 
-    // ===========================================
-    // HOTEL ROUTES
-    // ===========================================
-    fastify.register(hotelRoutes, { prefix: "/hotels" });
-    fastify.register(hotelOpportunityRoutes, { prefix: "/hotel-opportunities" });
-    fastify.register(hotelFeatureRoutes, { prefix: "/hotel-features" });
-    fastify.register(hotelRoomRoutes, { prefix: "/hotel-rooms" });
-    fastify.register(hotelRoomOpportunityRoutes, { prefix: "/hotel-room-opportunities" });
-    fastify.register(hotelRoomFeatureRoutes, { prefix: "/hotel-room-features" });
-    fastify.register(hotelRoomImageRoutes, { prefix: "/hotel-room-images" });
-    fastify.register(hotelRoomPackageRoutes, { prefix: "/hotel-room-packages" });
-    fastify.register(hotelGalleryRoutes, { prefix: "/hotel-galleries" });
-
-    // ===========================================
-    // VISA ROUTES
-    // ===========================================
-    fastify.register(visaRoutes, { prefix: "/visas" });
-    fastify.register(visaFeatureRoutes, { prefix: "/visa-features" });
-    fastify.register(visaGalleryRoutes, { prefix: "/visa-galleries" });
-    fastify.register(visaPackageRoutes, { prefix: "/visa-packages" });
-    fastify.register(visaPackageImageRoutes, { prefix: "/visa-package-images" });
-
+  fastify.register(visaPackageFeatureRoutes, {
+    prefix: "/visa-package-features",
+  });
 }
-

@@ -227,6 +227,19 @@ export class VisaPackageController {
         .select("visa_package_images.*");
       packageModel.visa_package_images = visaPackageImages;
 
+      const visaPackageFeatures = await knex("visa_package_features")
+        .where("visa_package_features.visa_package_id", id)
+        .innerJoin(
+          "visa_package_feature_pivots",
+          "visa_package_features.id",
+          "visa_package_feature_pivots.visa_package_feature_id"
+        )
+        .where("visa_package_feature_pivots.language_code", req.language)
+        .whereNull("visa_package_features.deleted_at")
+        .select("visa_package_features.*", "visa_package_feature_pivots.name");
+
+      packageModel.visa_package_features = visaPackageFeatures;
+
       if (!packageModel) {
         return res.status(404).send({
           success: false,
