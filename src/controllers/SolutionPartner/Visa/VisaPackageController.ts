@@ -163,7 +163,28 @@ export class VisaPackageController {
       const packageModel = await knex
         .select(
           "visa_packages.*",
-          knex.raw("json_agg(visa_package_prices.*) as prices")
+          knex.raw(`
+            json_agg(
+              json_build_object(
+                'id', visa_package_prices.id,
+                'visa_package_id', visa_package_prices.visa_package_id,
+                'main_price', visa_package_prices.main_price,
+                'child_price', visa_package_prices.child_price,
+                'currency_id', visa_package_prices.currency_id,
+                'currency_name', currency_pivots.name,
+                'code', currencies.code,
+                'start_date', visa_package_prices.start_date,
+                'end_date', visa_package_prices.end_date,
+                'created_at', visa_package_prices.created_at,
+                'updated_at', visa_package_prices.updated_at,
+                'deleted_at', visa_package_prices.deleted_at
+              )
+            ) as prices
+          `),
+          "visa_package_pivots.name",
+          "visa_package_pivots.description", 
+          "visa_package_pivots.refund_policy",
+          "currencies.code"
         )
         .from("visa_packages")
         .innerJoin(
@@ -186,23 +207,25 @@ export class VisaPackageController {
           "currency_pivots.currency_id"
         )
         .where("currency_pivots.language_code", req.language)
-        .select(
-          "visa_packages.*",
-          "visa_package_pivots.name",
-          "visa_package_pivots.description",
-          "visa_package_pivots.refund_policy",
-          "currency_pivots.name as currency_name",
-          "currency_pivots.code as currency_code"
+        .innerJoin(
+          "currencies",
+          "visa_package_prices.currency_id",
+          "currencies.id"
         )
         .groupBy(
           "visa_packages.id",
           "visa_package_pivots.name",
           "visa_package_pivots.description",
           "visa_package_pivots.refund_policy",
-          "currency_pivots.name",
-          "currency_pivots.code"
+          "currencies.code"
         )
         .first();
+
+        const visaPackageImages = await knex("visa_package_images")
+        .where("visa_package_images.visa_package_id", id)
+        .whereNull("visa_package_images.deleted_at")
+        .select("visa_package_images.*");
+      packageModel.visa_package_images = visaPackageImages;
 
       if (!packageModel) {
         return res.status(404).send({

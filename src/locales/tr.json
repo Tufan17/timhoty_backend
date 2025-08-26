@@ -340,6 +340,32 @@
     "VISA_SEND_FOR_APPROVAL_SUCCESS": "Vize onaya başarıyla gönderildi",
     "VISA_SEND_FOR_APPROVAL_ERROR": "Vize onaya gönderilirken hata oluştu"
   },
+  "VISA_PACKAGE": {
+    "VISA_PACKAGE_FETCHED_SUCCESS": "Vize paketleri başarıyla getirildi",
+    "VISA_PACKAGE_FETCHED_ERROR": "Vize paketleri getirilirken hata oluştu",
+    "VISA_PACKAGE_CREATED_SUCCESS": "Vize paketi başarıyla oluşturuldu",
+    "VISA_PACKAGE_CREATED_ERROR": "Vize paketi oluşturulurken hata oluştu",
+    "VISA_PACKAGE_UPDATED_SUCCESS": "Vize paketi başarıyla güncellendi",
+    "VISA_PACKAGE_UPDATED_ERROR": "Vize paketi güncellenirken hata oluştu",
+    "VISA_PACKAGE_DELETED_SUCCESS": "Vize paketi başarıyla silindi",
+    "VISA_PACKAGE_DELETED_ERROR": "Vize paketi silinirken hata oluştu",
+    "VISA_PACKAGE_NOT_FOUND": "Vize paketi bulunamadı"
+  },
+  "VISA_PACKAGE_IMAGE": {
+    "IMAGES_FETCHED_SUCCESS": "Vize paket resimleri başarıyla getirildi",
+    "IMAGES_FETCHED_ERROR": "Vize paket resimleri getirilirken hata oluştu",
+    "IMAGE_FETCHED_SUCCESS": "Vize paket resmi başarıyla getirildi",
+    "IMAGE_FETCHED_ERROR": "Vize paket resmi getirilirken hata oluştu",
+    "IMAGE_CREATED_SUCCESS": "Vize paket resmi başarıyla oluşturuldu",
+    "IMAGE_CREATED_ERROR": "Vize paket resmi oluşturulurken hata oluştu",
+    "IMAGE_UPDATED_SUCCESS": "Vize paket resmi başarıyla güncellendi",
+    "IMAGE_UPDATED_ERROR": "Vize paket resmi güncellenirken hata oluştu",
+    "IMAGE_DELETED_SUCCESS": "Vize paket resmi başarıyla silindi",
+    "IMAGE_DELETED_ERROR": "Vize paket resmi silinirken hata oluştu",
+    "IMAGES_DELETED_SUCCESS": "Vize paket resimleri başarıyla silindi",
+    "IMAGES_DELETED_ERROR": "Vize paket resimleri silinirken hata oluştu",
+    "IMAGE_NOT_FOUND": "Vize paket resmi bulunamadı"
+  },
   "HOTEL_OPPORTUNITY": {
     "HOTEL_OPPORTUNITY_FETCHED_SUCCESS": "Otel fırsatları başarıyla getirildi",
     "HOTEL_OPPORTUNITY_FETCHED_ERROR": "Otel fırsatları getirilirken hata oluştu",

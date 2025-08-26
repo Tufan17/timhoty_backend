@@ -338,6 +338,32 @@
     "VISA_SEND_FOR_APPROVAL_SUCCESS": "Visa sent for approval successfully",
     "VISA_SEND_FOR_APPROVAL_ERROR": "Visa send for approval failed"
   },
+  "VISA_PACKAGE": {
+    "VISA_PACKAGE_FETCHED_SUCCESS": "Visa packages fetched successfully",
+    "VISA_PACKAGE_FETCHED_ERROR": "Visa packages fetch failed",
+    "VISA_PACKAGE_CREATED_SUCCESS": "Visa package created successfully",
+    "VISA_PACKAGE_CREATED_ERROR": "Visa package create failed",
+    "VISA_PACKAGE_UPDATED_SUCCESS": "Visa package updated successfully",
+    "VISA_PACKAGE_UPDATED_ERROR": "Visa package update failed",
+    "VISA_PACKAGE_DELETED_SUCCESS": "Visa package deleted successfully",
+    "VISA_PACKAGE_DELETED_ERROR": "Visa package delete failed",
+    "VISA_PACKAGE_NOT_FOUND": "Visa package not found"
+  },
+  "VISA_PACKAGE_IMAGE": {
+    "IMAGES_FETCHED_SUCCESS": "Visa package images fetched successfully",
+    "IMAGES_FETCHED_ERROR": "Visa package images fetch failed",
+    "IMAGE_FETCHED_SUCCESS": "Visa package image fetched successfully",
+    "IMAGE_FETCHED_ERROR": "Visa package image fetch failed",
+    "IMAGE_CREATED_SUCCESS": "Visa package image created successfully",
+    "IMAGE_CREATED_ERROR": "Visa package image create failed",
+    "IMAGE_UPDATED_SUCCESS": "Visa package image updated successfully",
+    "IMAGE_UPDATED_ERROR": "Visa package image update failed",
+    "IMAGE_DELETED_SUCCESS": "Visa package image deleted successfully",
+    "IMAGE_DELETED_ERROR": "Visa package image delete failed",
+    "IMAGES_DELETED_SUCCESS": "Visa package images deleted successfully",
+    "IMAGES_DELETED_ERROR": "Visa package images delete failed",
+    "IMAGE_NOT_FOUND": "Visa package image not found"
+  },
   "HOTEL_OPPORTUNITY": {
     "HOTEL_OPPORTUNITY_FETCHED_SUCCESS": "Hotel opportunities fetched successfully",
     "HOTEL_OPPORTUNITY_FETCHED_ERROR": "Hotel opportunities fetch failed",
