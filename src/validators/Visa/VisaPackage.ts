@@ -16,7 +16,7 @@ export const visaPackageSchema = Joi.object({
     name: Joi.string().required(),
     description: Joi.string().required(),
     refund_policy: Joi.string().required(),
-    refund_days: Joi.number().required(),
+    return_acceptance_period: Joi.number().required(),
     prices: Joi.array().items(priceSchema).min(1).required()
 });
 
@@ -27,7 +27,7 @@ export const visaPackageUpdateSchema = Joi.object({
     name: Joi.string().optional(),
     description: Joi.string().optional(),
     refund_policy: Joi.string().optional(),
-    refund_days: Joi.number().optional(),
+    return_acceptance_period: Joi.number().optional(),
     prices: Joi.array().items(priceSchema).min(1).optional()
 });
 

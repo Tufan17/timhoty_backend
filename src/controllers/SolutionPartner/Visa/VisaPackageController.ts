@@ -12,7 +12,7 @@ interface CreatePackageBody {
   name: string;
   description: string;
   refund_policy: string;
-  refund_days: number;
+  return_acceptance_period: number;
   prices: Array<{
     main_price: number;
     child_price?: number;
@@ -62,14 +62,23 @@ export class VisaPackageController {
         .where(function () {
           if (search) {
             const like = `%${search}%`;
-            this.where(function() {
+            this.where(function () {
               // Add searchable fields here
-              this.where("hotel_room_packages.discount", "ilike", like)
-                .orWhere("hotel_room_packages.total_tax_amount", "ilike", like);
-              
+              this.where("hotel_room_packages.discount", "ilike", like).orWhere(
+                "hotel_room_packages.total_tax_amount",
+                "ilike",
+                like
+              );
+
               // Handle boolean search for constant_price
-              if (search.toLowerCase() === "true" || search.toLowerCase() === "false") {
-                this.orWhere("hotel_room_packages.constant_price", search.toLowerCase() === "true");
+              if (
+                search.toLowerCase() === "true" ||
+                search.toLowerCase() === "false"
+              ) {
+                this.orWhere(
+                  "hotel_room_packages.constant_price",
+                  search.toLowerCase() === "true"
+                );
               }
             });
           }
@@ -119,21 +128,21 @@ export class VisaPackageController {
     try {
       const { hotel_room_id } = req.query as { hotel_room_id: string };
       const packageModel = await knex
-      .select(
-        "hotel_room_packages.*",
-        knex.raw("json_agg(hotel_room_package_prices.*) as prices")
-      )
-      .from("hotel_room_packages")
-      .leftJoin(
-        "hotel_room_package_prices",
-        "hotel_room_packages.id",
-        "hotel_room_package_prices.hotel_room_package_id"
-      )
-      .where("hotel_room_packages.hotel_room_id", hotel_room_id)
-      .whereNull("hotel_room_package_prices.deleted_at")
-      .whereNull("hotel_room_packages.deleted_at")
-      .groupBy("hotel_room_packages.id")
-      .orderBy("hotel_room_packages.created_at", "desc");
+        .select(
+          "hotel_room_packages.*",
+          knex.raw("json_agg(hotel_room_package_prices.*) as prices")
+        )
+        .from("hotel_room_packages")
+        .leftJoin(
+          "hotel_room_package_prices",
+          "hotel_room_packages.id",
+          "hotel_room_package_prices.hotel_room_package_id"
+        )
+        .where("hotel_room_packages.hotel_room_id", hotel_room_id)
+        .whereNull("hotel_room_package_prices.deleted_at")
+        .whereNull("hotel_room_packages.deleted_at")
+        .groupBy("hotel_room_packages.id")
+        .orderBy("hotel_room_packages.created_at", "desc");
 
       return res.status(200).send({
         success: true,
@@ -153,25 +162,52 @@ export class VisaPackageController {
       const { id } = req.params as { id: string };
       const packageModel = await knex
         .select(
-          "hotel_room_packages.*",
-          knex.raw("json_agg(hotel_room_package_prices.*) as prices")
+          "visa_packages.*",
+          knex.raw("json_agg(visa_package_prices.*) as prices")
         )
-        .from("hotel_room_packages")
-        .leftJoin(
-          "hotel_room_package_prices",
-          "hotel_room_packages.id",
-          "hotel_room_package_prices.hotel_room_package_id"
+        .from("visa_packages")
+        .innerJoin(
+          "visa_package_pivots",
+          "visa_packages.id",
+          "visa_package_pivots.visa_package_id"
         )
-        .where("hotel_room_packages.id", id)
-        .whereNull("hotel_room_package_prices.deleted_at")
-        .whereNull("hotel_room_packages.deleted_at")
-        .groupBy("hotel_room_packages.id")
+        .where("visa_package_pivots.language_code", req.language)
+        .innerJoin(
+          "visa_package_prices",
+          "visa_packages.id",
+          "visa_package_prices.visa_package_id"
+        )
+        .where("visa_packages.id", id)
+        .whereNull("visa_package_prices.deleted_at")
+        .whereNull("visa_packages.deleted_at")
+        .innerJoin(
+          "currency_pivots",
+          "visa_package_prices.currency_id",
+          "currency_pivots.currency_id"
+        )
+        .where("currency_pivots.language_code", req.language)
+        .select(
+          "visa_packages.*",
+          "visa_package_pivots.name",
+          "visa_package_pivots.description",
+          "visa_package_pivots.refund_policy",
+          "currency_pivots.name as currency_name",
+          "currency_pivots.code as currency_code"
+        )
+        .groupBy(
+          "visa_packages.id",
+          "visa_package_pivots.name",
+          "visa_package_pivots.description",
+          "visa_package_pivots.refund_policy",
+          "currency_pivots.name",
+          "currency_pivots.code"
+        )
         .first();
 
       if (!packageModel) {
         return res.status(404).send({
           success: false,
-          message: req.t("HOTEL_ROOM_PACKAGE.NOT_FOUND"),
+          message: req.t("VISA_PACKAGE.NOT_FOUND"),
         });
       }
 
@@ -198,13 +234,12 @@ export class VisaPackageController {
         name,
         description,
         refund_policy,
-        refund_days,
+        return_acceptance_period,
         prices,
       } = req.body as CreatePackageBody;
 
-
       const existingVisaPackage = await new VisaPackageModel().exists({
-         visa_id,
+        visa_id,
       });
 
       if (existingVisaPackage) {
@@ -257,6 +292,7 @@ export class VisaPackageController {
         discount,
         total_tax_amount,
         constant_price,
+        return_acceptance_period,
       });
 
       const translateResult = await translateCreate({
@@ -347,12 +383,13 @@ export class VisaPackageController {
         discount,
         total_tax_amount,
         constant_price,
+        return_acceptance_period,
         prices,
       } = req.body as CreatePackageBody;
 
       const packageModel = await knex
         .select(
-            "visa_packages.*",
+          "visa_packages.*",
           knex.raw("json_agg(visa_package_prices.*) as prices")
         )
         .from("visa_packages")
@@ -420,6 +457,7 @@ export class VisaPackageController {
           discount,
           total_tax_amount,
           constant_price,
+          return_acceptance_period,
         })
         .where("id", id)
         .whereNull("deleted_at");
@@ -493,7 +531,7 @@ export class VisaPackageController {
 
       await knex.transaction(async (trx) => {
         await trx
-        .update({
+          .update({
             deleted_at: new Date(),
           })
           .from("visa_packages")
