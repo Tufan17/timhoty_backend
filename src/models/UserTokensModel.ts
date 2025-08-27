@@ -10,7 +10,6 @@ class UserTokensModel extends BaseModel {
     'id',
     'user_id',
     'token_hash',
-    'device_name',
     'expires_at',
     'revoked_at',
     'created_at',
