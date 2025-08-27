@@ -24,4 +24,14 @@ export default class UserAuthController {
             return res.status(400).send(error.message);
         }
     }
+
+    // User logout
+    async logout(req: FastifyRequest, res: FastifyReply) {
+        try {
+            const user = await new AuthUserService().logout(req.t);
+            return user;
+        } catch (error: any) {
+            return res.status(400).send(error.message);
+        }
+    }
 }
