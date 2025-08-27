@@ -22,6 +22,7 @@ import carRentalRoutes from "./SolutionPartner/CarRental/carRental";
 import carRentalGalleryRoutes from "./SolutionPartner/CarRental/carRentalGallery";
 import visaPackageRoutes from "./SolutionPartner/Visa/visaPackage";
 import visaPackageImageRoutes from "./SolutionPartner/Visa/visaPackageImage";
+import carRentalFeatureRoutes from "./SolutionPartner/CarRental/carRentalFeature";
 
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
@@ -64,4 +65,5 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(gearTypeRoutes, { prefix: "/gear-types" });
   fastify.register(carRentalRoutes, { prefix: "/car-rentals" });
   fastify.register(carRentalGalleryRoutes, { prefix: "/car-rental-galleries" });
+  fastify.register(carRentalFeatureRoutes, { prefix: "/car-rental-features" });
 }

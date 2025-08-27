@@ -242,8 +242,18 @@ export default class CarRentalController {
         .whereNull("car_rental_galleries.deleted_at")
         .select("car_rental_galleries.*", "car_rental_gallery_pivots.category");
 
-        
+
       carRental.car_rental_galleries = carRentalGalleries;
+
+
+      const carRentalFeatures = await knex("car_rental_features")
+        .where("car_rental_features.car_rental_id", id)
+        .innerJoin("car_rental_feature_pivots", "car_rental_features.id", "car_rental_feature_pivots.car_rental_feature_id")
+        .where("car_rental_feature_pivots.language_code", req.language)
+        .whereNull("car_rental_features.deleted_at")
+        .select("car_rental_features.*", "car_rental_feature_pivots.name");
+        
+      carRental.car_rental_features = carRentalFeatures;
 
       return res.status(200).send({
         success: true,

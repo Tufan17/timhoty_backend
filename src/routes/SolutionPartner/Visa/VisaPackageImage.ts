@@ -3,7 +3,6 @@ import VisaPackageImageController from "../../../controllers/SolutionPartner/Vis
 import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
 import VisaPackageImageModel from "@/models/VisaPackageImageModel";
 import { makeAuditLogger } from "../../../middlewares/logMiddleware";
-import { validate } from "../../../middlewares/validate";
 import { validateQuery } from "../../../middlewares/validateQuery";
 import { visaPackageImageSchema, visaPackageImageUpdateSchema, visaPackageImageQuerySchema } from "../../../validators/Visa/visaPackageImage";
 import { validateFormData, validateFormDataMultiple } from "@/middlewares/validateFormData";
