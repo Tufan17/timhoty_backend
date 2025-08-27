@@ -4,7 +4,7 @@ export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable("user_tokens", (table) => {
         table.uuid("id").primary().defaultTo(knex.raw('gen_random_uuid()'))
         table.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
-        table.string("token_hash").notNullable();
+        table.text("token_hash").notNullable();
         table.string("device_name").nullable();
         table.timestamp("expires_at").notNullable();
         table.timestamp("revoked_at").nullable();

@@ -42,6 +42,9 @@ export default async function authRoutes(fastify: FastifyInstance) {
     preHandler: [authUserMiddleware],
     handler: userAuthController.logout,
   });
+  fastify.post("/user/access-token-renew", {
+    handler: userAuthController.accessTokenRenew,
+  });
 
   // ===========================================
   // SOLUTION PARTNER AUTH ROUTES

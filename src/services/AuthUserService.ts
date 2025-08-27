@@ -2,8 +2,61 @@
 import UserModel from "@/models/UserModel.js";
 import HashPassword from "@/utils/hashPassword";
 import jwt from "jsonwebtoken";
+import UserTokensModel from "@/models/UserTokensModel";
 
 export default class AuthUserService {
+
+  async accessTokenRenew(refreshToken: string) {
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as any;
+
+      if (!decoded) {
+        return {
+          success: false,
+          message: "Invalid refresh token"
+        };
+      }
+
+      if (decoded.expires_at < new Date()) {
+        return {
+          success: false,
+          message: "Refresh token expired"
+        };
+      }
+
+      const userToken = await new UserTokensModel().first({
+        user_id: decoded.id,
+        deleted_at: null,
+        revoked_at: null
+      })
+
+      if (!userToken) {
+        return {
+          success: false,
+          message: "Refresh token record is not found"
+        };
+      }
+
+      const body = {
+        id: decoded.id,
+        name_surname: decoded.name_surname,
+        language: decoded.language,
+        email: decoded.email,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      };
+      const accessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
+      return {
+        success: true,
+        message: "Access token renewed",
+        accessToken,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "Error in accessTokenRenew"
+      };
+    }
+  }
 
   async login(email: string, password: string, t: (key: string) => string) {
     try {
@@ -37,7 +90,7 @@ export default class AuthUserService {
   }
 
 
-  async register(name_surname: string, email: string, password: string, language: string, t: (key: string) => string) {
+  async register(name_surname: string, email: string, password: string, language: string, device_name: string, t: (key: string) => string) {
     try {
       const existingUser = await new UserModel().exists({ email });
       if (existingUser) {
@@ -46,13 +99,14 @@ export default class AuthUserService {
           message: "Bu email zaten kullanılıyor",
         };
       }
-   
+
       const passwordHash = HashPassword(password);
 
       const user = await new UserModel().create({
         name_surname,
         email,
         password: passwordHash,
+        language,
       });
 
       const body = {
@@ -63,14 +117,25 @@ export default class AuthUserService {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
 
-      const token = jwt.sign(body, process.env.JWT_SECRET!, { expiresIn: "1d" });
+      const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
+      const REFRESH_TOKEN = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "1d" });
+
+      await new UserTokensModel().create({
+        user_id: user.id,
+        token_hash: REFRESH_TOKEN,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        device_name: device_name,
+      });
+
       return {
         success: true,
         message: "Kullanıcı başarıyla oluşturuldu",
         data: user,
-        token,
+        accessToken: ACCESS_TOKEN,
+        refreshToken: REFRESH_TOKEN,
       };
     } catch (error) {
+      console.log(error);
       return {
         success: false,
         message: t("AUTH.REGISTER_ERROR"),
