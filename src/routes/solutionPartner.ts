@@ -16,10 +16,12 @@ import visaFeatureRoutes from "./SolutionPartner/Visa/visaFeature";
 import visaGalleryRoutes from "./SolutionPartner/Visa/visaGallery";
 import visaPackageFeatureRoutes from "./SolutionPartner/Visa/visaPackageFeature";
 import carTypeRoutes from "./SolutionPartner/CarRental/carType";
-import visaPackageImageRoutes from "./SolutionPartner/Visa/visaPackageImage";
-import visaPackageRoutes from "./SolutionPartner/Visa/visaPackage";
+
 import gearTypeRoutes from "./SolutionPartner/CarRental/gearType";
 import carRentalRoutes from "./SolutionPartner/CarRental/carRental";
+import carRentalGalleryRoutes from "./SolutionPartner/CarRental/carRentalGallery";
+import visaPackageRoutes from "./SolutionPartner/Visa/visaPackage";
+import visaPackageImageRoutes from "./SolutionPartner/Visa/visaPackageImage";
 
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
@@ -61,4 +63,5 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(carTypeRoutes, { prefix: "/car-types" });
   fastify.register(gearTypeRoutes, { prefix: "/gear-types" });
   fastify.register(carRentalRoutes, { prefix: "/car-rentals" });
+  fastify.register(carRentalGalleryRoutes, { prefix: "/car-rental-galleries" });
 }

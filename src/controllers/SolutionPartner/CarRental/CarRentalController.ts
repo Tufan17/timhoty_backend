@@ -235,6 +235,16 @@ export default class CarRentalController {
         carRental.gear_type_name = gearType?.name;
       }
 
+      const carRentalGalleries = await knex("car_rental_galleries")
+        .where("car_rental_galleries.car_rental_id", id)
+        .innerJoin("car_rental_gallery_pivots", "car_rental_galleries.id", "car_rental_gallery_pivots.car_rental_gallery_id")
+        .where("car_rental_gallery_pivots.language_code", req.language)
+        .whereNull("car_rental_galleries.deleted_at")
+        .select("car_rental_galleries.*", "car_rental_gallery_pivots.category");
+
+        
+      carRental.car_rental_galleries = carRentalGalleries;
+
       return res.status(200).send({
         success: true,
         message: req.t("CAR_RENTAL.CAR_RENTAL_FETCHED_SUCCESS"),
