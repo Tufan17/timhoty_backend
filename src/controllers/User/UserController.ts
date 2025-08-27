@@ -6,7 +6,7 @@ class UserController {
         try {
             const { id } = req.params as { id: string };
             const user = await new UserModel().findId(id);
-            if(!user){
+            if (!user) {
                 return {
                     success: false,
                     message: "Kullanıcı bulunamadı"
@@ -14,7 +14,7 @@ class UserController {
             }
             return {
                 success: true,
-                message: "Kullanıcı başarıyla okundu", 
+                message: "Kullanıcı başarıyla okundu",
                 data: user,
             };
         } catch (error: any) {

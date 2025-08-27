@@ -25,7 +25,12 @@ export class AuthValidation {
                     'string.base': 'Language should be a string',
                     'any.only': 'Language must be one of: tr, en, ar',
                     'any.required': 'language field is required (String)',
-                }),  
+                }),
+                device_name: Joi.string().trim().required().messages({
+                    'string.empty': 'Device name is required',
+                    'string.base': 'Device name should be a string',
+                    'any.required': 'device_name field is required (String) (Device name)',
+                }),
                 password: Joi.string().trim().min(6).max(50).required().messages({
                     'string.empty': 'Password is required',
                     'string.base': 'Password should be a string',

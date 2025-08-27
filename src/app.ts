@@ -8,7 +8,6 @@ import { languageMiddleware } from "./middlewares/languageMiddleware";
 
 // Authentication Routes
 import authRoutes from "./routes/auth";
-import userAuthRoutes from "./routes/User/userAuth";
 import solutionPartnerMainRoutes from "./routes/solutionPartner";
 
 // Admin Management Routes (All admin routes grouped together)

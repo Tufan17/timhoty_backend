@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { FastifyRequest, FastifyReply } from 'fastify';
+import UserTokensModel from '@/models/UserTokensModel';
 
 export const authUserMiddleware = async (request: FastifyRequest, reply: FastifyReply) => {
   const authHeader = request.headers.authorization
@@ -9,41 +10,45 @@ export const authUserMiddleware = async (request: FastifyRequest, reply: Fastify
       message: request.t('AUTH.TOKEN_NOT_FOUND')
     })
   }
-
-  const token = authHeader.split(' ')[1]
+  
+  const accessToken = authHeader.split(' ')[1]
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const payload = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!) as any
 
+    if(!payload){
+      return reply.status(401).send({ 
+        success: false,
+        message: "Access token invalid"
+      })
+    }
 
     if (payload.expires_at < new Date()) {
       return reply.status(401).send({ 
         success: false,
-        message: request.t('AUTH.TOKEN_EXPIRED')
+        message: "Access token expired"
       })
     }
-    if(!payload){
+    
+    const refreshToken = await new UserTokensModel().first({
+      user_id: payload.id,
+      deleted_at: null,
+      revoked_at: null
+    })
+
+    if(!refreshToken){
       return reply.status(401).send({ 
         success: false,
-        message: request.t('AUTH.TOKEN_INVALID')
+        message: "Refresh token record is not found"
       })
     }
 
       (request as any).user = payload;
       (request as any).user.type = "user";
-  } catch (err: any) {
-    if(err.message === "jwt expired"){
-      return reply.status(401).send({ 
-        success: false,
-        message: request.t('AUTH.TOKEN_EXPIRED'),
-        logout: true,
-        error: err
-      })
-    }
+  } catch  {
     return reply.status(401).send({ 
       success: false,
-      message: request.t('AUTH.TOKEN_INVALID'),
-      error: err
+      message: "Error in authUserMiddleware",
     })
   }
 }
