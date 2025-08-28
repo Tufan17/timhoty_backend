@@ -265,6 +265,15 @@ export default class CarRentalController {
         
       carRental.car_pickup_delivery = carRentalPickupDelivery;
 
+      const carRentalPackages = await knex("car_rental_packages")
+        .where("car_rental_packages.car_rental_id", id)
+        .whereNull("car_rental_packages.deleted_at")
+        .innerJoin("car_rental_package_pivots", "car_rental_packages.id", "car_rental_package_pivots.car_rental_package_id")
+        .where("car_rental_package_pivots.language_code", req.language)
+        .select("car_rental_packages.*", "car_rental_package_pivots.name");
+        
+      carRental.car_rental_packages = carRentalPackages;
+
       return res.status(200).send({
         success: true,
         message: req.t("CAR_RENTAL.CAR_RENTAL_FETCHED_SUCCESS"),

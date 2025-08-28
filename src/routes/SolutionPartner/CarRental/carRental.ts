@@ -8,6 +8,7 @@ import CarRentalModel from "@/models/CarRentalModel";
 import { carRentalQuerySchema } from "@/validators/CarRental/carRental";
 import { carRentalSchema } from "@/validators/CarRental/carRental";
 import { carRentalUpdateSchema } from "@/validators/CarRental/carRental";
+import carRentalPackageRoutes from "./carRentalPackage";
 
 
 export default async function carRentalRoutes(fastify: FastifyInstance) {
@@ -50,4 +51,7 @@ export default async function carRentalRoutes(fastify: FastifyInstance) {
     preHandler: [authSolutionPartnerMiddleware],
     handler: carRentalController.delete,
   });
+
+  // Register car rental package routes
+  fastify.register(carRentalPackageRoutes, { prefix: "/:car_rental_id/packages" });
 }
