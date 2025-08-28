@@ -4,7 +4,7 @@ import SalesPartnerModel from "@/models/SalesPartnerModel";
 import SalesPartnerCommissionModel from "@/models/SalesPartnerCommissionModel";
 
 export default class SalesPartnerCommissionController {
-  async findAll(req: FastifyRequest, res: FastifyReply) {
+  async dataTable(req: FastifyRequest, res: FastifyReply) {
     try {
       const {
         page = 1,
@@ -86,6 +86,26 @@ export default class SalesPartnerCommissionController {
     }
   }
 
+  async findAll(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const salesPartnerCommissions = await new SalesPartnerCommissionModel().getAll("",{
+        sales_partner_id: id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("SALES_PARTNER_COMMISSION.SALES_PARTNER_COMMISSION_FETCHED_SUCCESS"),
+        data: salesPartnerCommissions,
+      });
+    }catch(error){
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("SALES_PARTNER_COMMISSION.SALES_PARTNER_COMMISSION_FETCHED_ERROR"),
+      });
+    }
+  }
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
