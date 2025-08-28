@@ -26,17 +26,26 @@ export default class StationController {
 
       // Ortak JOIN'ler
       const base = knex("stations")
-        .where("stations.solution_partner_id", solutionPartnerUser.solution_partner_id)
+        .where(
+          "stations.solution_partner_id",
+          solutionPartnerUser.solution_partner_id
+        )
         .whereNull("stations.deleted_at")
         .innerJoin("cities", "stations.location_id", "cities.id")
         .innerJoin("station_pivots", "stations.id", "station_pivots.station_id")
         .where("station_pivots.language_code", language)
         .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
         .where("city_pivots.language_code", language)
-        .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+        .innerJoin(
+          "country_pivots",
+          "cities.country_id",
+          "country_pivots.country_id"
+        )
         .where("country_pivots.language_code", language)
         .select(
-          knex.raw("CONCAT(city_pivots.name, ', ', country_pivots.name) as address")
+          knex.raw(
+            "CONCAT(city_pivots.name, ', ', country_pivots.name) as address"
+          )
         )
         .modify((qb) => {
           if (typeof status !== "undefined")
@@ -72,7 +81,12 @@ export default class StationController {
       const data = await base
         .clone()
         .distinct("stations.id") // aynı araç kiralama birden fazla pivot kaydına düşmesin
-        .select("stations.*", "station_pivots.name", "city_pivots.name as city_name", "country_pivots.name as country_name")
+        .select(
+          "stations.*",
+          "station_pivots.name",
+          "city_pivots.name as city_name",
+          "country_pivots.name as country_name"
+        )
         .orderBy("stations.created_at", "desc")
         .limit(Number(limit))
         .offset((Number(page) - 1) * Number(limit));
@@ -98,7 +112,18 @@ export default class StationController {
 
   async findAll(req: FastifyRequest, res: FastifyReply) {
     try {
-      const stations = await knex("stations").whereNull("stations.deleted_at");
+      const { search } = req.query as { search: string };
+      const language = (req as any).language;
+      const stations = await knex("stations")
+        .whereNull("stations.deleted_at")
+        .innerJoin("station_pivots", "stations.id", "station_pivots.station_id")
+        .where("station_pivots.language_code", language)
+        .modify((qb) => {
+          if (search) {
+            const like = `%${search}%`;
+            qb.where("station_pivots.name", "ilike", like);
+          }
+        }).select("stations.*", "station_pivots.name as name");
       return res.status(200).send({
         success: true,
         message: req.t("STATION.STATION_FETCHED_SUCCESS"),
@@ -124,11 +149,21 @@ export default class StationController {
         .where("station_pivots.language_code", language)
         .innerJoin("cities", "stations.location_id", "cities.id")
         .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
-        .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id") 
+        .innerJoin(
+          "country_pivots",
+          "cities.country_id",
+          "country_pivots.country_id"
+        )
         .where("city_pivots.language_code", language)
         .where("country_pivots.language_code", language)
         .where("stations.id", id)
-        .select("stations.*", "station_pivots.name as name", "city_pivots.name as city_name", "country_pivots.name as country_name", "cities.country_id")
+        .select(
+          "stations.*",
+          "station_pivots.name as name",
+          "city_pivots.name as city_name",
+          "country_pivots.name as country_name",
+          "cities.country_id"
+        )
         .first();
 
       if (!station) {
@@ -161,8 +196,6 @@ export default class StationController {
         map_location: string;
         name: string;
       };
-
-
 
       // Validate location_id
       if (location_id) {
@@ -221,7 +254,10 @@ export default class StationController {
 
       const solutionPartnerUser = (req as any).user;
 
-      const existingStation = await new StationModel().first({ id, solution_partner_id: solutionPartnerUser.solution_partner_id });
+      const existingStation = await new StationModel().first({
+        id,
+        solution_partner_id: solutionPartnerUser.solution_partner_id,
+      });
 
       if (!existingStation) {
         return res.status(404).send({
@@ -293,7 +329,10 @@ export default class StationController {
     try {
       const { id } = req.params as { id: string };
       const solutionPartnerUser = (req as any).user;
-      const existingStation = await new StationModel().first({ id, solution_partner_id: solutionPartnerUser.solution_partner_id });
+      const existingStation = await new StationModel().first({
+        id,
+        solution_partner_id: solutionPartnerUser.solution_partner_id,
+      });
       if (!existingStation) {
         return res.status(404).send({
           success: false,
@@ -301,10 +340,10 @@ export default class StationController {
         });
       }
       await new StationModel().delete(id);
-    return res.status(200).send({
-      success: true,
-      message: req.t("STATION.STATION_DELETED_SUCCESS"),
-    });
+      return res.status(200).send({
+        success: true,
+        message: req.t("STATION.STATION_DELETED_SUCCESS"),
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
