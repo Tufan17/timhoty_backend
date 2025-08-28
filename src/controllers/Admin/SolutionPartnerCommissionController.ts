@@ -5,7 +5,7 @@ import SolutionPartnerModel from "@/models/SolutionPartnerModel";
 import SolutionPartnerCommissionModel from "@/models/SolutionPartnerCommissionModel";
 
 export default class SolutionPartnerCommissionController {
-  async findAll(req: FastifyRequest, res: FastifyReply) {
+  async dataTable(req: FastifyRequest, res: FastifyReply) {
     try {
       const {
         page = 1,
@@ -83,6 +83,27 @@ export default class SolutionPartnerCommissionController {
         message: req.t(
           "SOLUTION_PARTNER_COMMISSION.SOLUTION_PARTNER_COMMISSION_FETCHED_ERROR"
         ),
+      });
+    }
+  }
+
+  async findAll(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const solutionPartnerCommissions = await new SolutionPartnerCommissionModel().getAll("",{
+        solution_partner_id: id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("SOLUTION_PARTNER_COMMISSION.SOLUTION_PARTNER_COMMISSION_FETCHED_SUCCESS"),
+        data: solutionPartnerCommissions,
+      });
+    }catch(error){
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("SOLUTION_PARTNER_COMMISSION.SOLUTION_PARTNER_COMMISSION_FETCHED_ERROR"),
       });
     }
   }

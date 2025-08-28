@@ -18,6 +18,10 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
   fastify.get("/", {
     preHandler: [authAdminMiddleware],
+    handler: solutionPartnerCommissionController.dataTable,
+  });
+  fastify.get("/all/:id", {
+    preHandler: [authAdminMiddleware],
     handler: solutionPartnerCommissionController.findAll,
   });
   fastify.get("/:id", {
