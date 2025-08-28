@@ -258,6 +258,7 @@ export default class CarRentalController {
 
       const carRentalPickupDelivery = await knex("car_pickup_delivery")
         .where("car_pickup_delivery.car_rental_id", id)
+        .whereNull("car_pickup_delivery.deleted_at")
         .innerJoin("station_pivots", "car_pickup_delivery.station_id", "station_pivots.station_id")
         .where("station_pivots.language_code", req.language)
         .select("car_pickup_delivery.*", "station_pivots.name as name");
