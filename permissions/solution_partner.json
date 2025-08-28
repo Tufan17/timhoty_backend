@@ -1,6 +1,6 @@
 [
     "hotel",
-    "rental",
+    "car_rental",
     "tour",
     "visa",
     "settings",
@@ -8,5 +8,7 @@
     "users",
     "support",
     "activity",
-    "reservations"
+    "reservations",
+    "notifications",
+    "stations"
 ]

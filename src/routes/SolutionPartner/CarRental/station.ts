@@ -48,4 +48,9 @@ export default async function stationRoutes(fastify: FastifyInstance) {
     preValidation: [validate(stationUpdateSchema)],
     handler: stationController.update,
   });
+
+  fastify.delete("/:id", {
+    preHandler: [authSolutionPartnerMiddleware, stationAuditLogger],
+    handler: stationController.delete,
+  });
 }

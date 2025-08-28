@@ -22,13 +22,22 @@ export default class StationController {
       };
 
       const language = (req as any).language;
+      const solutionPartnerUser = (req as any).user;
 
       // Ortak JOIN'ler
       const base = knex("stations")
+        .where("stations.solution_partner_id", solutionPartnerUser.solution_partner_id)
         .whereNull("stations.deleted_at")
         .innerJoin("cities", "stations.location_id", "cities.id")
         .innerJoin("station_pivots", "stations.id", "station_pivots.station_id")
         .where("station_pivots.language_code", language)
+        .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+        .where("city_pivots.language_code", language)
+        .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+        .where("country_pivots.language_code", language)
+        .select(
+          knex.raw("CONCAT(city_pivots.name, ', ', country_pivots.name) as address")
+        )
         .modify((qb) => {
           if (typeof status !== "undefined")
             qb.where("stations.status", status);
@@ -63,7 +72,7 @@ export default class StationController {
       const data = await base
         .clone()
         .distinct("stations.id") // aynı araç kiralama birden fazla pivot kaydına düşmesin
-        .select("stations.*", "station_pivots.name")
+        .select("stations.*", "station_pivots.name", "city_pivots.name as city_name", "country_pivots.name as country_name")
         .orderBy("stations.created_at", "desc")
         .limit(Number(limit))
         .offset((Number(page) - 1) * Number(limit));
@@ -107,10 +116,19 @@ export default class StationController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
+      const language = (req as any).language;
+
       const station = await knex("stations")
         .whereNull("stations.deleted_at")
+        .innerJoin("station_pivots", "stations.id", "station_pivots.station_id")
+        .where("station_pivots.language_code", language)
+        .innerJoin("cities", "stations.location_id", "cities.id")
+        .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+        .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id") 
+        .where("city_pivots.language_code", language)
+        .where("country_pivots.language_code", language)
         .where("stations.id", id)
-        .select("stations.*")
+        .select("stations.*", "station_pivots.name as name", "city_pivots.name as city_name", "country_pivots.name as country_name", "cities.country_id")
         .first();
 
       if (!station) {
@@ -267,6 +285,31 @@ export default class StationController {
       return res.status(500).send({
         success: false,
         message: req.t("STATION.STATION_UPDATED_ERROR"),
+      });
+    }
+  }
+
+  async delete(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const solutionPartnerUser = (req as any).user;
+      const existingStation = await new StationModel().first({ id, solution_partner_id: solutionPartnerUser.solution_partner_id });
+      if (!existingStation) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("STATION.STATION_NOT_FOUND"),
+        });
+      }
+      await new StationModel().delete(id);
+    return res.status(200).send({
+      success: true,
+      message: req.t("STATION.STATION_DELETED_SUCCESS"),
+    });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("STATION.STATION_DELETED_ERROR"),
       });
     }
   }
