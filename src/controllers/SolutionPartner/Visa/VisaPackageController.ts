@@ -3,6 +3,7 @@ import VisaPackagePriceModel from "@/models/VisaPackagePriceModel";
 import knex from "@/db/knex";
 import VisaPackageModel from "@/models/VisaPackageModel";
 import { translateCreate } from "@/helper/translate";
+import VisaModel from "@/models/VisaModel";
 
 interface CreatePackageBody {
   visa_id: string;
@@ -274,14 +275,14 @@ export class VisaPackageController {
         prices,
       } = req.body as CreatePackageBody;
 
-      const existingVisaPackage = await new VisaPackageModel().exists({
-        visa_id,
+      const existingVisa = await new VisaModel().exists({
+        id: visa_id,
       });
 
-      if (existingVisaPackage) {
+      if (!existingVisa) {
         return res.status(400).send({
           success: false,
-          message: req.t("VISA_PACKAGE.VISA_PACKAGE_ALREADY_EXISTS"),
+          message: req.t("VISA_PACKAGE.VISA_PACKAGE_NOT_FOUND"),
         });
       }
 

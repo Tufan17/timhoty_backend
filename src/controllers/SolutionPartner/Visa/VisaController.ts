@@ -238,7 +238,7 @@ export default class VisaController {
           "visa_package_pivots.name",
           "visa_package_pivots.description",
           "visa_package_pivots.refund_policy"
-        ).first();
+        );
       visa.visa_packages = visaPackages;
 
 
