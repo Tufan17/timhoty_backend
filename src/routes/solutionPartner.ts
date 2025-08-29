@@ -26,6 +26,8 @@ import carRentalFeatureRoutes from "./SolutionPartner/CarRental/carRentalFeature
 import stationRoutes from "./SolutionPartner/CarRental/station";
 import pickUpDeliveryRoutes from "./SolutionPartner/CarRental/pickUpDelivery";
 import carRentalPackageRoutes from "./SolutionPartner/CarRental/carRentalPackage";
+import carRentalPackageImageRoutes from "./SolutionPartner/CarRental/carRentalPackageImage";
+import carRentalPackageFeatureRoutes from "./SolutionPartner/CarRental/carRentalPackageFeature";
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(countryRoutes, { prefix: "/countries" });
@@ -71,4 +73,10 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(stationRoutes, { prefix: "/stations" });
   fastify.register(pickUpDeliveryRoutes, { prefix: "/pick-up-delivery" });
   fastify.register(carRentalPackageRoutes, { prefix: "/car-rental-packages" });
+  fastify.register(carRentalPackageImageRoutes, {
+    prefix: "/car-rental-package-images",
+  });
+  fastify.register(carRentalPackageFeatureRoutes, {
+    prefix: "/car-rental-package-features",
+  });
 }

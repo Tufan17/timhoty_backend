@@ -235,24 +235,24 @@ export class CarRentalPackageController {
         )
         .first();
 
-      //   const carRentalPackageImages = await knex("car_rental_package_images")
-      //   .where("car_rental_package_images.car_rental_package_id", id)
-      //   .whereNull("car_rental_package_images.deleted_at")
-      //   .select("car_rental_package_images.*");
-      // packageModel.car_rental_package_images = carRentalPackageImages;
+        const carRentalPackageImages = await knex("car_rental_package_images")
+        .where("car_rental_package_images.car_rental_package_id", id)
+        .whereNull("car_rental_package_images.deleted_at")
+        .select("car_rental_package_images.*");
+      packageModel.car_rental_package_images = carRentalPackageImages;
 
-      // const carRentalPackageFeatures = await knex("car_rental_package_features")
-      //   .where("car_rental_package_features.car_rental_package_id", id)
-      //   .innerJoin(
-      //     "car_rental_package_feature_pivots",
-      //     "car_rental_package_features.id",
-      //     "car_rental_package_feature_pivots.car_rental_package_feature_id"
-      //   )
-      //   .where("visa_package_feature_pivots.language_code", req.language)
-      //   .whereNull("car_rental_package_features.deleted_at")
-      //   .select("car_rental_package_features.*", "car_rental_package_feature_pivots.name");
+      const carRentalPackageFeatures = await knex("car_rental_package_features")
+        .where("car_rental_package_features.car_rental_package_id", id)
+        .innerJoin(
+          "car_rental_package_feature_pivots",
+          "car_rental_package_features.id",
+          "car_rental_package_feature_pivots.car_rental_package_feature_id"
+        )
+        .where("car_rental_package_feature_pivots.language_code", req.language)
+        .whereNull("car_rental_package_features.deleted_at")
+        .select("car_rental_package_features.*", "car_rental_package_feature_pivots.name");
 
-      // packageModel.car_rental_package_features = carRentalPackageFeatures;
+      packageModel.car_rental_package_features = carRentalPackageFeatures;
 
       if (!packageModel) {
         return res.status(404).send({
