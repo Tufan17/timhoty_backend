@@ -7,7 +7,8 @@ export const authUserMiddleware = async (request: FastifyRequest, reply: Fastify
   if (!authHeader?.startsWith('Bearer ')) {
     return reply.status(401).send({
       success: false,
-      message: request.t('AUTH.TOKEN_NOT_FOUND')
+      message: request.t('AUTH.TOKEN_NOT_FOUND'),
+      error_code: 'TOKEN_MISSING'
     })
   }
   
@@ -19,14 +20,17 @@ export const authUserMiddleware = async (request: FastifyRequest, reply: Fastify
     if(!payload){
       return reply.status(401).send({ 
         success: false,
-        message: "Access token invalid"
+        message: request.t('AUTH.INVALID_TOKEN'),
+        error_code: 'TOKEN_INVALID'
       })
     }
 
     if (payload.expires_at < new Date()) {
       return reply.status(401).send({ 
         success: false,
-        message: "Access token expired"
+        message: request.t('AUTH.TOKEN_EXPIRED'),
+        error_code: 'TOKEN_EXPIRED',
+        should_refresh: true
       })
     }
     
@@ -39,16 +43,37 @@ export const authUserMiddleware = async (request: FastifyRequest, reply: Fastify
     if(!refreshToken){
       return reply.status(401).send({ 
         success: false,
-        message: "Refresh token record is not found"
+        message: request.t('AUTH.REFRESH_TOKEN_NOT_FOUND'),
+        error_code: 'REFRESH_TOKEN_NOT_FOUND'
       })
     }
 
-      (request as any).user = payload;
-      (request as any).user.type = "user";
-  } catch  {
+    (request as any).user = payload;
+    (request as any).user.type = "user";
+
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return reply.status(401).send({
+        success: false,
+        message: "Oturum Süresi Doldu",
+        error_code: 'TOKEN_EXPIRED',
+        should_refresh: true,
+        expiredAt: error.expiredAt
+      });
+    }
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      return reply.status(401).send({
+        success: false,
+        message: request.t('AUTH.INVALID_TOKEN'),
+        error_code: 'TOKEN_INVALID'
+      });
+    }
+
     return reply.status(401).send({ 
       success: false,
-      message: "Error in authUserMiddleware",
+      message: request.t('AUTH.SESSION_ERROR'),
+      error_code: 'AUTH_ERROR'
     })
   }
 }
