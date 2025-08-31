@@ -97,11 +97,24 @@ export default class UserController {
 		try {
 			const { id } = req.params as { id: string }
 			const user = await new UserModel().findId(id)
-			const currency = await new CurrencyModel().findId(user?.currency_id)
-			const currencyPivot = await new CurrencyPivotModel().first({ currency_id: currency?.id, language_code: req.language })
+			// const currency = await new CurrencyModel().findId(user?.currency_id)
+			// const currencyPivot = await new CurrencyPivotModel().first({ currency_id: currency?.id, language_code: req.language })
+			let currencyData = null
+
+			if (user?.currency_id) {
+				const currency = await new CurrencyModel().findId(user.currency_id)
+				if (currency?.id) {
+					const currencyPivot = await new CurrencyPivotModel().first({
+						currency_id: currency.id,
+						language_code: req.language,
+					})
+					currencyData = currencyPivot
+				}
+			}
 			const userData = {
 				...user,
-				currency: currencyPivot,
+				// currency: currencyPivot,
+				currency: currencyData,
 			}
 			return res.status(200).send({
 				success: true,
