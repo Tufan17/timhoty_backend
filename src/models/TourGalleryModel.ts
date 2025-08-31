@@ -1,10 +1,11 @@
 import BaseModel from "@/models/BaseModel";
+import knex from "@/db/knex";
 
 class TourGalleryModel extends BaseModel {
   constructor() {
     super("tour_galleries");
   }
-  
+
   static columns = [
     'id',
     'tour_id',
@@ -15,20 +16,35 @@ class TourGalleryModel extends BaseModel {
     'deleted_at',
   ];
 
-  async getByTourId(tourId: string): Promise<any[]> {
-    return this.where('tour_id', tourId);
+  async findByTourId(tourId: string) {
+    return await knex("tour_galleries")
+      .where("tour_id", tourId)
+      .whereNull("deleted_at")
+      .select(TourGalleryModel.columns);
   }
 
-  async deleteByTourId(tourId: string): Promise<number> {
-    const images = await this.where('tour_id', tourId);
-    let deletedCount = 0;
-    
-    for (const image of images) {
-      await this.delete(image.id);
-      deletedCount++;
-    }
-    
-    return deletedCount;
+  async deleteByTourId(tourId: string) {
+    await knex("tour_galleries")
+      .where("tour_id", tourId)
+      .whereNull("deleted_at")
+      .update({ deleted_at: new Date() });
+  }
+
+  async findWithTranslations(tourId: string, languageCode: string = "en") {
+    return await knex("tour_galleries")
+      .where("tour_galleries.tour_id", tourId)
+      .whereNull("tour_galleries.deleted_at")
+      .leftJoin(
+        "tour_gallery_pivots",
+        "tour_galleries.id",
+        "tour_gallery_pivots.tour_gallery_id"
+      )
+      .where("tour_gallery_pivots.language_code", languageCode)
+      .whereNull("tour_gallery_pivots.deleted_at")
+      .select([
+        "tour_galleries.*",
+        "tour_gallery_pivots.category"
+      ]);
   }
 }
 

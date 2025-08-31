@@ -30,6 +30,7 @@ import carRentalPackageImageRoutes from "./SolutionPartner/CarRental/carRentalPa
 import carRentalPackageFeatureRoutes from "./SolutionPartner/CarRental/carRentalPackageFeature";
 import tourRoutes from "./SolutionPartner/Tour/tour";
 import tourGalleryRoutes from "./SolutionPartner/Tour/tourGallery";
+import tourFeatureRoutes from "./SolutionPartner/Tour/tourFeature";
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(countryRoutes, { prefix: "/countries" });
@@ -87,4 +88,5 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   // ===========================================
   fastify.register(tourRoutes, { prefix: "/tours" });
   fastify.register(tourGalleryRoutes, { prefix: "/tour-galleries" });
+  fastify.register(tourFeatureRoutes, { prefix: "/tour-features" });
 }
