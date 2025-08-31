@@ -149,7 +149,18 @@ export default class TourController {
           data: null,
         });
       }
-
+      const tourGalleries = await knex("tour_galleries")
+      .where("tour_galleries.tour_id", id)
+      .whereNull("tour_galleries.deleted_at")
+      .leftJoin(
+        "tour_gallery_pivot",
+        "tour_galleries.id",
+        "tour_gallery_pivot.tour_gallery_id"
+      )
+      .where("tour_gallery_pivot.language_code", req.language)
+      .whereNull("tour_gallery_pivot.deleted_at")
+      .select("tour_galleries.*", "tour_gallery_pivot.category");
+    tour.tour_galleries = tourGalleries;
       return res.send({
         success: true,
         message: "Tur başarıyla getirildi",
