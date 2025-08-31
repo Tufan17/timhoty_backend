@@ -2,8 +2,9 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../../db/knex";
 import TourModel from "@/models/TourModel";
 import TourPivotModel from "@/models/TourPivotModel";
-import SolutionPartnerModel from "@/models/SolutionPartnerModel";
-import { translateCreate, translateUpdate } from "@/helper/translate";
+import HotelModel from "@/models/HotelModel";
+import TourGalleryModel from "@/models/TourGalleryModel";
+import { translateCreate } from "@/helper/translate";
 
 export default class TourController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -149,18 +150,27 @@ export default class TourController {
           data: null,
         });
       }
-      const tourGalleries = await knex("tour_galleries")
-      .where("tour_galleries.tour_id", id)
-      .whereNull("tour_galleries.deleted_at")
-      .leftJoin(
-        "tour_gallery_pivot",
-        "tour_galleries.id",
-        "tour_gallery_pivot.tour_gallery_id"
-      )
-      .where("tour_gallery_pivot.language_code", req.language)
-      .whereNull("tour_gallery_pivot.deleted_at")
-      .select("tour_galleries.*", "tour_gallery_pivot.category");
-    tour.tour_galleries = tourGalleries;
+
+      // Fetch tour galleries if they exist
+      try {
+        const tourGalleries = await knex("tour_galleries")
+          .where("tour_galleries.tour_id", id)
+          .whereNull("tour_galleries.deleted_at")
+          .leftJoin(
+            "tour_gallery_pivots",
+            "tour_galleries.id",
+            "tour_gallery_pivots.tour_gallery_id"
+          )
+          .where("tour_gallery_pivots.language_code", (req as any).language)
+          .whereNull("tour_gallery_pivots.deleted_at")
+          .select("tour_galleries.*", "tour_gallery_pivots.category");
+        
+        tour.tour_galleries = tourGalleries;
+      } catch (galleryError) {
+        // If galleries don't exist yet, just set empty array
+        tour.tour_galleries = [];
+      }
+
       return res.send({
         success: true,
         message: "Tur başarıyla getirildi",
@@ -220,69 +230,67 @@ export default class TourController {
 
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-      // Get the authenticated solution partner from the request
-      const solutionPartnerUser = (req as any).user;
-      const {
-        night_count,
-        day_count,
-        refund_days,
-        user_count,
-        title,
-        general_info,
-        tour_info,
-        refund_policy,
-      } = req.body as {
-        night_count: number;
-        day_count: number;
-        refund_days: number;
-        user_count?: number;
-        title: string;
-        general_info: string;
-        tour_info: string;
-        refund_policy?: string;
+      const { tour_id, category, images } = req.body as {
+        tour_id: string;
+        category: string;
+        images: string | string[];
       };
 
-      if (!solutionPartnerUser?.solution_partner_id) {
-        return res.status(403).send({
+      // Validate tour_id
+      const existingTour = await new TourModel().exists({
+        id: tour_id,
+      });
+
+      if (!existingTour) {
+        return res.status(400).send({
           success: false,
-          message: req.t("TOUR.TOUR_ACCESS_DENIED"),
-          data: null,
+          message: req.t("TOUR.NOT_FOUND"),
         });
       }
 
-      const tour = await new TourModel().create({
-        night_count,
-        day_count,
-        refund_days,
-        user_count,
-        solution_partner_id: solutionPartnerUser.solution_partner_id,
-      });
+      // Normalize images to array
+      const imageUrls = Array.isArray(images) ? images : [images];
+      const createdImages = [];
 
-      const translateResult = await translateCreate({
-        target: "tour_pivots",
-        target_id_key: "tour_id",
-        target_id: tour.id,
-        language_code: req.language,
-        data: {
-          title,
-          general_info,
-          tour_info,
-          refund_policy,
-        },
-      });
-      tour.tour_pivots = translateResult;
+      // Create tour images
+      for (const imageUrl of imageUrls) {
+        let image_type="";
 
-      return res.status(201).send({
+        if (imageUrl.includes(".mp4") || imageUrl.includes(".mov") || imageUrl.includes(".webm") || imageUrl.includes(".avi") || imageUrl.includes(".wmv") || imageUrl.includes(".flv") || imageUrl.includes(".mkv")) {
+          image_type = "video";
+        } else {
+          image_type = "image";
+        }
+
+        const image = await new TourGalleryModel().create({
+          tour_id,
+          image_type,
+          image_url: imageUrl,
+        });
+
+        // Create translations
+        await translateCreate({
+          target: "tour_gallery_pivot",
+          target_id: image.id,
+          target_id_key: "tour_gallery_id",
+          data: {
+            category,
+          },
+          language_code: req.language,
+        });
+        createdImages.push(image);
+      }
+
+      return res.status(200).send({
         success: true,
-        message: req.t("TOUR.TOUR_CREATED_SUCCESS"),
-        data: tour,
+        message: req.t("TOUR_GALLERY.CREATED_SUCCESS"),
+        data: createdImages,
       });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: req.t("TOUR.TOUR_CREATED_ERROR"),
-        data: null,
+        message: req.t("TOUR_GALLERY.CREATED_ERROR"),
       });
     }
   }
@@ -290,84 +298,82 @@ export default class TourController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const {
-        night_count,
-        day_count,
-        refund_days,
-        user_count,
-        title,
-        general_info,
-        tour_info,
-        refund_policy,
-      } = req.body as {
-        night_count: number;
-        day_count: number;
-        refund_days: number;
-        user_count: number;
-        title: string;
-        general_info: string;
-        tour_info: string;
-        refund_policy: string;
+      const { tour_id, image_type, category } = req.body as {
+        tour_id?: string;
+        image_type?: string;
+        category?: string;
       };
 
-
-
-      const existingTour = await new TourModel().first({ id });
-
-      if (!existingTour) {
-        return res.status(404).send({
+      // Check if anything to update
+      if (!tour_id && !image_type && !category) {
+        return res.status(400).send({
           success: false,
-          message: req.t("TOUR.TOUR_NOT_FOUND"),
-          data: null,
+          message: req.t("TOUR_GALLERY.NO_UPDATE_DATA"),
         });
       }
 
+      // Check image existence
+      const existingImage = await new TourGalleryModel().exists({ id });
 
-   
-      // Build update body with only defined fields
-      let body: any = {};
-      
-      if (night_count !== undefined) body.night_count = night_count;
-      if (day_count !== undefined) body.day_count = day_count;
-      if (refund_days !== undefined) body.refund_days = refund_days;
-      if (user_count !== undefined) body.user_count = user_count;
-
-      // Update tour if there are fields to update
-      if (Object.keys(body).length > 0) {
-        await new TourModel().update(id, body);
+      if (!existingImage) {
+        return res.status(404).send({
+          success: false,
+            message: req.t("TOUR_GALLERY.NOT_FOUND"),
+        });
       }
 
-      await new TourModel().update(id, body);
+      // Validate hotel if hotel_id is provided
+      if (tour_id) {
+        const tour = await new TourModel().exists({
+          id: tour_id,
+        });
+
+        if (!tour) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("TOUR.NOT_FOUND"),
+          });
+        }
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      if (tour_id) updateData.tour_id = tour_id;
+      if (image_type) updateData.image_type = image_type;
+      if (category) updateData.category = category;
+
+      // Update image
+      const updatedImage = await new TourGalleryModel().update(id, updateData);
 
       // Update translations if provided
-      if (title || general_info || tour_info || refund_policy) {
-        await translateUpdate({
-          target: "tour_pivots",
-          target_id_key: "tour_id",
+      if (category) {
+          await knex("tour_gallery_pivot")
+          .where({ tour_gallery_id: id })
+          .update({ deleted_at: new Date() });
+
+        const newTranslations = await translateCreate({
+          target: "tour_gallery_pivot",
           target_id: id,
+          target_id_key: "tour_gallery_id",
           data: {
-            ...(title && { title }),
-            ...(general_info && { general_info }),
-            ...(tour_info && { tour_info }),
-            ...(refund_policy && { refund_policy }),
+            category,
           },
           language_code: req.language,
         });
+
+        updatedImage.translations = newTranslations;
       }
 
-      const updatedTour = await new TourModel().oneToMany(id, "tour_pivots", "tour_id");
-
-      return res.send({
+      return res.status(200).send({
         success: true,
-        message: req.t("TOUR.TOUR_UPDATED_SUCCESS"),
-        data: updatedTour,
+        message: req.t("TOUR_GALLERY.UPDATED_SUCCESS"),
+        data: updatedImage,
       });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
         success: false,
-        message: req.t("TOUR.TOUR_UPDATED_ERROR"),
-        data: null,
+        message: req.t("TOUR_GALLERY.UPDATED_ERROR"),
       });
     }
   }
@@ -380,7 +386,7 @@ export default class TourController {
       if (!spFromUser) {
         return res.status(403).send({
           success: false,
-          message: req.t("TOUR.TOUR_ACCESS_DENIED"),
+          message: "Erişim reddedildi",
           data: null,
         });
       }
@@ -391,7 +397,7 @@ export default class TourController {
       if (!existingTour) {
         return res.status(404).send({
           success: false,
-          message: req.t("TOUR.TOUR_NOT_FOUND"),
+          message: "Tur bulunamadı",
           data: null,
         });
       }
@@ -399,7 +405,7 @@ export default class TourController {
       if (existingTour.solution_partner_id !== spFromUser) {
         return res.status(403).send({
           success: false,
-          message: req.t("TOUR.TOUR_ACCESS_DENIED"),
+          message: "Erişim reddedildi",
           data: null,
         });
       }
@@ -408,17 +414,18 @@ export default class TourController {
       await new TourModel().delete(id);
 
       await new TourPivotModel().deleteByTourId(id);
+      
 
       return res.send({
         success: true,
-        message: req.t("TOUR.TOUR_DELETED_SUCCESS"),
+        message: "Tur başarıyla silindi",
         data: null,
       });
     } catch (error) {
-      console.log(error);
+      console.error("Tour delete error:", error);
       return res.status(500).send({
         success: false,
-        message: req.t("TOUR.TOUR_DELETED_ERROR"),
+        message: "Sunucu hatası",
         data: null,
       });
     }

@@ -6,6 +6,7 @@ export const tourGallerySchema = Joi.object({
     Joi.string(), // Single file
     Joi.array().items(Joi.string()) // Multiple files
   ).required(),
+  category: Joi.string().required(),
 });
 
 export const tourGalleryQuerySchema = Joi.object({
@@ -23,4 +24,5 @@ export const tourGalleryUpdateSchema = Joi.object({
   tour_id: Joi.string().uuid().optional(),
   image_type: Joi.string().optional(),
   image_url: Joi.string().optional(),
+  category: Joi.string().optional(),
 });

@@ -2,7 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../../db/knex";
 import TourGalleryModel from "@/models/TourGalleryModel";
 import TourModel from "@/models/TourModel";
-import { translateCreate } from "@/helper/translate";
+import { translateCreate, translateUpdate } from "@/helper/translate";
 
 export default class TourGalleryController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -27,16 +27,16 @@ export default class TourGalleryController {
         .innerJoin(
           "tours",
           "tour_galleries.tour_id",
-          "visas.id"
+          "tours.id"
         )
         .leftJoin(
-          "tour_gallery_pivot",
+          "tour_gallery_pivots",
           "tour_galleries.id",
-          "tour_gallery_pivot.tour_gallery_id"
+          "tour_gallery_pivots.tour_gallery_id"
         )
-        .where("tour_gallery_pivot.language_code", language)
+        .where("tour_gallery_pivots.language_code", language)
         .whereNull("tours.deleted_at")
-        .whereNull("visa_gallery_pivot.deleted_at")
+        .whereNull("tour_gallery_pivot.deleted_at")
         .modify((qb) => {
           if (tour_id) {
             qb.where("tour_galleries.tour_id", tour_id);
@@ -46,7 +46,7 @@ export default class TourGalleryController {
             const like = `%${search}%`;
             qb.andWhere((w) => {
                     w.where("tour_galleries.image_type", "ilike", like)
-                .orWhere("tour_gallery_pivot.category", "ilike", like);
+                .orWhere("tour_gallery_pivots.category", "ilike", like);
             });
           }
         });
@@ -70,7 +70,7 @@ export default class TourGalleryController {
         .distinct("tour_galleries.id")
         .select(
           "tour_galleries.*",
-          "tour_gallery_pivot.category"
+          "tour_gallery_pivots.category"
         )
         .orderBy("tour_galleries.created_at", "desc")
         .limit(Number(limit))
@@ -103,15 +103,15 @@ export default class TourGalleryController {
       let query = knex("tour_galleries")
         .whereNull("tour_galleries.deleted_at")
         .leftJoin(
-            "tour_gallery_pivot",
+            "tour_gallery_pivots",
           "tour_galleries.id",
-          "tour_gallery_pivot.tour_gallery_id"
+          "tour_gallery_pivots.tour_gallery_id"
         )
-        .where("tour_gallery_pivot.language_code", language)
-        .whereNull("tour_gallery_pivot.deleted_at")
+        .where("tour_gallery_pivots.language_code", language)
+        .whereNull("tour_gallery_pivots.deleted_at")
         .select(
           "tour_galleries.*",
-          "tour_gallery_pivot.category"
+          "tour_gallery_pivots.category"
         );
 
       if (tour_id) {
@@ -145,16 +145,16 @@ export default class TourGalleryController {
         const image = await knex("tour_galleries")
         .whereNull("tour_galleries.deleted_at")
         .leftJoin(
-          "tour_gallery_pivot",
+          "tour_gallery_pivots",
           "tour_galleries.id",
-          "tour_gallery_pivot.tour_gallery_id"
+          "tour_gallery_pivots.tour_gallery_id"
         )
-        .where("tour_gallery_pivot.language_code", language)
-        .whereNull("tour_gallery_pivot.deleted_at")
-        .where("visa_galleries.id", id)
+        .where("tour_gallery_pivots.language_code", language)
+        .whereNull("tour_gallery_pivots.deleted_at")
+        .where("tour_galleries.id", id)
         .select(
           "tour_galleries.*",
-          "tour_gallery_pivot.category"
+          "tour_gallery_pivots.category"
         )
         .first();
 
@@ -221,7 +221,7 @@ export default class TourGalleryController {
 
         // Create translations
         await translateCreate({
-          target: "tour_gallery_pivot",
+          target: "tour_gallery_pivots",
           target_id: image.id,
           target_id_key: "tour_gallery_id",
           data: {
@@ -249,14 +249,13 @@ export default class TourGalleryController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { tour_id, image_type, category } = req.body as {
+      const { tour_id, category } = req.body as {
         tour_id?: string;
-        image_type?: string;
         category?: string;
       };
 
       // Check if anything to update
-      if (!tour_id && !image_type && !category) {
+      if (!tour_id && !category) {
         return res.status(400).send({
           success: false,
           message: req.t("TOUR_GALLERY.NO_UPDATE_DATA"),
@@ -290,30 +289,19 @@ export default class TourGalleryController {
       // Prepare update data
       const updateData: any = {};
       if (tour_id) updateData.tour_id = tour_id;
-      if (image_type) updateData.image_type = image_type;
-      if (category) updateData.category = category;
-
-      // Update image
       const updatedImage = await new TourGalleryModel().update(id, updateData);
 
-      // Update translations if provided
-      if (category) {
-        await knex("tour_gallery_pivot")
-          .where({ visa_gallery_id: id })
-          .update({ deleted_at: new Date() });
-
-        const newTranslations = await translateCreate({
-            target: "tour_gallery_pivot",
-          target_id: id,
-          target_id_key: "tour_gallery_id",
-          data: {
-            category,
-          },
-          language_code: req.language,
-        });
-
-        updatedImage.translations = newTranslations;
-      }
+      
+      translateUpdate({
+        target: "tour_gallery_pivots",
+        target_id_key: "tour_gallery_id",
+        target_id: id,
+        data: {
+          category,
+        },
+        language_code: req.language,
+      });
+      
 
       return res.status(200).send({
         success: true,
@@ -340,19 +328,12 @@ export default class TourGalleryController {
             message: req.t("TOUR_GALLERY.NOT_FOUND"),
         });
       }
+      
+      await new TourGalleryModel().delete(id);
 
-      await knex.transaction(async (trx) => {
-        // Soft delete main record
-        await trx("tour_galleries")
-          .where({ id })
-          .update({ deleted_at: new Date() });
+      await new TourGalleryModel().deleteByTourId(id);
 
-        // Soft delete translations
-        await trx("tour_gallery_pivot")
-          .where({ visa_gallery_id: id })
-          .update({ deleted_at: new Date() });
-      });
-
+      
       return res.status(200).send({
         success: true,
         message: req.t("TOUR_GALLERY.DELETED_SUCCESS"),
@@ -397,8 +378,8 @@ export default class TourGalleryController {
           .update({ deleted_at: new Date() });
 
         // Soft delete translations
-        await trx("tour_gallery_pivot")
-          .whereIn("visa_gallery_id", ids)
+        await trx("tour_gallery_pivots")
+          .whereIn("tour_gallery_id", ids)
           .update({ deleted_at: new Date() });
       });
 
