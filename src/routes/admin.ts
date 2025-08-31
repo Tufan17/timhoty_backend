@@ -32,6 +32,7 @@ import blogRoutes from "./Admin/blog"
 import contractRoutes from "./Admin/contract"
 import userGuideRoutes from "./Admin/userGuide"
 import faqRoutes from "./Admin/faq"
+import tourRoutes from "./Admin/tour"
 
 // Communication Routes
 import notificationRoutes from "./Admin/notification"
@@ -82,6 +83,7 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	fastify.register(contractRoutes, { prefix: "/contracts" })
 	fastify.register(userGuideRoutes, { prefix: "/user-guides" })
 	fastify.register(faqRoutes, { prefix: "/faqs" })
+	fastify.register(tourRoutes, { prefix: "/tours" })
 
 	// ===========================================
 	// COMMUNICATION ROUTES
