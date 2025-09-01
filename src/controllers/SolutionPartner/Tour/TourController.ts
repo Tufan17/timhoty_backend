@@ -190,7 +190,20 @@ export default class TourController {
           ]);
         tour.tour_programs = tourPrograms;
 
-     
+        const tourLocations = await knex("tour_locations")
+          .where("tour_locations.tour_id", id)
+          .whereNull("tour_locations.deleted_at")
+          .innerJoin("cities", "tour_locations.location_id", "cities.id")
+          .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+          .innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+          .where("city_pivots.language_code", (req as any).language)
+          .where("country_pivots.language_code", (req as any).language)
+          .whereNull("city_pivots.deleted_at")
+          .whereNull("country_pivots.deleted_at")
+          .select("tour_locations.*", "city_pivots.name as city_name", "country_pivots.name as country_name","country_pivots.country_id as country_id")
+          .orderBy("tour_locations.created_at", "asc");
+        tour.tour_locations = tourLocations;
+
 
       return res.send({
         success: true,

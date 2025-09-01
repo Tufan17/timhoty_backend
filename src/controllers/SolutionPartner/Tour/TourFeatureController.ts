@@ -4,7 +4,7 @@ import TourFeatureModel from "@/models/TourFeatureModel";
 import { translateCreate, translateUpdate } from "@/helper/translate";
 import TourModel from "@/models/TourModel";
 
-export default class HotelFeatureController {
+export default class TourFeatureController {
   async dataTable(req: FastifyRequest, res: FastifyReply) {
     try {
       const {
