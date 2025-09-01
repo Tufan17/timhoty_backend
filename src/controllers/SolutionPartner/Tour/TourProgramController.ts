@@ -174,13 +174,11 @@ export default class TourProgramController {
         title,
         content,
         order,
-        status = true,
       } = req.body as {
         tour_id: string;
         title: string;
         content: string;
         order: string;
-        status?: boolean;
       };
 
       const existTour = await new TourModel().findId(tour_id);
@@ -194,7 +192,7 @@ export default class TourProgramController {
       // Create tour feature
       const tourProgram = await new TourProgramModel().create({
         tour_id,
-        status,
+        order,
       });
 
       // Create translations
@@ -228,11 +226,11 @@ export default class TourProgramController {
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const { tour_id, title, content, status } = req.body as {
+      const { tour_id, title, content, order } = req.body as {
         tour_id?: string;
         title?: string;
         content?: string;
-        status?: boolean;
+        order?: number;
       };
 
       const existingTourProgram = await new TourProgramModel().first({ id });
@@ -259,10 +257,10 @@ export default class TourProgramController {
       }
 
       // Update tour feature if tour_id or status is provided
-      if (tour_id || status !== undefined) {
+      if (tour_id || order !== undefined) {
         await new TourProgramModel().update(id, {
           ...(tour_id && { tour_id }),
-          ...(status !== undefined && { status }),
+          ...(order !== undefined && { order }),
         });
       }
 

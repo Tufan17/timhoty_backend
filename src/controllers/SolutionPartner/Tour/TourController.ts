@@ -178,11 +178,21 @@ export default class TourController {
         tour.tour_features = tourFeatures;
 
 
+        const tourPrograms = await knex("tour_programs")
+          .where("tour_programs.tour_id", id)
+          .whereNull("tour_programs.deleted_at")
+          .innerJoin("tour_program_pivots", "tour_programs.id", "tour_program_pivots.tour_program_id")
+          .where("tour_program_pivots.language_code", (req as any).language)
+          .whereNull("tour_program_pivots.deleted_at")
+          .orderBy("tour_programs.order", "asc")
+          .select("tour_programs.*", "tour_program_pivots.name");
+        tour.tour_programs = tourPrograms;
 
       } catch (galleryError) {
         // If galleries don't exist yet, just set empty array
         tour.tour_galleries = [];
         tour.tour_features = [];
+        tour.tour_programs = [];
       }
 
       return res.send({
