@@ -151,8 +151,6 @@ export default class TourController {
         });
       }
 
-      // Fetch tour galleries if they exist
-      try {
         const tourGalleries = await knex("tour_galleries")
           .where("tour_galleries.tour_id", id)
           .whereNull("tour_galleries.deleted_at")
@@ -185,15 +183,14 @@ export default class TourController {
           .where("tour_program_pivots.language_code", (req as any).language)
           .whereNull("tour_program_pivots.deleted_at")
           .orderBy("tour_programs.order", "asc")
-          .select("tour_programs.*", "tour_program_pivots.name");
+          .select([
+            "tour_programs.*",
+            "tour_program_pivots.title",
+            "tour_program_pivots.content"
+          ]);
         tour.tour_programs = tourPrograms;
 
-      } catch (galleryError) {
-        // If galleries don't exist yet, just set empty array
-        tour.tour_galleries = [];
-        tour.tour_features = [];
-        tour.tour_programs = [];
-      }
+     
 
       return res.send({
         success: true,
