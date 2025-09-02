@@ -37,6 +37,7 @@ import tourRoutes from "./Admin/tour"
 // Communication Routes
 import notificationRoutes from "./Admin/notification"
 import emailSubscriptionRoutes from "./Admin/emailSubscription"
+import activityTypeRoutes from "./Admin/activityType"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -90,4 +91,9 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
 	fastify.register(notificationRoutes, { prefix: "/notifications" })
 	fastify.register(emailSubscriptionRoutes, { prefix: "/email-subscriptions" })
+
+	// ===========================================
+	// ACTIVITY TYPE ROUTES
+	// ===========================================
+	fastify.register(activityTypeRoutes, { prefix: "/activity-types" })
 }
