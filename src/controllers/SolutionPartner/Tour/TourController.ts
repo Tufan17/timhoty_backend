@@ -220,6 +220,18 @@ export default class TourController {
       tour.tour_departure_points = tourDeparturePoints;
 
 
+      const tourPackages = await knex("tour_packages")
+      .where("tour_packages.tour_id", id)
+      .leftJoin("tour_package_pivots", "tour_packages.id", "tour_package_pivots.tour_package_id")
+      .where("tour_package_pivots.language_code", req.language)
+      .whereNull("tour_packages.deleted_at")
+      .select(
+        "tour_packages.*",
+        "tour_package_pivots.name",
+        "tour_package_pivots.description",
+        "tour_package_pivots.refund_policy"
+      );
+    tour.tour_packages = tourPackages;
 
       return res.send({
         success: true,

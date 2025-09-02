@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import CarRentalPackagePriceModel from "@/models/CarRentalPackagePriceModel";
 import knex from "@/db/knex";
 import CarRentalPackageModel from "@/models/CarRentalPackageModel";
-import { translateCreate } from "@/helper/translate";
+import { translateCreate, translateUpdate } from "@/helper/translate";
 import CarRentalModel from "@/models/CarRentalModel";
 
 interface CreatePackageBody {
@@ -394,6 +394,9 @@ export class CarRentalPackageController {
         constant_price,
         return_acceptance_period,
         prices,
+        name,
+        description,
+        refund_policy,
       } = req.body as CreatePackageBody;
 
       const packageModel = await knex
@@ -425,10 +428,22 @@ export class CarRentalPackageController {
         if (prices.length > 1) {
           return res.status(400).send({
             success: false,
-            message: req.t("HOTEL_ROOM_PACKAGE.PRICE_COUNT_ERROR"),
+            message: req.t("CAR_RENTAL_PACKAGE.PRICE_COUNT_ERROR"),
           });
         }
       }
+
+      await translateUpdate({
+        target: "car_rental_package_pivots",
+        target_id: id.toString(),
+        target_id_key: "car_rental_package_id",
+        language_code: (req as any).language,
+        data: {
+          name,
+          description,
+          refund_policy,
+        },
+      });   
 
       // tarihlerler kendli içinde çakışıyor mu
       let conflict = false;
@@ -455,7 +470,7 @@ export class CarRentalPackageController {
       if (conflict) {
         return res.status(400).send({
           success: false,
-          message: req.t("HOTEL_ROOM_PACKAGE.DATE_RANGE_ERROR"),
+          message: req.t("CAR_RENTAL_PACKAGE.DATE_RANGE_ERROR"),
         });
       }
 

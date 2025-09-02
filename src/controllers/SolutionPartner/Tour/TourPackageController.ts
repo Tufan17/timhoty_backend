@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import knex from "@/db/knex";
 import TourPackageModel from "@/models/TourPackageModel";
-import { translateCreate } from "@/helper/translate";
+import { translateCreate, translateUpdate } from "@/helper/translate";
 import TourModel from "@/models/TourModel";
 import TourPackagePriceModel from "@/models/TourPackagePriceModel";
 
@@ -182,9 +182,14 @@ export class TourPackageController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
+
+      // The previous query failed because of referencing "tour_package.date" in the JSON aggregation,
+      // but there is no such table alias. We'll fix this by removing the invalid reference and only using available columns.
+
       const packageModel = await knex
         .select(
           "tour_packages.*",
+          "tour_packages.date",
           knex.raw(`
             json_agg(
               json_build_object(
@@ -192,10 +197,13 @@ export class TourPackageController {
                 'tour_package_id', tour_package_prices.tour_package_id,
                 'main_price', tour_package_prices.main_price,
                 'child_price', tour_package_prices.child_price,
+                'baby_price', tour_package_prices.baby_price,
+                'period', tour_package_prices.period,
+                'quota', tour_package_prices.quota,
                 'currency_id', tour_package_prices.currency_id,
                 'currency_name', currency_pivots.name,
                 'code', currencies.code,
-                  'start_date', tour_package_prices.start_date,
+                'start_date', tour_package_prices.start_date,
                 'end_date', tour_package_prices.end_date,
                 'created_at', tour_package_prices.created_at,
                 'updated_at', tour_package_prices.updated_at,
@@ -204,9 +212,8 @@ export class TourPackageController {
             ) as prices
           `),
           "tour_package_pivots.name",
-            "tour_package_pivots.description", 
-          "tour_package_pivots.refund_policy",
-          "currencies.code"
+          "tour_package_pivots.description",
+          "tour_package_pivots.refund_policy"
         )
         .from("tour_packages")
         .innerJoin(
@@ -214,8 +221,8 @@ export class TourPackageController {
           "tour_packages.id",
           "tour_package_pivots.tour_package_id"
         )
-          .where("tour_package_pivots.language_code", req.language)
-          .innerJoin(
+        .where("tour_package_pivots.language_code", req.language)
+        .innerJoin(
           "tour_package_prices",
           "tour_packages.id",
           "tour_package_prices.tour_package_id"
@@ -236,31 +243,14 @@ export class TourPackageController {
         )
         .groupBy(
           "tour_packages.id",
+          "tour_packages.date",
           "tour_package_pivots.name",
           "tour_package_pivots.description",
-          "tour_package_pivots.refund_policy",
-          "currencies.code"
+          "tour_package_pivots.refund_policy"
         )
         .first();
 
-      //     const tourPackageImages = await knex("tour_package_images")
-      //   .where("tour_package_images.tour_package_id", id)
-      //   .whereNull("tour_package_images.deleted_at")
-      //   .select("tour_package_images.*");
-      // packageModel.tour_package_images = tourPackageImages;
-
-      // const tourPackageFeatures = await knex("tour_package_features")
-      //   .where("tour_package_features.tour_package_id", id)
-      //   .innerJoin(
-      //     "tour_package_feature_pivots",
-      //     "tour_package_features.id",
-      //     "tour_package_feature_pivots.tour_package_feature_id"
-      //   )
-      //   .where("tour_package_feature_pivots.language_code", req.language)
-      //   .whereNull("tour_package_features.deleted_at")
-      //   .select("tour_package_features.*", "tour_package_feature_pivots.name");
-
-      // packageModel.tour_package_features = tourPackageFeatures;
+      // Optionally, you can fetch images and features as before if needed
 
       if (!packageModel) {
         return res.status(404).send({
@@ -407,6 +397,9 @@ export class TourPackageController {
         total_tax_amount,
         constant_price,
         return_acceptance_period,
+        refund_policy,
+        name,
+        description,
         prices,
         date,
       } = req.body as UpdatePackageBody;
@@ -473,6 +466,21 @@ export class TourPackageController {
           message: req.t("TOUR_PACKAGE.DATE_RANGE_ERROR"),
         });
       }
+
+
+      await translateUpdate({
+        target: "tour_package_pivots",
+        target_id: id.toString(),
+        target_id_key: "tour_package_id",
+        language_code: (req as any).language,
+        data: {
+          name,
+          description,
+          refund_policy,
+        },
+      }); 
+
+
 
       // Update package
       await knex("tour_packages")
@@ -553,6 +561,7 @@ export class TourPackageController {
 
       if (!existingPackage) {
         return res.status(404).send({
+          success: false,
           message: req.t("GENERAL.NOT_FOUND"),
         });
       }
@@ -573,12 +582,18 @@ export class TourPackageController {
         .update({ deleted_at: knex.fn.now() });
 
       return res.send({
+        success: true,
         message: req.t("GENERAL.DELETED"),
+        data: null,
+        error: null,
       });
     } catch (error) {
       console.error("Error in delete:", error);
       return res.status(500).send({
+        success: false,
         message: req.t("GENERAL.ERROR"),
+        data: null,
+        error: error,
       });
     }
   }
