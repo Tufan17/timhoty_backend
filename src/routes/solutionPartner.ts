@@ -36,7 +36,7 @@ import tourLocationRoutes from "./SolutionPartner/Tour/tourLocation";
 import tourDeparturePointRoutes from "./SolutionPartner/Tour/tourDeparturePoint";
 import tourPackageRoutes from "./SolutionPartner/Tour/tourPackage";
 import tourPackageFeatureRoutes from "./SolutionPartner/Tour/tourPackageFeature";
-
+import tourPackageImageRoutes from "./SolutionPartner/Tour/tourPackageImage";
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(countryRoutes, { prefix: "/countries" });
   fastify.register(cityRoutes, { prefix: "/cities" });
@@ -99,4 +99,5 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
   fastify.register(tourDeparturePointRoutes, { prefix: "/tour-departure-points" });
   fastify.register(tourPackageRoutes, { prefix: "/tour-packages" });  
   fastify.register(tourPackageFeatureRoutes, { prefix: "/tour-package-features" });
+  fastify.register(tourPackageImageRoutes, { prefix: "/tour-package-images" });
 }

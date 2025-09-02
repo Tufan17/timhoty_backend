@@ -274,7 +274,11 @@ export class TourPackageController {
 
 
 
-
+      const tourPackageImages = await knex("tour_package_images")
+        .where("tour_package_images.tour_package_id", id)
+        .whereNull("tour_package_images.deleted_at")
+        .select("tour_package_images.*");
+      packageModel.tour_package_images = tourPackageImages;
 
 
       return res.status(200).send({
