@@ -259,6 +259,24 @@ export class TourPackageController {
         });
       }
 
+
+      const tourPackageFeatures = await knex("tour_package_features")
+        .where("tour_package_features.tour_package_id", id)
+        .whereNull("tour_package_features.deleted_at")
+        .innerJoin(
+          "tour_package_feature_pivots",
+          "tour_package_features.id",
+          "tour_package_feature_pivots.tour_package_feature_id"
+        )
+        .where("tour_package_feature_pivots.language_code", (req as any).language)
+        .select("tour_package_features.*", "tour_package_feature_pivots.name");
+      packageModel.tour_package_features = tourPackageFeatures;
+
+
+
+
+
+
       return res.status(200).send({
         success: true,
         data: packageModel,
