@@ -4,11 +4,11 @@ import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware"
 import { activityTypeSchema, activityTypeUpdateSchema } from "@/validators/Activity/activityTypes"
 import { makeAuditLogger } from "../../middlewares/logMiddleware"
 import ActivityTypeModel from "@/models/ActivityTypeModel"
-import { validateFormData } from "@/middlewares/validateFormData"
+import { validate } from "@/middlewares/validate"
 
 export default async function activityTypeRoutes(fastify: FastifyInstance) {
 	const activityTypeController = new ActivityTypeController()
-
+	//logları tutuyoruz
 	const currencyAuditLogger = makeAuditLogger({
 		targetName: "activity_types",
 		model: new ActivityTypeModel(),
@@ -26,12 +26,12 @@ export default async function activityTypeRoutes(fastify: FastifyInstance) {
 	})
 	fastify.post("/", {
 		preHandler: [authAdminMiddleware, currencyAuditLogger],
-		preValidation: [validateFormData(activityTypeSchema)],
+		preValidation: [validate(activityTypeSchema)],
 		handler: activityTypeController.create,
 	})
 	fastify.put("/:id", {
 		preHandler: [authAdminMiddleware, currencyAuditLogger],
-		preValidation: [validateFormData(activityTypeUpdateSchema)],
+		preValidation: [validate(activityTypeUpdateSchema)],
 		handler: activityTypeController.update,
 	})
 	fastify.delete("/:id", {
