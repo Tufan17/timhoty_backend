@@ -280,6 +280,15 @@ export class TourPackageController {
         .select("tour_package_images.*");
       packageModel.tour_package_images = tourPackageImages;
 
+      const tourPackageOpportunities = await knex("tour_package_opportunities")
+        .where("tour_package_opportunities.tour_package_id", id)
+        .whereNull("tour_package_opportunities.deleted_at")
+        .innerJoin("tour_package_opportunity_pivots", "tour_package_opportunities.id", "tour_package_opportunity_pivots.tour_package_opportunity_id")
+        .where("tour_package_opportunity_pivots.language_code", (req as any).language)
+        .whereNull("tour_package_opportunity_pivots.deleted_at")
+        .select("tour_package_opportunities.*", "tour_package_opportunity_pivots.name");
+      packageModel.tour_package_opportunities = tourPackageOpportunities;
+
 
       return res.status(200).send({
         success: true,
