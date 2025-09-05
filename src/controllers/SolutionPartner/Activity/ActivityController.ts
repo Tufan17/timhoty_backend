@@ -180,6 +180,14 @@ export default class ActivityController {
 			const activityFeatures = await knex("activity_features").where("activity_features.activity_id", id).innerJoin("activity_feature_pivots", "activity_features.id", "activity_feature_pivots.activity_feature_id").where("activity_feature_pivots.language_code", req.language).whereNull("activity_features.deleted_at").select("activity_features.*", "activity_feature_pivots.name")
 
 			activity.activity_features = activityFeatures
+			const activityGalleries = await knex("activity_galleries")
+				.where("activity_galleries.activity_id", id)
+				.whereNull("activity_galleries.deleted_at")
+				.leftJoin("activity_gallery_pivots", "activity_galleries.id", "activity_gallery_pivots.activity_gallery_id")
+				.where("activity_gallery_pivots.language_code", req.language)
+				.whereNull("activity_gallery_pivots.deleted_at")
+				.select("activity_galleries.*", "activity_gallery_pivots.category")
+			activity.activity_galleries = activityGalleries
 
 			return res.status(200).send({
 				success: true,
