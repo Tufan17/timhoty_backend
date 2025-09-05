@@ -40,6 +40,7 @@ import tourPackageImageRoutes from "./SolutionPartner/Tour/tourPackageImage"
 import tourPackageOpportunityRoutes from "./SolutionPartner/Tour/tourPackageOpportunity"
 import activityRoutes from "./SolutionPartner/Activity/activity"
 import activityTypesRoutes from "./SolutionPartner/Activity/activityTypes"
+import activityFeatureRoutes from "./SolutionPartner/Activity/activityFeature"
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(countryRoutes, { prefix: "/countries" })
@@ -111,4 +112,5 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	// ===========================================
 	fastify.register(activityRoutes, { prefix: "/activities" })
 	fastify.register(activityTypesRoutes, { prefix: "/activity-types" })
+	fastify.register(activityFeatureRoutes, { prefix: "/activity-features" })
 }

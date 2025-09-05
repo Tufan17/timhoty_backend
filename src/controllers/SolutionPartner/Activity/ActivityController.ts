@@ -177,6 +177,9 @@ export default class ActivityController {
 				const activityType = await knex("activity_types").where("activity_types.id", activity.activity_type_id).innerJoin("activities_type_pivots", "activity_types.id", "activities_type_pivots.activity_type_id").where("activities_type_pivots.language_code", req.language).select("activity_types.*", "activities_type_pivots.name as activity_type_name").first()
 				activity.activity_type = activityType
 			}
+			const activityFeatures = await knex("activity_features").where("activity_features.activity_id", id).innerJoin("activity_feature_pivots", "activity_features.id", "activity_feature_pivots.activity_feature_id").where("activity_feature_pivots.language_code", req.language).whereNull("activity_features.deleted_at").select("activity_features.*", "activity_feature_pivots.name")
+
+			activity.activity_features = activityFeatures
 
 			return res.status(200).send({
 				success: true,
