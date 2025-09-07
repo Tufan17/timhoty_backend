@@ -25,4 +25,10 @@ export const activityGalleryBulkDeleteSchema = Joi.object({
 export const activityGalleryUpdateSchema = Joi.object({
 	activity_id: Joi.string().uuid().optional(),
 	category: Joi.string().optional(),
+	images: Joi.alternatives()
+		.try(
+			Joi.string(), // Single file
+			Joi.array().items(Joi.string()) // Multiple files
+		)
+		.optional(),
 })

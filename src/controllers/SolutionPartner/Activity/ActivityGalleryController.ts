@@ -202,14 +202,15 @@ export default class ActivityGalleryController {
 	async update(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
-			const { activity_id, image_type, category } = req.body as {
+			const { activity_id, image_type, category, images } = req.body as {
 				activity_id?: string
 				image_type?: string
 				category?: string
+				images?: string | string[]
 			}
 
 			// Check if anything to update
-			if (!activity_id && !image_type && !category) {
+			if (!activity_id && !image_type && !category && !images) {
 				return res.status(400).send({
 					success: false,
 					message: req.t("ACTIVITY_GALLERY.NO_UPDATE_DATA"),
@@ -244,8 +245,11 @@ export default class ActivityGalleryController {
 			const updateData: any = {}
 			if (activity_id) updateData.activity_id = activity_id
 			if (image_type) updateData.image_type = image_type
-			if (category) updateData.category = category
-
+			if (images) {
+				// If new images are provided, use the first one (assuming single image update)
+				const imageToUpdate = Array.isArray(images) ? images[0] : images
+				updateData.image_url = imageToUpdate
+			}
 			// Update image
 			const updatedImage = await new ActivityGalleryModel().update(id, updateData)
 

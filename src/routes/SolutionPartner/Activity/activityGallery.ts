@@ -43,7 +43,7 @@ export default async function activityGalleryRoutes(fastify: FastifyInstance) {
 
 	fastify.put("/:id", {
 		preHandler: [authSolutionPartnerMiddleware, activityGalleryAuditLogger],
-		preValidation: [validateFormData(activityGalleryUpdateSchema)],
+		preValidation: [validateFormDataMultiple(activityGalleryUpdateSchema)],
 		handler: activityGalleryController.update,
 	})
 
