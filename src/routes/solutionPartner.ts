@@ -42,6 +42,10 @@ import activityRoutes from "./SolutionPartner/Activity/activity"
 import activityTypesRoutes from "./SolutionPartner/Activity/activityTypes"
 import activityFeatureRoutes from "./SolutionPartner/Activity/activityFeature"
 import activityGalleryRoutes from "./SolutionPartner/Activity/activityGallery"
+import activityPackageRoutes from "./SolutionPartner/Activity/activityPackage"
+import activityPackageFeatureRoutes from "./SolutionPartner/Activity/activityPackageFeature"
+import activityPackageImageRoutes from "./SolutionPartner/Activity/activityPackageImage"
+import activityPackageOpportunityRoutes from "./SolutionPartner/Activity/activityPackageOpportunity"
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(countryRoutes, { prefix: "/countries" })
@@ -115,4 +119,8 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(activityTypesRoutes, { prefix: "/activity-types" })
 	fastify.register(activityFeatureRoutes, { prefix: "/activity-features" })
 	fastify.register(activityGalleryRoutes, { prefix: "/activity-galleries" })
+	fastify.register(activityPackageRoutes, { prefix: "/activity-packages" })
+	fastify.register(activityPackageFeatureRoutes, { prefix: "/activity-package-features" })
+	fastify.register(activityPackageImageRoutes, { prefix: "/activity-package-images" })
+	fastify.register(activityPackageOpportunityRoutes, { prefix: "/activity-package-opportunities" })
 }
