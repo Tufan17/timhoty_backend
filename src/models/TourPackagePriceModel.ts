@@ -34,6 +34,35 @@ class TourPackagePriceModel extends BaseModel {
       .whereNull("deleted_at")
       .orderBy("created_at", "desc");
   }
+
+  async getCurrentPriceByTourPackageId(tourPackageId: string, isConstantPrice: boolean) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (isConstantPrice) {
+      // Sabit fiyat ise ilk fiyatı al
+      return await knex("tour_package_prices")
+        .where("tour_package_id", tourPackageId)
+        .whereNull("deleted_at")
+        .orderBy("created_at", "asc")
+        .first();
+    } else {
+      // Tarihli fiyat ise bugünün tarihine uygun fiyatı al
+      return await knex("tour_package_prices")
+        .where("tour_package_id", tourPackageId)
+        .whereNull("deleted_at")
+        .where(function() {
+          this.where(function() {
+            this.where('start_date', '<=', today)
+              .andWhere(function() {
+                this.whereNull('end_date')
+                  .orWhere('end_date', '>=', today);
+              });
+          });
+        })
+        .orderBy("start_date", "asc")
+        .first();
+    }
+  }
 }
 
 export default TourPackagePriceModel;

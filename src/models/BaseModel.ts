@@ -218,6 +218,18 @@ class BaseModel {
       .whereNull('deleted_at');
     return data;
   }
+
+  async limit(limit: number, select?: string[] | string, where?: DataObject, orderBy?: string): Promise<DataObject[]> {
+    const data = await connection
+      .select(select ? [select].flat() : '*')
+      .from(this.modelName)
+      .whereNull('deleted_at')
+      .where(where || {})
+      .orderBy(orderBy || 'id')
+      .limit(limit);
+    return data;
+  }
+
 }
 
 export default BaseModel;

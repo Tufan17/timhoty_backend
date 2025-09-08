@@ -4,6 +4,7 @@ export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable("tours", (table) => {
         table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'))
         table.uuid("solution_partner_id").references("id").inTable("solution_partners").onDelete("CASCADE");
+        table.uuid("location_id").references("id").inTable("cities").onDelete("CASCADE");
         table.boolean("status").defaultTo(false);
         table.boolean("highlight").defaultTo(false);
         table.boolean("admin_approval").defaultTo(false);
