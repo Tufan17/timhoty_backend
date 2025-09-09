@@ -96,6 +96,7 @@ class VisaModel extends BaseModel {
                   'currency_id', visa_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', true
                 )
               WHEN visa_packages.constant_price = false THEN 
@@ -105,6 +106,7 @@ class VisaModel extends BaseModel {
                   'currency_id', visa_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', false,
                   'start_date', visa_package_prices.start_date,
                   'end_date', visa_package_prices.end_date
@@ -124,6 +126,7 @@ class VisaModel extends BaseModel {
           "visa_package_prices.main_price",
           "visa_package_prices.child_price",
           "visa_package_prices.currency_id",
+          "currencies.symbol",
           "currency_pivots.name",
           "currencies.code",
           "visa_package_prices.start_date",

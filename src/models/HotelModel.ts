@@ -103,6 +103,7 @@ class HotelModel extends BaseModel {
                   'currency_id', hotel_room_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', true
                 )
               WHEN hotel_room_packages.constant_price = false THEN 
@@ -112,6 +113,7 @@ class HotelModel extends BaseModel {
                   'currency_id', hotel_room_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', false,
                   'start_date', hotel_room_package_prices.start_date,
                   'end_date', hotel_room_package_prices.end_date
@@ -130,6 +132,7 @@ class HotelModel extends BaseModel {
           "hotel_room_package_prices.child_price",
           "hotel_room_package_prices.currency_id",
           "currency_pivots.name",
+          "currencies.symbol",
           "currencies.code",
           "hotel_room_package_prices.start_date",
           "hotel_room_package_prices.end_date"

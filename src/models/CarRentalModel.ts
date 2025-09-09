@@ -101,6 +101,7 @@ class CarRentalModel extends BaseModel {
                   'currency_id', car_rental_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', true
                 )
               WHEN car_rental_packages.constant_price = false THEN 
@@ -110,6 +111,7 @@ class CarRentalModel extends BaseModel {
                   'currency_id', car_rental_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', false,
                   'start_date', car_rental_package_prices.start_date,
                   'end_date', car_rental_package_prices.end_date
@@ -131,6 +133,7 @@ class CarRentalModel extends BaseModel {
           "car_rental_package_prices.currency_id",
           "currency_pivots.name",
           "currencies.code",
+          "currencies.symbol",
           "car_rental_package_prices.start_date",
           "car_rental_package_prices.end_date"
         )

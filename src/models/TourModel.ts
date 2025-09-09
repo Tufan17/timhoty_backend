@@ -100,7 +100,8 @@ class TourModel extends BaseModel {
                   'baby_price', tour_package_prices.baby_price,
                   'currency_id', tour_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
-                  'currency_code', currencies.code,
+                  'currency_code', currencies.code, 
+                  'currency_symbol', currencies.symbol,
                   'is_constant', true
                 )
               WHEN tour_packages.constant_price = false THEN 
@@ -111,6 +112,7 @@ class TourModel extends BaseModel {
                   'currency_id', tour_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'currency_code', currencies.code,
+                  'currency_symbol', currencies.symbol,
                   'is_constant', false,
                   'start_date', tour_package_prices.start_date,
                   'end_date', tour_package_prices.end_date
@@ -134,6 +136,7 @@ class TourModel extends BaseModel {
           "tour_package_prices.currency_id",
           "currency_pivots.name",
           "currencies.code",
+          "currencies.symbol",
           "tour_package_prices.start_date",
           "tour_package_prices.end_date"
         )
