@@ -219,6 +219,8 @@ export class ActivityPackageController {
 				.whereNull("activity_package_opportunity_pivots.deleted_at")
 				.select("activity_package_opportunities.*", "activity_package_opportunity_pivots.name")
 			packageModel.activity_package_opportunities = activityPackageOpportunities
+			const activityPackageHours = await knex("activity_package_hours").where("activity_package_hours.activity_package_id", id).whereNull("activity_package_hours.deleted_at").select("activity_package_hours.*")
+			packageModel.activity_package_hours = activityPackageHours
 
 			return res.status(200).send({
 				success: true,
@@ -321,43 +323,6 @@ export class ActivityPackageController {
 			return res.status(500).send({
 				success: false,
 				message: req.t("GENERAL.ERROR"),
-			})
-		}
-	}
-	async createPackageHour(req: FastifyRequest, res: FastifyReply) {
-		try {
-			const { id } = req.params as { id: string } // activity_package_id
-			const { hour, minute } = req.body as { hour: number; minute: number }
-
-			const activityPackageHourModel = new ActivityPackageHourModel()
-
-			// Aynı saat ve dakika kombinasyonunun zaten var olup olmadığını kontrol et
-			const existingHour = await knex("activity_package_hours").where("activity_package_id", id).where("hour", hour).where("minute", minute).whereNull("deleted_at").first()
-
-			if (existingHour) {
-				return res.status(400).send({
-					success: false,
-					message: "Bu saat ve dakika kombinasyonu zaten mevcut",
-				})
-			}
-
-			// Yeni saat kaydı oluştur
-			const newHour = await activityPackageHourModel.create({
-				activity_package_id: id,
-				hour: hour,
-				minute: minute,
-			})
-
-			return res.status(201).send({
-				success: true,
-				message: "Aktivite paketi saati başarıyla oluşturuldu",
-				data: newHour,
-			})
-		} catch (error) {
-			console.log(error)
-			return res.status(500).send({
-				success: false,
-				message: "Aktivite paketi saati oluşturulurken bir hata oluştu",
 			})
 		}
 	}

@@ -189,6 +189,14 @@ export default class ActivityController {
 				.select("activity_galleries.*", "activity_gallery_pivots.category")
 			activity.activity_galleries = activityGalleries
 
+			const activityPackages = await knex("activity_packages")
+				.where("activity_packages.activity_id", id)
+				.leftJoin("activity_package_pivots", "activity_packages.id", "activity_package_pivots.activity_package_id")
+				.where("activity_package_pivots.language_code", req.language)
+				.whereNull("activity_packages.deleted_at")
+				.select("activity_packages.*", "activity_package_pivots.name", "activity_package_pivots.description", "activity_package_pivots.refund_policy")
+			activity.activity_packages = activityPackages
+
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY.ACTIVITY_FETCHED_SUCCESS"),
