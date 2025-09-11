@@ -49,12 +49,6 @@ export default async function activityPackageRoutes(fastify: FastifyInstance) {
 		handler: controller.create,
 	})
 
-	fastify.post("/:id/create-package-hour", {
-		preHandler: [authSolutionPartnerMiddleware, activityPackageHourAuditLogger],
-		preValidation: [validate(activityPackageHourSchema)],
-		handler: controller.createPackageHour,
-	})
-
 	fastify.put("/:id", {
 		preHandler: [authSolutionPartnerMiddleware, activityPackageAuditLogger],
 		preValidation: [validate(activityPackageUpdateSchema)],
