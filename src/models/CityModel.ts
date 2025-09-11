@@ -62,6 +62,25 @@ class CityModel extends BaseModel {
     return cities;
 
   }
+
+  getCitiesAndCountries(language: string): Promise<any[]> {
+    return knex("cities")
+      .whereNull("cities.deleted_at")
+      .innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+      .where("city_pivots.language_code", language)
+      .whereNull("city_pivots.deleted_at")
+      .innerJoin("countries", "cities.country_id", "countries.id")
+      .innerJoin("country_pivots", function() {
+        this.on("countries.id", "country_pivots.country_id")
+          .andOn("country_pivots.language_code", knex.raw("?", [language]))
+          .andOnNull("country_pivots.deleted_at");
+      })
+      .select(
+        "cities.id as id",
+        "city_pivots.name as city_name",
+        "country_pivots.name as country_name"
+      );
+  }
   
 }
 

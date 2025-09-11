@@ -45,4 +45,56 @@ export default class DashboardController {
       });
     }
   }
+
+  async campaign(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language;
+      const {page = 1, limit = 4} = req.query as {page: number, limit: number};
+      
+      const campaignModel = new CampaignModel();
+      const blogModel = new BlogModel();
+      
+      const [campaignData, blogs] = await Promise.all([
+        campaignModel.getCampaignsPaginated(language, page, limit),
+        blogModel.getDashboardBlogs(language, 5)
+      ]);
+
+      return res.status(200).send({
+        success: true,
+        message: "Campaigns fetched successfully",
+        data: {
+          campaigns: campaignData.campaigns,
+          blogs,
+          totalPages: campaignData.totalPages,
+          total: campaignData.total
+        }
+      });
+    } catch (error) {
+      console.error('Campaign error:', error);
+      return res.status(500).send({
+        success: false,
+        message: "Campaign fetch failed"
+      });
+    }
+  }
+
+  async cities(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language;
+      const cityModel = new CityModel();
+      const cities = await cityModel.getCitiesAndCountries(language);
+      return res.status(200).send({
+        success: true,
+        message: "Cities fetched successfully",
+        data: cities
+      });
+    }catch(error){
+      console.error('Cities error:', error);
+      return res.status(500).send({
+        success: false,
+        message: "Cities fetch failed"
+      });
+    }
+  } 
+
 }
