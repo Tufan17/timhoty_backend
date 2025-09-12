@@ -246,7 +246,8 @@ export class TourPackageController {
           "tour_packages.date",
           "tour_package_pivots.name",
           "tour_package_pivots.description",
-          "tour_package_pivots.refund_policy"
+          "tour_package_pivots.refund_policy",
+          "currencies.code"
         )
         .first();
 
