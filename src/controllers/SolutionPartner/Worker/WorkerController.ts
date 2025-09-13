@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify"
-import knex from "../../db/knex"
+import knex from "@/db/knex"
 import SolutionPartnerUserModel from "@/models/SolutionPartnerUserModel"
 import SolutionPartnerModel from "@/models/SolutionPartnerModel"
 
@@ -22,12 +22,20 @@ export default class SolutionPartnerUserController {
 				.whereNull("solution_partner_users.deleted_at")
 				.leftJoin("solution_partners", "solution_partners.id", "solution_partner_users.solution_partner_id")
 				.where(function () {
-					this.where("solution_partner_users.name_surname", "ilike", `%${search}%`).orWhere("solution_partner_users.phone", "ilike", `%${search}%`).orWhere("solution_partner_users.email", "ilike", `%${search}%`).orWhere("solution_partners.name", "ilike", `%${search}%`)
-					if (search.toLowerCase() === "true" || search.toLowerCase() === "false") {
-						this.orWhere("solution_partner_users.status", search.toLowerCase() === "true")
-					}
+					// Önce solution_partner_id koşulunu ekle - bu AND koşulu olarak çalışır
 					if (solution_partner_id) {
 						this.where("solution_partner_users.solution_partner_id", solution_partner_id)
+					}
+
+					// Search koşulları sadece search varsa çalışsın
+					if (search) {
+						this.where(function () {
+							this.where("solution_partner_users.name_surname", "ilike", `%${search}%`).orWhere("solution_partner_users.phone", "ilike", `%${search}%`).orWhere("solution_partner_users.email", "ilike", `%${search}%`).orWhere("solution_partners.name", "ilike", `%${search}%`)
+
+							if (search.toLowerCase() === "true" || search.toLowerCase() === "false") {
+								this.orWhere("solution_partner_users.status", search.toLowerCase() === "true")
+							}
+						})
 					}
 				})
 				.select("solution_partner_users.*", "solution_partners.name as solution_partner_name")
@@ -148,6 +156,7 @@ export default class SolutionPartnerUserController {
 				language_code: string
 				status: boolean
 			}
+			// console.log(req.body)
 
 			const existingSolutionPartnerUser = await new SolutionPartnerUserModel().first({ id })
 
@@ -187,7 +196,7 @@ export default class SolutionPartnerUserController {
 				phone: phone || existingSolutionPartnerUser.phone,
 				email: email || existingSolutionPartnerUser.email,
 				password: password,
-				status: status || existingSolutionPartnerUser.status,
+				status: status !== undefined ? status : existingSolutionPartnerUser.status,
 				language_code: language_code.toLowerCase() || existingSolutionPartnerUser.language_code,
 			}
 

@@ -1,14 +1,1 @@
-[
-    "hotel",
-    "car_rental",
-    "tour",
-    "visa",
-    "settings",
-    "employees",
-    "users",
-    "support",
-    "activity",
-    "reservations",
-    "notifications",
-    "stations"
-]
+["hotel", "car_rental", "tour", "visa", "settings", "employees", "users", "support", "activity", "reservations", "notifications", "stations", "workers"]
