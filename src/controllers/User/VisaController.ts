@@ -11,21 +11,17 @@ export default class VisaController {
         page = 1,
         limit = 5,
         guest_rating,
+        date,
         arrangement,
-        isAvailable,
         min_price,
         max_price,
-        period,
-        baby,
-        adult,
-        child,
       } = req.query as any;
 
+      // Count query: get the total number of visas matching the filters
       const countQuery = knex("visas")
         .innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
         // .where("visas.status", true)
         // .where("visas.admin_approval", true)
-
         .whereNull("visas.deleted_at")
         .where("visa_pivots.language_code", language)
         .modify(function (queryBuilder) {
@@ -36,7 +32,6 @@ export default class VisaController {
             queryBuilder.where("visas.average_rating", ">=", guest_rating);
           }
         })
-        .groupBy("visas.id")
         .countDistinct("visas.id as total");
 
       let visas = await knex("visas")
@@ -66,7 +61,6 @@ export default class VisaController {
           if (location_id) {
             queryBuilder.where("visas.location_id", location_id);
           }
-          
         })
         .limit(limit)
         .offset((page - 1) * limit)
@@ -117,13 +111,9 @@ export default class VisaController {
         {} as Record<string, any[]>
       );
 
-      // Assign visa packages to visas
-      visas.forEach((visa: any) => {
-        visa.visa_packages = visaPackagesByvisaId[visa.id] || [];
-      });
-
       // Get all visa package prices in one query
       const allvisaPackageIds = allvisaPackages.map((pkg: any) => pkg.id);
+      // date gönderilmişse ve fiyat sabit değilse fiyatı tarihe göre getir
       const allvisaPackagePrices = await knex("visa_package_prices")
         .whereIn("visa_package_prices.visa_package_id", allvisaPackageIds)
         .innerJoin(
@@ -144,109 +134,137 @@ export default class VisaController {
           "visa_package_prices.main_price",
           "visa_package_prices.child_price",
           "visa_package_prices.currency_id",
+          "visa_package_prices.start_date",
+          "visa_package_prices.end_date",
           "currency_pivots.name",
           "currencies.code",
           "currencies.symbol"
         );
 
-      // Group prices by visa_package_id (only keep the first price for each package)
-      const pricesByPackageId = allvisaPackagePrices.reduce(
-        (acc: Record<string, any>, price: any) => {
-          if (!acc[price.visa_package_id]) {
-            acc[price.visa_package_id] = price;
-          }
-          return acc;
-        },
-        {} as Record<string, any>
-      );
-
-      // Assign prices to visa packages
-      visas.forEach((visa: any) => {
-        if (visa.visa_packages) {
-          // Assign prices to visa packages
-          visa.visa_packages.forEach((visaPackage: any) => {
-            visaPackage.visa_package_price =
-              pricesByPackageId[visaPackage.id] || null;
-          });
-
-          // Find the visa package with the lowest main_price
-          const cheapestPackage = visa.visa_packages.reduce(
-            (lowest: any, current: any) => {
-              const lowestPrice =
-                lowest?.visa_package_price?.main_price ?? Infinity;
-              const currentPrice =
-                current?.visa_package_price?.main_price ?? Infinity;
-
-              return currentPrice < lowestPrice ? current : lowest;
-            },
-            null
+        // visa packages içinde visa_package_prices'ı bul ve ata
+        allvisaPackages.forEach((item: any) => {
+          let visa_package_price = allvisaPackagePrices.filter(
+            (price: any) => price.visa_package_id === item.id
           );
 
-          // Keep only the cheapest package
-          visa.visa_packages = cheapestPackage ? cheapestPackage : null;
-
-          let totalPrice = 0;
-          // Note: baby_price column doesn't exist in visa_package_prices table
-          
-          if (visa.visa_packages && visa.visa_packages.visa_package_price) {
-            if (adult && visa.visa_packages.visa_package_price.main_price) {
-              totalPrice +=
-                visa.visa_packages.visa_package_price.main_price * adult;
-            }
-            if (child && visa.visa_packages.visa_package_price.child_price) {
-              totalPrice +=
-                visa.visa_packages.visa_package_price.child_price * child;
-            }
-            if (
-              !adult &&
-              !child &&
-              visa.visa_packages.visa_package_price.main_price
-            ) {
-              totalPrice += visa.visa_packages.visa_package_price.main_price * 1;
-            }
+          if(date){
+            item.visa_package_price = visa_package_price.find(
+              (price: any) => price.start_date <= new Date(date) && price.end_date >= new Date(date)
+            );
           }
-          visa.total_price = totalPrice;
+
+          else{
+            // en düşük fiyatlı olanı ata
+            item.visa_package_price = visa_package_price.reduce((lowest: any, current: any) => {
+              return current.main_price < lowest.main_price ? current : lowest;
+            }, visa_package_price[0]);
+          }
+
+
+        });
+
+ 
+     
+
+      visas.forEach((visa: any) => {
+        // Her vize için, ona ait tüm paketleri bul ve en düşük fiyatlı olanı ata
+        const relatedPackages = allvisaPackages.filter(
+          (visaPackage: any) => visaPackage.visa_id === visa.id
+        );
+        if (relatedPackages.length > 0) {
+          // Fiyatı olan paketleri filtrele
+          const packagesWithPrice = relatedPackages.filter(
+            (pkg: any) =>
+              pkg.visa_package_price &&
+              pkg.visa_package_price.main_price !== undefined &&
+              pkg.visa_package_price.main_price !== null
+          );
+          if (packagesWithPrice.length > 0) {
+            // En düşük fiyatlı paketi bul
+            let minPricePackage = packagesWithPrice[0];
+            for (let i = 1; i < packagesWithPrice.length; i++) {
+              if (
+                packagesWithPrice[i].visa_package_price.main_price <
+                minPricePackage.visa_package_price.main_price
+              ) {
+                minPricePackage = packagesWithPrice[i];
+              }
+            }
+            visa.visa_package = minPricePackage;
+          } else {
+            // Fiyatı olmayan varsa ilkini ata
+            visa.visa_package = relatedPackages[0];
+          }
+        } else {
+          visa.visa_package = null;
         }
       });
 
-      if(isAvailable) {
-        visas = visas.filter((visa: any) => 
-          visa.visa_packages && 
-          visa.visa_packages.visa_package_price && 
-          visa.visa_packages.visa_package_price.main_price > 0
+      visas.forEach((visa: any) => {
+        if (visa.constant_price) {
+          visa.visa_packages.forEach((visaPackage: any) => {
+            visaPackage.visa_package_price = allvisaPackagePrices.find(
+              (price: any) => price.visa_package_id === visaPackage.id
+            );
+          });
+        }
+      });
+
+      // Fiyat filtreleri ve sıralama öncesi, total'ı doğru hesaplamak için filtrelenmiş vizeleri bul
+      let filteredVisas = visas;
+
+      if (min_price) {
+        filteredVisas = filteredVisas.filter(
+          (visa: any) => Number(visa?.visa_package?.visa_package_price?.main_price || 0) >= Number(min_price)
+        );
+      }
+      if (max_price) {
+        const maxPrice = Number(max_price);
+        filteredVisas = filteredVisas.filter(
+          (visa: any) => Number(visa?.visa_package?.visa_package_price?.main_price || 0) <= maxPrice
         );
       }
 
-      if(min_price) {
-        visas = visas.filter((visa: any) => (visa.total_price || 0) >= min_price);
+      // Sıralama
+      if (arrangement === "price_increasing") {
+        filteredVisas.sort(
+          (a: any, b: any) => (a?.visa_package?.visa_package_price?.main_price || 0) - (b?.visa_package?.visa_package_price?.main_price || 0)
+        );
+      } else if (arrangement === "price_decreasing") {
+        filteredVisas.sort(
+          (a: any, b: any) => (b?.visa_package?.visa_package_price?.main_price || 0) - (a?.visa_package?.visa_package_price?.main_price || 0)
+        );
+      } else if (arrangement === "star_increasing") {
+        filteredVisas.sort((a: any, b: any) => 0);
+      } else if (arrangement === "star_decreasing") {
+        filteredVisas.sort((a: any, b: any) => 0);
+      } else if (arrangement === "rating_increasing") {
+        filteredVisas.sort(
+          (a: any, b: any) => a.average_rating - b.average_rating
+        );
+      } else if (arrangement === "rating_decreasing") {
+        filteredVisas.sort(
+          (a: any, b: any) => b.average_rating - a.average_rating
+        );
       }
-      if(max_price) {
-        visas = visas.filter((visa: any) => (visa.total_price || 0) <= max_price);
-      }
-      
-      if(arrangement === "price_increasing") {
-        visas.sort((a: any, b: any) => (a.total_price || 0) - (b.total_price || 0));
-      } else if(arrangement === "price_decreasing") {
-        visas.sort((a: any, b: any) => (b.total_price || 0) - (a.total_price || 0));
-      } else if(arrangement === "star_increasing") {
-        visas.sort((a: any, b: any) => 0);
-      } else if(arrangement === "star_decreasing") {
-        visas.sort((a: any, b: any) => 0);
-      } else if(arrangement === "rating_increasing") {
-        visas.sort((a: any, b: any) => a.average_rating - b.average_rating);
-      } else if(arrangement === "rating_decreasing") {
-        visas.sort((a: any, b: any) => b.average_rating - a.average_rating);
-      }
-    
 
+      // total yanlış oluyordu, countQuery ile değil, filtrelenmiş vizelerin sayısı ile alınmalı
+      // const total = await countQuery.first();
+      // const totalPages = Math.ceil(total?.total ?? 0 / Number(limit));
+      const total = filteredVisas.length;
+      const totalPages = Math.ceil(total / Number(limit));
 
-      const total = await countQuery.first();
-      const totalPages = Math.ceil(total?.total ?? 0 / Number(limit));
+      // Sayfalama uygula
+      const paginatedVisas = filteredVisas.slice(
+        (page - 1) * limit,
+        (page - 1) * limit + limit
+      );
+
       return res.status(200).send({
         success: true,
         message: "visas fetched successfully",
-        data: visas,
-        total: total?.total,
+        data: paginatedVisas,
+        total: total,
         totalPages: totalPages,
       });
     } catch (error) {
