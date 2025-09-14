@@ -32,10 +32,12 @@ import blogRoutes from "./Admin/blog"
 import contractRoutes from "./Admin/contract"
 import userGuideRoutes from "./Admin/userGuide"
 import faqRoutes from "./Admin/faq"
+import tourRoutes from "./Admin/tour"
 
 // Communication Routes
 import notificationRoutes from "./Admin/notification"
 import emailSubscriptionRoutes from "./Admin/emailSubscription"
+import activityTypeRoutes from "./Admin/activityType"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -82,10 +84,16 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	fastify.register(contractRoutes, { prefix: "/contracts" })
 	fastify.register(userGuideRoutes, { prefix: "/user-guides" })
 	fastify.register(faqRoutes, { prefix: "/faqs" })
+	fastify.register(tourRoutes, { prefix: "/tours" })
 
 	// ===========================================
 	// COMMUNICATION ROUTES
 	// ===========================================
 	fastify.register(notificationRoutes, { prefix: "/notifications" })
 	fastify.register(emailSubscriptionRoutes, { prefix: "/email-subscriptions" })
+
+	// ===========================================
+	// ACTIVITY TYPE ROUTES
+	// ===========================================
+	fastify.register(activityTypeRoutes, { prefix: "/activity-types" })
 }

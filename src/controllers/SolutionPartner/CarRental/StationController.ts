@@ -116,6 +116,7 @@ export default class StationController {
       const language = (req as any).language;
       const stations = await knex("stations")
         .whereNull("stations.deleted_at")
+        .where("stations.status", true)
         .innerJoin("station_pivots", "stations.id", "station_pivots.station_id")
         .where("station_pivots.language_code", language)
         .modify((qb) => {
