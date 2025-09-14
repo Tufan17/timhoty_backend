@@ -11,9 +11,6 @@ export default class TourController {
         page = 1,
         limit = 5,
         guest_rating,
-        adult,
-        baby,
-        child,
         arrangement,
         isAvailable,
         min_price,
@@ -71,6 +68,19 @@ export default class TourController {
             queryBuilder.where("tours.average_rating", ">=", guest_rating);
           }
         })
+        .leftJoin(
+          // Join only the first image per tour using lateral join
+          knex.raw(
+            `LATERAL (
+              SELECT image_url
+              FROM tour_galleries
+              WHERE tour_galleries.tour_id = tours.id
+              AND tour_galleries.deleted_at IS NULL
+              ORDER BY tour_galleries.created_at ASC
+              LIMIT 1
+            ) AS tour_gallery ON true`
+          )
+        )
         .limit(limit)
         .offset((page - 1) * limit)
         .select(
@@ -85,7 +95,8 @@ export default class TourController {
           "tours.refund_days",
           "tours.night_count",
           "tours.day_count",
-          "tours.user_count"
+          "tours.user_count",
+          "tour_gallery.image_url"
         );
 
       // Get all tour departure points for all tours in one query
@@ -104,6 +115,7 @@ export default class TourController {
         .where("country_pivots.language_code", language)
         .whereNull("country_pivots.deleted_at")
         .whereNull("tour_departure_points.deleted_at")
+       
         .modify(function (queryBuilder) {
           if (departure_point_id) {
             queryBuilder.where(
@@ -246,27 +258,7 @@ export default class TourController {
           // Keep only the cheapest package
           tour.tour_packages = cheapestPackage ? cheapestPackage : null;
 
-          let totalPrice = 0;
-          if (baby && tour.tour_packages.tour_package_price.baby_price) {
-            totalPrice +=
-              tour.tour_packages.tour_package_price.baby_price * baby;
-          }
-
-          if (adult && tour.tour_packages.tour_package_price.main_price) {
-            totalPrice +=
-              tour.tour_packages.tour_package_price.main_price * adult;
-          }
-          if (child && tour.tour_packages.tour_package_price.child_price) {
-            totalPrice +=
-              tour.tour_packages.tour_package_price.child_price * child;
-          }
-          if (
-            !adult &&
-            !child &&
-            tour.tour_packages.tour_package_price.main_price
-          ) {
-            totalPrice += tour.tour_packages.tour_package_price.main_price * 1;
-          }
+          let totalPrice = tour?.tour_packages?.tour_package_price?.main_price * 1;
           tour.total_price = totalPrice;
         }
       });

@@ -50,7 +50,7 @@ export default class HotelController {
         location_id,
         star_rating,
         page = 1,
-        limit = 5,
+        limit = 3,
         start_date,
         guest_rating,
         end_date,
@@ -65,8 +65,8 @@ export default class HotelController {
       const countQuery = knex("hotels")
         
       .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
-      .where("hotels.status", true)
-      .where("hotels.admin_approval", true)
+      // .where("hotels.status", true)
+      // .where("hotels.admin_approval", true)
 
         .whereNull("hotels.deleted_at")
         .where("hotel_pivots.language_code", language)
@@ -86,8 +86,8 @@ export default class HotelController {
 
       let hotel = await knex("hotels")
         .whereNull("hotels.deleted_at")
-        .where("hotels.status", true)
-        .where("hotels.admin_approval", true)
+        // .where("hotels.status", true)
+        // .where("hotels.admin_approval", true)
         .innerJoin("hotel_pivots", function () {
           this.on("hotels.id", "hotel_pivots.hotel_id").andOn(
             "hotel_pivots.language_code",
@@ -118,6 +118,20 @@ export default class HotelController {
             queryBuilder.where("hotels.average_rating", ">=", guest_rating);
           }
         })
+        // otel galerisinden sadece 1 fotoğraf getir 
+        .leftJoin(
+          // Join only the first image per hotel using lateral join
+          knex.raw(
+            `LATERAL (
+              SELECT image_url
+              FROM hotel_galleries
+              WHERE hotel_galleries.hotel_id = hotels.id
+              AND hotel_galleries.deleted_at IS NULL
+              ORDER BY hotel_galleries.created_at ASC
+              LIMIT 1
+            ) AS hotel_gallery ON true`
+          )
+        )
         .limit(limit)
         .offset((page - 1) * limit)
         .select(
@@ -136,6 +150,7 @@ export default class HotelController {
           "hotels.transfer",
           "hotels.map_location",
           "hotels.free_age_limit",
+          "hotel_gallery.image_url",
         );
 
       // otel odaları getirilecek
