@@ -3,6 +3,10 @@ import { FastifyInstance } from "fastify";
 // User Management Routes
 import usersRoutes from "./User/user";
 import contractsRoutes from "./User/contracts";
+import currencyRoutes from "./User/currency";
+import languageRoutes from "./User/language";
+import countriesRoutes from "./User/countries";
+
 import tourRoutes from "./User/tour";
 import dashboardRoutes from "./User/dashboard";
 import hotelRoutes from "./User/hotel";
@@ -15,6 +19,9 @@ export default async function userMainRoutes(fastify: FastifyInstance) {
   // ===========================================
   fastify.register(usersRoutes, { prefix: "/users" });
   fastify.register(contractsRoutes, { prefix: "/contracts" });
+  fastify.register(currencyRoutes, { prefix: "/currencies" });
+  fastify.register(languageRoutes, { prefix: "/languages" });
+  fastify.register(countriesRoutes, { prefix: "/countries" });
   fastify.register(tourRoutes, { prefix: "/tours" });
   fastify.register(visaRoutes, { prefix: "/visas" });
   fastify.register(carRentalRoutes, { prefix: "/car-rentals" });

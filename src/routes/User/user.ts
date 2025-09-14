@@ -8,4 +8,8 @@ export default async function userRoutes(fastify: FastifyInstance) {
     handler: userController.read,
     preHandler: [authUserMiddleware]
   })
-  }
+  fastify.put('/:id', {
+    handler: userController.update,
+    preHandler: [authUserMiddleware]
+  })
+}

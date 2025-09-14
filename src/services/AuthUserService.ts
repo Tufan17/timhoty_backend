@@ -44,9 +44,9 @@ export default class AuthUserService {
         email: decoded.email,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
-      
-      const accessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
-      const newRefreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "1d" });
+
+      const accessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "1d" });
+      const newRefreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
       return {
         success: true,
         message: "Access token renewed",
@@ -70,7 +70,7 @@ export default class AuthUserService {
           message: t("AUTH.USER_NOT_FOUND"),
         };
       }
-     
+
       const body = {
         id: user.id,
         name_surname: user.name_surname,
@@ -78,8 +78,8 @@ export default class AuthUserService {
         email: user.email,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
-      const accessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
-      const refreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "1d" });
+      const accessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "1d" });
+      const refreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
 
 
 
@@ -98,7 +98,7 @@ export default class AuthUserService {
       } else {
         // Hiç kayıt yoksa yeni oluştur
         await new UserTokensModel().create({
-            user_id: user.id,
+          user_id: user.id,
           token_hash: refreshToken,
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
           device_name: "web"
@@ -138,6 +138,8 @@ export default class AuthUserService {
         email,
         password: passwordHash,
         language,
+        currency_id: "57a4f07c-9d4a-4a3c-8b45-1f48707482a4",
+        avatar: "https://static.vecteezy.com/system/resources/previews/024/183/525/non_2x/avatar-of-a-man-portrait-of-a-young-guy-illustration-of-male-character-in-modern-color-style-vector.jpg"
       });
 
       const body = {
@@ -148,8 +150,8 @@ export default class AuthUserService {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
 
-      const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
-      const REFRESH_TOKEN = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "1d" });
+      const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "1d" });
+      const REFRESH_TOKEN = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
 
       await new UserTokensModel().create({
         user_id: user.id,
@@ -163,7 +165,7 @@ export default class AuthUserService {
         success: true,
         message: "Kullanıcı başarıyla oluşturuldu",
         data: user,
-      
+
       };
     } catch (error) {
       console.log(error);
@@ -192,7 +194,7 @@ export default class AuthUserService {
 
       await new UserTokensModel().update(user.id, {
         revoked_at: new Date(),
-    });
+      });
 
       return {
         success: true,
