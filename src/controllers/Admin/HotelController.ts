@@ -35,6 +35,7 @@ export default class HotelController {
 				admin_approval?: boolean
 				highlight?: boolean
 			}
+			// console.log(req.query)
 
 			const language = (req as any).language
 			const solutionPartnerUser = (req as any).user
@@ -190,6 +191,18 @@ export default class HotelController {
 			hotel.hotel_features = hotelFeatures
 
 			const hotelRooms = await knex("hotel_rooms").where("hotel_rooms.hotel_id", id).whereNull("hotel_rooms.deleted_at").innerJoin("hotel_room_pivots", "hotel_rooms.id", "hotel_room_pivots.hotel_room_id").where("hotel_room_pivots.language_code", req.language).select("hotel_rooms.*", "hotel_room_pivots.name", "hotel_room_pivots.description", "hotel_room_pivots.refund_policy")
+
+			// Her room için packages ve prices'ları ayrı ayrı getir
+			for (const room of hotelRooms) {
+				const packages = await knex("hotel_room_packages").where("hotel_room_packages.hotel_room_id", room.id).whereNull("hotel_room_packages.deleted_at").select("*")
+
+				for (const pkg of packages) {
+					const prices = await knex("hotel_room_package_prices").where("hotel_room_package_prices.hotel_room_package_id", pkg.id).whereNull("hotel_room_package_prices.deleted_at").leftJoin("currencies", "hotel_room_package_prices.currency_id", "currencies.id").select("hotel_room_package_prices.*", "currencies.code as currency_code", "currencies.symbol as currency_symbol")
+					pkg.prices = prices
+				}
+				room.packages = packages
+			}
+
 			hotel.hotel_rooms = hotelRooms
 
 			const hotelGalleries = await knex("hotel_galleries").where("hotel_galleries.hotel_id", id).whereNull("hotel_galleries.deleted_at").leftJoin("hotel_gallery_pivot", "hotel_galleries.id", "hotel_gallery_pivot.hotel_gallery_id").where("hotel_gallery_pivot.language_code", req.language).whereNull("hotel_gallery_pivot.deleted_at").select("hotel_galleries.*", "hotel_gallery_pivot.category")
