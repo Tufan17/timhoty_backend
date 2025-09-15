@@ -2,7 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify"
 import PermissionModel from "@/models/PermissionModel"
 // import UserModel from "@/models/Admin/UserModel";
 import AdminModel from "@/models/Admin/AdminModel"
-import SolutionPartnerUserModel from "@/models/SolutionPartnerUserModel"
+import SolutionPartnerModel from "@/models/SolutionPartnerModel"
 import SalesPartnerModel from "@/models/SalesPartnerModel"
 class PermissionController {
 	async createOrUpdate(req: FastifyRequest, res: FastifyReply) {
@@ -75,7 +75,7 @@ class PermissionController {
 			} else if (target === "admins") {
 				user = await new AdminModel().first({ id: user_id })
 			} else if (target === "solution_partner") {
-				user = await new SolutionPartnerUserModel().first({ id: user_id })
+				user = await new SolutionPartnerModel().first({ id: user_id })
 			}
 
 			if (!user) {
