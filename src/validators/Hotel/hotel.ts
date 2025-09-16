@@ -29,6 +29,7 @@ export const hotelUpdateSchema = Joi.object({
 	general_info: Joi.string().optional(),
 	hotel_info: Joi.string().optional(),
 	refund_policy: Joi.string().optional(),
+	admin_approval: Joi.boolean().optional(),
 })
 
 export const hotelQuerySchema = Joi.object({

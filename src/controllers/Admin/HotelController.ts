@@ -1,17 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
 import HotelModel from "@/models/HotelModel"
-import { translateCreate, translateUpdate } from "@/helper/translate"
-import CityModel from "@/models/CityModel"
-import SolutionPartnerModel from "@/models/SolutionPartnerModel"
-import HotelRoomModel from "@/models/HotelRoomModel"
-import HotelGalleryModel from "@/models/HotelGalleryModel"
-import HotelOpportunityModel from "@/models/HotelOpportunityModel"
-import HotelFeatureModel from "@/models/HotelFeatureModel"
-import HotelRoomFeatureModel from "@/models/HotelRoomFeatureModel"
-import HotelRoomImageModel from "@/models/HotelRoomImageModel"
-import HotelRoomOpportunityModel from "@/models/HotelRoomOpportunityModel"
-import HotelRoomPackageModel from "@/models/HotelRoomPackageModel"
 
 export default class HotelController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -225,8 +214,9 @@ export default class HotelController {
 	async updateAdminApproval(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
-			const { admin_approval } = req.body as {
+			const { admin_approval, status } = req.body as {
 				admin_approval: boolean
+				status: boolean
 			}
 
 			// Admin approval değeri zorunlu
@@ -249,6 +239,7 @@ export default class HotelController {
 			// Sadece admin_approval değerini güncelle
 			await new HotelModel().update(id, {
 				admin_approval: admin_approval,
+				status: status,
 			})
 
 			const updatedHotel = await new HotelModel().oneToMany(id, "hotel_pivots", "hotel_id")
