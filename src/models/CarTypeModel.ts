@@ -23,6 +23,16 @@ class CarTypeModel extends BaseModel {
       .first();
     return data;
   }
+
+  async getPivots(language: string): Promise<DataObject[] | undefined> {
+    const data = await connection
+      .table("car_type_pivots")
+      .whereNull("car_type_pivots.deleted_at")
+      .where("car_type_pivots.language_code", language)
+      .innerJoin("car_types", "car_types.id", "car_type_pivots.car_type_id")
+      .select("car_types.id as id", "car_type_pivots.name as name");
+    return data;
+  }
 }
 
 export default CarTypeModel;

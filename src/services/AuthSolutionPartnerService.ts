@@ -90,7 +90,7 @@ export default class AuthSolutionPartnerService {
 
       const permissions =
         await new PermissionModel().getSolutionPartnerPermissions(
-          solutionPartnerUser.id
+          solutionPartnerUser.solution_partner_id
         );
 
       return {

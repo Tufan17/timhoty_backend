@@ -12,6 +12,7 @@ import dashboardRoutes from "./User/dashboard";
 import hotelRoutes from "./User/hotel";
 import visaRoutes from "./User/visa";
 import carRentalRoutes from "./User/carRental";
+import activityRoutes from "./User/activity";
 
 export default async function userMainRoutes(fastify: FastifyInstance) {
   // ===========================================
@@ -27,4 +28,6 @@ export default async function userMainRoutes(fastify: FastifyInstance) {
   fastify.register(carRentalRoutes, { prefix: "/car-rentals" });
   fastify.register(dashboardRoutes, { prefix: "/dashboard" });
   fastify.register(hotelRoutes, { prefix: "/hotels" });
+  fastify.register(activityRoutes, { prefix: "/activities" });
+  
 }

@@ -7,6 +7,9 @@ export default async function userRoutes(fastify: FastifyInstance) {
     handler: dashboardController.index
   })
   fastify.get('/campaign', {
+    handler: dashboardController.campaigns
+  })
+  fastify.get('/campaign/:id', {
     handler: dashboardController.campaign
   })
   fastify.get('/cities', {

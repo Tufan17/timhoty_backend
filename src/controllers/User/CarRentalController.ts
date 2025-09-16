@@ -1,5 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "@/db/knex";
+import CarTypeModel from "@/models/CarTypeModel";
+import GearTypeModel from "@/models/GearTypeModel";
+
 
 export default class car_rentalController {
   async index(req: FastifyRequest, res: FastifyReply) {
@@ -15,14 +18,17 @@ export default class car_rentalController {
         isAvailable,
         min_price,
         max_price,
-        period,
-        baby,
-        adult,
-        child,
+        type,
+        gear_type,
       } = req.query as any;
 
+
       const countQuery = knex("car_rentals")
-        .innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
+        .innerJoin(
+          "car_rental_pivots",
+          "car_rentals.id",
+          "car_rental_pivots.car_rental_id"
+        )
         // .where("car_rentals.status", true)
         // .where("car_rentals.admin_approval", true)
 
@@ -33,7 +39,17 @@ export default class car_rentalController {
             queryBuilder.where("car_rentals.location_id", location_id);
           }
           if (guest_rating) {
-            queryBuilder.where("car_rentals.average_rating", ">=", guest_rating);
+            queryBuilder.where(
+              "car_rentals.average_rating",
+              ">=",
+              guest_rating
+            );
+          }
+          if (type) {
+            queryBuilder.where("car_rentals.car_type_id", type);
+          }
+          if (gear_type) {
+            queryBuilder.where("car_rentals.gear_type_id", gear_type);
           }
         })
         .groupBy("car_rentals.id")
@@ -50,6 +66,18 @@ export default class car_rentalController {
           );
         })
         .innerJoin("cities", "car_rentals.location_id", "cities.id")
+        .innerJoin("gear_type_pivots", function () {
+          this.on(
+            "car_rentals.gear_type_id",
+            "gear_type_pivots.gear_type_id"
+          ).andOn("gear_type_pivots.language_code", knex.raw("?", [language]));
+        })
+        .innerJoin("car_type_pivots", function () {
+          this.on(
+            "car_rentals.car_type_id",
+            "car_type_pivots.car_type_id"
+          ).andOn("car_type_pivots.language_code", knex.raw("?", [language]));
+        })
         .innerJoin("country_pivots", function () {
           this.on("cities.country_id", "country_pivots.country_id").andOn(
             "country_pivots.language_code",
@@ -66,7 +94,6 @@ export default class car_rentalController {
           if (location_id) {
             queryBuilder.where("car_rentals.location_id", location_id);
           }
-          
         })
         .limit(limit)
         .offset((page - 1) * limit)
@@ -77,9 +104,17 @@ export default class car_rentalController {
           "city_pivots.name as city_name",
           "city_pivots.city_id as location_id",
           "country_pivots.country_id as country_id",
+          "car_rentals.car_type_id",
+          "car_rentals.gear_type_id",
+          "car_rentals.user_count",
+          "car_rentals.door_count",
+          "car_rentals.age_limit",
+          "car_rentals.air_conditioning",
+          "car_rentals.about_to_run_out",
           "car_rentals.average_rating",
-          "car_rentals.comment_count",
-          "car_rentals.refund_days"
+          "car_type_pivots.name as car_type_name",
+          "gear_type_pivots.name as gear_type_name",
+          "car_rentals.comment_count"
         );
 
       // Get all car_rental packages for all car_rentals in one query
@@ -119,13 +154,19 @@ export default class car_rentalController {
 
       // Assign car_rental packages to car_rentals
       car_rentals.forEach((car_rental: any) => {
-        car_rental.car_rental_packages = car_rentalPackagesBycar_rentalId[car_rental.id] || [];
+        car_rental.car_rental_packages =
+          car_rentalPackagesBycar_rentalId[car_rental.id] || [];
       });
 
       // Get all car_rental package prices in one query
-      const allcar_rentalPackageIds = allcar_rentalPackages.map((pkg: any) => pkg.id);
+      const allcar_rentalPackageIds = allcar_rentalPackages.map(
+        (pkg: any) => pkg.id
+      );
       const allcar_rentalPackagePrices = await knex("car_rental_package_prices")
-        .whereIn("car_rental_package_prices.car_rental_package_id", allcar_rentalPackageIds)
+        .whereIn(
+          "car_rental_package_prices.car_rental_package_id",
+          allcar_rentalPackageIds
+        )
         .innerJoin(
           "currencies",
           "car_rental_package_prices.currency_id",
@@ -183,62 +224,62 @@ export default class car_rentalController {
           );
 
           // Keep only the cheapest package
-          car_rental.car_rental_packages = cheapestPackage ? cheapestPackage : null;
+          car_rental.car_rental_packages = cheapestPackage
+            ? cheapestPackage
+            : null;
 
           let totalPrice = 0;
           // Note: baby_price column doesn't exist in car_rental_package_prices table
-          
-          if (car_rental.car_rental_packages && car_rental.car_rental_packages.car_rental_package_price) {
-            if (adult && car_rental.car_rental_packages.car_rental_package_price.main_price) {
-              totalPrice +=
-                car_rental.car_rental_packages.car_rental_package_price.main_price * adult;
-            }
-            if (child && car_rental.car_rental_packages.car_rental_package_price.child_price) {
-              totalPrice +=
-                car_rental.car_rental_packages.car_rental_package_price.child_price * child;
-            }
-            if (
-              !adult &&
-              !child &&
-              car_rental.car_rental_packages.car_rental_package_price.main_price
-            ) {
-              totalPrice += car_rental.car_rental_packages.car_rental_package_price.main_price * 1;
-            }
-          }
+
+          totalPrice +=
+            car_rental.car_rental_packages.car_rental_package_price.main_price *
+            1;
           car_rental.total_price = totalPrice;
         }
       });
 
-      if(isAvailable) {
-        car_rentals = car_rentals.filter((car_rental: any) => 
-          car_rental.car_rental_packages && 
-          car_rental.car_rental_packages.car_rental_package_price && 
-          car_rental.car_rental_packages.car_rental_package_price.main_price > 0
+      if (isAvailable) {
+        car_rentals = car_rentals.filter(
+          (car_rental: any) =>
+            car_rental.car_rental_packages &&
+            car_rental.car_rental_packages.car_rental_package_price &&
+            car_rental.car_rental_packages.car_rental_package_price.main_price >
+              0
         );
       }
 
-      if(min_price) {
-        car_rentals = car_rentals.filter((car_rental: any) => (car_rental.total_price || 0) >= min_price);
+      if (min_price) {
+        car_rentals = car_rentals.filter(
+          (car_rental: any) => (car_rental.total_price || 0) >= min_price
+        );
       }
-      if(max_price) {
-        car_rentals = car_rentals.filter((car_rental: any) => (car_rental.total_price || 0) <= max_price);
+      if (max_price) {
+        car_rentals = car_rentals.filter(
+          (car_rental: any) => (car_rental.total_price || 0) <= max_price
+        );
       }
-      
-      if(arrangement === "price_increasing") {
-        car_rentals.sort((a: any, b: any) => (a.total_price || 0) - (b.total_price || 0));
-      } else if(arrangement === "price_decreasing") {
-        car_rentals.sort((a: any, b: any) => (b.total_price || 0) - (a.total_price || 0));
-      } else if(arrangement === "star_increasing") {
-        car_rentals.sort((a: any, b: any) => 0);
-      } else if(arrangement === "star_decreasing") {
-        car_rentals.sort((a: any, b: any) => 0);
-      } else if(arrangement === "rating_increasing") {
-        car_rentals.sort((a: any, b: any) => a.average_rating - b.average_rating);
-      } else if(arrangement === "rating_decreasing") {
-        car_rentals.sort((a: any, b: any) => b.average_rating - a.average_rating);
-      }
-    
 
+      if (arrangement === "price_increasing") {
+        car_rentals.sort(
+          (a: any, b: any) => (a.total_price || 0) - (b.total_price || 0)
+        );
+      } else if (arrangement === "price_decreasing") {
+        car_rentals.sort(
+          (a: any, b: any) => (b.total_price || 0) - (a.total_price || 0)
+        );
+      } else if (arrangement === "star_increasing") {
+        car_rentals.sort((a: any, b: any) => 0);
+      } else if (arrangement === "star_decreasing") {
+        car_rentals.sort((a: any, b: any) => 0);
+      } else if (arrangement === "rating_increasing") {
+        car_rentals.sort(
+          (a: any, b: any) => a.average_rating - b.average_rating
+        );
+      } else if (arrangement === "rating_decreasing") {
+        car_rentals.sort(
+          (a: any, b: any) => b.average_rating - a.average_rating
+        );
+      }
 
       const total = await countQuery.first();
       const totalPages = Math.ceil(total?.total ?? 0 / Number(limit));
@@ -246,7 +287,7 @@ export default class car_rentalController {
         success: true,
         message: "car_rentals fetched successfully",
         data: car_rentals,
-        total: total?.total,
+        total: Number(total?.total),
         totalPages: totalPages,
       });
     } catch (error) {
@@ -254,6 +295,44 @@ export default class car_rentalController {
       return res.status(500).send({
         success: false,
         message: "car_rentals fetch failed",
+      });
+    }
+  }
+
+  async carTypes(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language ?? "en";
+      const carTypeModel = new CarTypeModel();
+      const carTypes = await carTypeModel.getPivots(language);
+      return res.status(200).send({
+        success: true,
+        message: "car_types fetched successfully",
+        data: carTypes,
+      });
+    } catch (error) {
+      console.error("car_types error:", error);
+      return res.status(500).send({
+        success: false,
+        message: "car_types fetch failed",
+      });
+    }
+  }
+
+  async gearTypes(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language ?? "en";
+      const gearTypeModel = new GearTypeModel();
+      const gearTypes = await gearTypeModel.getPivots(language);
+      return res.status(200).send({
+        success: true,
+        message: "gear_types fetched successfully",
+        data: gearTypes,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: "gear_types fetch failed",
       });
     }
   }

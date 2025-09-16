@@ -46,16 +46,16 @@ export default class DashboardController {
     }
   }
 
-  async campaign(req: FastifyRequest, res: FastifyReply) {
+  async campaigns(req: FastifyRequest, res: FastifyReply) {
     try {
       const language = (req as any).language;
-      const {page = 1, limit = 4} = req.query as {page: number, limit: number};
+      const {page = 1, limit = 4,service_type} = req.query as {page: number, limit: number,service_type: string};
       
       const campaignModel = new CampaignModel();
       const blogModel = new BlogModel();
       
       const [campaignData, blogs] = await Promise.all([
-        campaignModel.getCampaignsPaginated(language, page, limit),
+        campaignModel.getCampaignsPaginated(language, page, limit,service_type),
         blogModel.getDashboardBlogs(language, 5)
       ]);
 
@@ -68,6 +68,27 @@ export default class DashboardController {
           totalPages: campaignData.totalPages,
           total: campaignData.total
         }
+      });
+    } catch (error) {
+      console.error('Campaign error:', error);
+      return res.status(500).send({
+        success: false,
+        message: "Campaign fetch failed"
+      });
+    }
+  }
+
+  async campaign(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language ?? "en";
+      const {id} = req.params as {id: string};
+
+      const campaignModel = new CampaignModel();
+      const campaign = await campaignModel.getCampaignById(language, id);
+      return res.status(200).send({
+        success: true,
+        message: "Campaign fetched successfully",
+        data: campaign
       });
     } catch (error) {
       console.error('Campaign error:', error);

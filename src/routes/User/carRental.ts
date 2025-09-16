@@ -7,5 +7,11 @@ export default async function carRentalRoutes(fastify: FastifyInstance) {
   fastify.get("/", {
     handler: carRentalController.index,
   });
+  fastify.get("/car-types", {
+    handler: carRentalController.carTypes,
+  });
+  fastify.get("/gear-types", {
+    handler: carRentalController.gearTypes,
+  });
 
 }
