@@ -38,6 +38,7 @@ import tourRoutes from "./Admin/tour"
 import notificationRoutes from "./Admin/notification"
 import emailSubscriptionRoutes from "./Admin/emailSubscription"
 import activityTypeRoutes from "./Admin/activityType"
+import hotelRoutes from "./Admin/hotel"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -96,4 +97,8 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ACTIVITY TYPE ROUTES
 	// ===========================================
 	fastify.register(activityTypeRoutes, { prefix: "/activity-types" })
+	// ===========================================
+	// HOTEL ROUTES
+	// ===========================================
+	fastify.register(hotelRoutes, { prefix: "/hotels" })
 }

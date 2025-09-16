@@ -1,54 +1,58 @@
-import { FastifyInstance } from "fastify";
-import TourController from "../../../controllers/SolutionPartner/Tour/TourController";
-import { makeAuditLogger } from "../../../middlewares/logMiddleware";
-import { validateQuery } from "../../../middlewares/validateQuery";
-import { validate } from "../../../middlewares/validate";
-import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
-import TourModel from "@/models/TourModel";
-import { tourQuerySchema } from "@/validators/Tour/tour";
-import { tourSchema } from "@/validators/Tour/tour";
-import { tourUpdateSchema } from "@/validators/Tour/tour";
+import { FastifyInstance } from "fastify"
+import TourController from "../../../controllers/SolutionPartner/Tour/TourController"
+import { makeAuditLogger } from "../../../middlewares/logMiddleware"
+import { validateQuery } from "../../../middlewares/validateQuery"
+import { validate } from "../../../middlewares/validate"
+import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware"
+import TourModel from "@/models/TourModel"
+import { tourQuerySchema } from "@/validators/Tour/tour"
+import { tourSchema } from "@/validators/Tour/tour"
+import { tourUpdateSchema } from "@/validators/Tour/tour"
 
 export default async function tourRoutes(fastify: FastifyInstance) {
-  const tourController = new TourController();
-  
-  const tourAuditLogger = makeAuditLogger({
-    targetName: "tours",
-    model: new TourModel(),
-    idParam: "id",
-    getUser: (request) => (request as any).user || {}
-  });
+	const tourController = new TourController()
 
-  fastify.get("/", {
-    preHandler: [authSolutionPartnerMiddleware],
-    preValidation: [validateQuery(tourQuerySchema)],
-    handler: tourController.dataTable,
-  });
+	const tourAuditLogger = makeAuditLogger({
+		targetName: "tours",
+		model: new TourModel(),
+		idParam: "id",
+		getUser: request => (request as any).user || {},
+	})
 
-  fastify.get("/:id", {
-    preHandler: [authSolutionPartnerMiddleware],
-    handler: tourController.findOne,
-  });
+	fastify.get("/", {
+		preHandler: [authSolutionPartnerMiddleware],
+		preValidation: [validateQuery(tourQuerySchema)],
+		handler: tourController.dataTable,
+	})
 
-  fastify.get("/all", {
-    preHandler: [authSolutionPartnerMiddleware],
-    handler: tourController.findAll,
-  });
+	fastify.get("/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: tourController.findOne,
+	})
 
-  fastify.post("/", {
-    preHandler: [authSolutionPartnerMiddleware],
-    preValidation: [validate(tourSchema)],
-    handler: tourController.create,
-  });
+	fastify.get("/all", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: tourController.findAll,
+	})
 
-  fastify.put("/:id", {
-    preHandler: [authSolutionPartnerMiddleware],
-    preValidation: [validate(tourUpdateSchema)],
-    handler: tourController.update,
-  });
+	fastify.post("/", {
+		preHandler: [authSolutionPartnerMiddleware],
+		preValidation: [validate(tourSchema)],
+		handler: tourController.create,
+	})
 
-  fastify.delete("/:id", {
-    preHandler: [authSolutionPartnerMiddleware],
-    handler: tourController.delete,
-  });
+	fastify.put("/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		preValidation: [validate(tourUpdateSchema)],
+		handler: tourController.update,
+	})
+
+	fastify.delete("/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: tourController.delete,
+	})
+	fastify.post("/send-for-approval/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: tourController.sendForApproval,
+	})
 }
