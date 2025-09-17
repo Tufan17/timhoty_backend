@@ -6,5 +6,10 @@ export default async function hotelRoutes(fastify: FastifyInstance) {
     fastify.get('/', {
         handler: hotelController.index,
     })
+
+    fastify.get('/:id', {
+        handler: hotelController.show,
+    })
+
     
 }
