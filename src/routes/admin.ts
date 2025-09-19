@@ -39,6 +39,9 @@ import notificationRoutes from "./Admin/notification"
 import emailSubscriptionRoutes from "./Admin/emailSubscription"
 import activityTypeRoutes from "./Admin/activityType"
 import hotelRoutes from "./Admin/hotel"
+import activityRoutes from "./Admin/activity"
+import carRentalRoutes from "./Admin/carRental"
+import visaRoutes from "./Admin/visa"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -96,9 +99,18 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
 	// ACTIVITY TYPE ROUTES
 	// ===========================================
+	fastify.register(activityRoutes, { prefix: "/activities" })
 	fastify.register(activityTypeRoutes, { prefix: "/activity-types" })
 	// ===========================================
 	// HOTEL ROUTES
 	// ===========================================
 	fastify.register(hotelRoutes, { prefix: "/hotels" })
+	// ===========================================
+	// CAR RENTAL ROUTES
+	// ===========================================
+	fastify.register(carRentalRoutes, { prefix: "/car-rentals" })
+	// ===========================================
+	// VISA ROUTES
+	// ===========================================
+	fastify.register(visaRoutes, { prefix: "/visas" })
 }

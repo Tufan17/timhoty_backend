@@ -5,6 +5,14 @@ import ActivityPivotModel from "@/models/ActivityPivotModel"
 import { translateCreate, translateUpdate } from "@/helper/translate"
 import CityModel from "@/models/CityModel"
 import SolutionPartnerModel from "@/models/SolutionPartnerModel"
+import ActivityGalleryModel from "@/models/ActivityGalleryModel"
+import ActivityPackageOpportunityModel from "@/models/ActivityPackageOpportunityModel"
+import ActivityFeatureModel from "@/models/ActivityFeatureModel"
+import ActivityPackageFeatureModel from "@/models/ActivityPackageFeatureModel"
+import ActivityPackageHourModel from "@/models/ActivityPackageHourModel"
+import ActivityPackageImageModel from "@/models/ActivityPackageImageModel"
+import ActivityPackageModel from "@/models/ActivityPackageModel"
+import ActivityPackagePriceModel from "@/models/ActivityPackagePriceModel"
 
 export default class ActivityController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -466,20 +474,44 @@ export default class ActivityController {
 			const { id } = req.params as { id: string }
 			let activity = await new ActivityModel().exists({ id })
 
-			// Activity için gerekli olan tüm alanları kontrol et
-			const activityDetails = await new ActivityModel().first({ id })
-
-			const hasRequiredFields = activityDetails && activityDetails.duration && activityDetails.location_id && activityDetails.activity_type_id
-
-			const hasTranslations = await knex("activity_pivots").where("activity_id", id).whereNull("deleted_at").where("title", "!=", "").whereNotNull("title").first()
+			let activityGalleries = await new ActivityGalleryModel().exists({
+				activity_id: id,
+			})
+			let activityPackageOpportunities = await new ActivityPackageOpportunityModel().exists({
+				activity_package_id: id,
+			})
+			let activityFeatures = await new ActivityFeatureModel().exists({
+				activity_id: id,
+			})
+			let activityPackagesFeatures = await new ActivityPackageFeatureModel().exists({
+				activity_package_id: id,
+			})
+			let activityPackagesHours = await new ActivityPackageHourModel().exists({
+				activity_package_id: id,
+			})
+			let activityPackagesImages = await new ActivityPackageImageModel().exists({
+				activity_package_id: id,
+			})
+			let activityPackages = await new ActivityPackageModel().exists({
+				activity_id: id,
+			})
+			let activityPackagesPrices = await new ActivityPackagePriceModel().exists({
+				activity_package_id: id,
+			})
 
 			const data = {
 				activity,
-				hasRequiredFields,
-				hasTranslations: hasTranslations ? true : false,
+				activityPackageOpportunities,
+				activityGalleries,
+				activityFeatures,
+				activityPackagesFeatures,
+				activityPackagesHours,
+				activityPackagesImages,
+				activityPackages,
+				activityPackagesPrices,
 			}
 
-			if (activity && hasRequiredFields && hasTranslations) {
+			if (activity && activityPackageOpportunities && activityGalleries && activityFeatures && activityPackagesFeatures && activityPackagesHours && activityPackagesImages && activityPackages && activityPackagesPrices) {
 				await new ActivityModel().update(id, {
 					status: true,
 				})

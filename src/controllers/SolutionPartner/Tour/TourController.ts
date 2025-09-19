@@ -485,7 +485,7 @@ export default class TourController {
 				tourPackagesPrices,
 			}
 
-			if (tour || tourPackageOpportunities ? true : false || tourGalleries || tourFeatures || tourLocations || tourPrograms || tourPackageImages || tourDeparturePoints || tourPackagesFeatures || tourPackages || tourPackagesPrices) {
+			if (tour && tourPackageOpportunities && tourGalleries && tourFeatures && tourLocations && tourPrograms && tourPackageImages && tourDeparturePoints && tourPackagesFeatures && tourPackages && tourPackagesPrices) {
 				await new TourModel().update(id, {
 					status: true,
 				})

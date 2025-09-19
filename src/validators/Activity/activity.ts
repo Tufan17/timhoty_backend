@@ -35,7 +35,7 @@ export const activityUpdateSchema = Joi.object({
 export const activityQuerySchema = Joi.object({
 	page: Joi.number().optional(),
 	limit: Joi.number().optional(),
-	search: Joi.string().optional(),
+	search: Joi.string().optional().allow(""),
 	location_id: Joi.string().uuid().optional(),
 	activity_type_id: Joi.string().uuid().optional(),
 	status: Joi.boolean().optional(),
