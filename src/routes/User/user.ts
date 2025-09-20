@@ -16,7 +16,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		handler: userController.update,
 		preHandler: [authUserMiddleware],
 	})
-	fastify.put("/:id/avatar", {
+	fastify.put("/avatar/:id", {
 		preHandler: [authUserMiddleware],
 		preValidation: [validateFormData(avatarUpdateSchema)],
 		handler: updateAvatarController.updateAvatar,

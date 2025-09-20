@@ -37,5 +37,5 @@ export const userUpdateSchema = Joi.object({
 	avatar: Joi.any().optional(),
 })
 export const avatarUpdateSchema = Joi.object({
-	avatar: Joi.string().optional(),
+	file: Joi.any().optional(),
 })

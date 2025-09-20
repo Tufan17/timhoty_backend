@@ -5,7 +5,8 @@ class UpdateAvatarController {
 	async updateAvatar(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
-			const { avatar } = req.body as { avatar?: string }
+			const { file } = req.body as { file?: string }
+
 
 			// Mevcut kullanıcıyı kontrol et
 			const existingUser = await new UserModel().first({ id })
@@ -18,7 +19,7 @@ class UpdateAvatarController {
 			}
 
 			const updateData = {
-				avatar: avatar || existingUser.avatar,
+				avatar: file || existingUser.avatar,
 			}
 
 			await new UserModel().update(id, updateData)
