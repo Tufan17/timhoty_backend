@@ -407,7 +407,7 @@ export default class ActivityController {
 				features: [],
 			}
 
-			// Odaları grupla ve yapılandır
+			// grupla ve yapılandır
 			const packageMap = new Map()
 			const now = new Date()
 
