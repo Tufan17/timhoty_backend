@@ -238,67 +238,60 @@ export default class TourController {
 
 	async create(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { tour_id, category, images } = req.body as {
-				tour_id: string
-				category: string
-				images: string | string[]
+			// Get the authenticated solution partner from the request
+			const solutionPartnerUser = (req as any).user
+			const { night_count, day_count, refund_days, user_count, title, general_info, tour_info, refund_policy } = req.body as {
+				night_count: number
+				day_count: number
+				refund_days: number
+				user_count?: number
+				title: string
+				general_info: string
+				tour_info: string
+				refund_policy?: string
 			}
 
-			// Validate tour_id
-			const existingTour = await new TourModel().exists({
-				id: tour_id,
+			if (!solutionPartnerUser?.solution_partner_id) {
+				return res.status(403).send({
+					success: false,
+					message: req.t("TOUR.TOUR_ACCESS_DENIED"),
+					data: null,
+				})
+			}
+
+			const tour = await new TourModel().create({
+				night_count,
+				day_count,
+				refund_days,
+				user_count,
+				solution_partner_id: solutionPartnerUser.solution_partner_id,
 			})
 
-			if (!existingTour) {
-				return res.status(400).send({
-					success: false,
-					message: req.t("TOUR.NOT_FOUND"),
-				})
-			}
+			const translateResult = await translateCreate({
+				target: "tour_pivots",
+				target_id_key: "tour_id",
+				target_id: tour.id,
+				language_code: req.language,
+				data: {
+					title,
+					general_info,
+					tour_info,
+					refund_policy,
+				},
+			})
+			tour.tour_pivots = translateResult
 
-			// Normalize images to array
-			const imageUrls = Array.isArray(images) ? images : [images]
-			const createdImages = []
-
-			// Create tour images
-			for (const imageUrl of imageUrls) {
-				let image_type = ""
-
-				if (imageUrl.includes(".mp4") || imageUrl.includes(".mov") || imageUrl.includes(".webm") || imageUrl.includes(".avi") || imageUrl.includes(".wmv") || imageUrl.includes(".flv") || imageUrl.includes(".mkv")) {
-					image_type = "video"
-				} else {
-					image_type = "image"
-				}
-
-				const image = await new TourGalleryModel().create({
-					tour_id,
-					image_type,
-					image_url: imageUrl,
-				})
-
-				// Create translations
-				await translateCreate({
-					target: "tour_gallery_pivot",
-					target_id: image.id,
-					target_id_key: "tour_gallery_id",
-					data: {
-						category,
-					},
-					language_code: req.language,
-				})
-				createdImages.push(image)
-			}
-
-			return res.status(200).send({
+			return res.status(201).send({
 				success: true,
-				message: req.t("TOUR_GALLERY.CREATED_SUCCESS"),
-				data: createdImages,
+				message: req.t("TOUR.TOUR_CREATED_SUCCESS"),
+				data: tour,
 			})
 		} catch (error) {
 			console.log(error)
 			return res.status(500).send({
 				success: false,
-				message: req.t("TOUR_GALLERY.CREATED_ERROR"),
+				message: req.t("TOUR.TOUR_CREATED_ERROR"),
+				data: null,
 			})
 		}
 	}

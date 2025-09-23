@@ -227,7 +227,9 @@ export default class TourController {
 				.whereNull("tour_pivots.deleted_at")
 
 				// Lokasyon bilgileri (tour_locations üzerinden)
-				.leftJoin("tour_locations", "tours.id", "tour_locations.tour_id")
+				.leftJoin("tour_locations", function () {
+					this.on("tours.id", "tour_locations.tour_id").andOnNull("tour_locations.deleted_at")
+				})
 				.leftJoin("cities", "tour_locations.location_id", "cities.id")
 				.leftJoin("country_pivots", function () {
 					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
@@ -237,36 +239,41 @@ export default class TourController {
 				})
 
 				// Kalkış noktaları
-				.leftJoin("tour_departure_points", "tours.id", "tour_departure_points.tour_id")
+				.leftJoin("tour_departure_points", function () {
+					this.on("tours.id", "tour_departure_points.tour_id").andOnNull("tour_departure_points.deleted_at")
+				})
 				.leftJoin("cities as departure_cities", "tour_departure_points.location_id", "departure_cities.id")
 				.leftJoin("city_pivots as departure_city_pivots", function () {
 					this.on("departure_cities.id", "departure_city_pivots.city_id").andOn("departure_city_pivots.language_code", knex.raw("?", [language]))
 				})
 
 				// Gallery bilgileri
-				.leftJoin("tour_galleries", "tours.id", "tour_galleries.tour_id")
+				.leftJoin("tour_galleries", function () {
+					this.on("tours.id", "tour_galleries.tour_id").andOnNull("tour_galleries.deleted_at")
+				})
 				.leftJoin("tour_gallery_pivots", function () {
 					this.on("tour_galleries.id", "tour_gallery_pivots.tour_gallery_id")
 						.andOn("tour_gallery_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("tour_galleries.deleted_at")
 						.andOnNull("tour_gallery_pivots.deleted_at")
 				})
 
 				// Tour özellikleri
-				.leftJoin("tour_features", "tours.id", "tour_features.tour_id")
+				.leftJoin("tour_features", function () {
+					this.on("tours.id", "tour_features.tour_id").andOnNull("tour_features.deleted_at")
+				})
 				.leftJoin("tour_feature_pivots", function () {
 					this.on("tour_features.id", "tour_feature_pivots.tour_feature_id")
 						.andOn("tour_feature_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("tour_features.deleted_at")
 						.andOnNull("tour_feature_pivots.deleted_at")
 				})
 
 				// Paket bilgileri
-				.leftJoin("tour_packages", "tours.id", "tour_packages.tour_id")
+				.leftJoin("tour_packages", function () {
+					this.on("tours.id", "tour_packages.tour_id").andOnNull("tour_packages.deleted_at")
+				})
 				.leftJoin("tour_package_pivots", function () {
 					this.on("tour_packages.id", "tour_package_pivots.tour_package_id")
 						.andOn("tour_package_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("tour_packages.deleted_at")
 						.andOnNull("tour_package_pivots.deleted_at")
 				})
 
@@ -287,28 +294,33 @@ export default class TourController {
 				})
 
 				// Paket olanakları
-				.leftJoin("tour_package_opportunities", "tour_packages.id", "tour_package_opportunities.tour_package_id")
+				.leftJoin("tour_package_opportunities", function () {
+					this.on("tour_packages.id", "tour_package_opportunities.tour_package_id").andOnNull("tour_package_opportunities.deleted_at")
+				})
 				.leftJoin("tour_package_opportunity_pivots", function () {
 					this.on("tour_package_opportunities.id", "tour_package_opportunity_pivots.tour_package_opportunity_id")
 						.andOn("tour_package_opportunity_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("tour_package_opportunities.deleted_at")
 						.andOnNull("tour_package_opportunity_pivots.deleted_at")
 				})
 
 				// Paket özellikleri
-				.leftJoin("tour_package_features", "tour_packages.id", "tour_package_features.tour_package_id")
+				.leftJoin("tour_package_features", function () {
+					this.on("tour_packages.id", "tour_package_features.tour_package_id").andOnNull("tour_package_features.deleted_at")
+				})
 				.leftJoin("tour_package_feature_pivots", function () {
 					this.on("tour_package_features.id", "tour_package_feature_pivots.tour_package_feature_id")
 						.andOn("tour_package_feature_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("tour_package_features.deleted_at")
 						.andOnNull("tour_package_feature_pivots.deleted_at")
 				})
 
 				// Tour programları
 				.leftJoin("tour_programs", function () {
-					this.on("tours.id", "tour_programs.tour_id")
-						.andOn("tour_programs.language_code", knex.raw("?", [language]))
-						.andOnNull("tour_programs.deleted_at")
+					this.on("tours.id", "tour_programs.tour_id").andOnNull("tour_programs.deleted_at")
+				})
+				.leftJoin("tour_program_pivots", function () {
+					this.on("tour_programs.id", "tour_program_pivots.tour_program_id")
+						.andOn("tour_program_pivots.language_code", knex.raw("?", [language]))
+						.andOnNull("tour_program_pivots.deleted_at")
 				})
 
 				.select(
@@ -318,9 +330,6 @@ export default class TourController {
 					"tour_pivots.general_info",
 					"tour_pivots.tour_info",
 					"tour_pivots.refund_policy as tour_refund_policy",
-
-					// Tour type bilgileri
-					"tour_type_pivots.name as tour_type_name",
 
 					// Lokasyon bilgileri
 					"tour_locations.id as tour_location_id",
@@ -380,7 +389,9 @@ export default class TourController {
 
 					// Tour programları
 					"tour_programs.id as program_id",
-					"tour_programs.order as program_order"
+					"tour_programs.order as program_order",
+					"tour_program_pivots.title as program_title",
+					"tour_program_pivots.content as program_content"
 				)
 
 			if (results.length === 0) {
@@ -398,7 +409,6 @@ export default class TourController {
 				general_info: firstRow.general_info,
 				tour_info: firstRow.tour_info,
 				refund_policy: firstRow.tour_refund_policy,
-				tour_type_name: firstRow.tour_type_name,
 				night_count: firstRow.night_count,
 				day_count: firstRow.day_count,
 				refund_days: firstRow.refund_days,
@@ -497,8 +507,9 @@ export default class TourController {
 							},
 						}
 					} else {
-						// Sabit fiyat değilse şu anki tarihe göre fiyat bul
+						// Sabit fiyat değilse
 						if (row.start_date && row.end_date) {
+							// Tarih aralığı varsa tarih kontrolü yap
 							const startDate = new Date(row.start_date)
 							const endDate = new Date(row.end_date)
 
@@ -518,6 +529,23 @@ export default class TourController {
 										symbol: row.currency_symbol,
 									},
 								}
+							}
+						} else {
+							// Tarih aralığı yoksa period'a göre veya direkt fiyatı al
+							selectedPrice = {
+								id: row.price_id,
+								main_price: row.main_price,
+								child_price: row.child_price,
+								baby_price: row.baby_price,
+								period: row.period,
+								quota: row.quota,
+								start_date: row.start_date,
+								end_date: row.end_date,
+								currency: {
+									name: row.currency_name,
+									code: row.currency_code,
+									symbol: row.currency_symbol,
+								},
 							}
 						}
 					}
