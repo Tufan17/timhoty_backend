@@ -8,8 +8,8 @@ import "./crone/index"
 
 const PORT = process.env.PORT || 3005
 const HOST = process.env.HOST || "0.0.0.0"
-import path from "path"
 import staticPlugin from "@fastify/static"
+import path from "path"
 import { languageMiddleware } from "./middlewares/languageMiddleware"
 
 const server = Fastify({ logger: false })
@@ -29,36 +29,10 @@ const start = async () => {
 			},
 		})
 
-		// Register static plugin for sendFile functionality
-		await server.register(staticPlugin, {
+		server.register(staticPlugin, {
 			root: path.join(__dirname, "../uploads"),
-			prefix: "/static/", // Farklı bir prefix kullanıyoruz
+			prefix: "/uploads/",
 		})
-
-		// Custom static file handler with fallback
-		server.register(async function (fastify) {
-			fastify.get<{ Params: { '*': string } }>('/uploads/*', async (request, reply) => {
-				const requestedFile = request.params['*']
-				const filePath = path.join(__dirname, "../uploads", requestedFile)
-				const defaultFilePath = path.join(__dirname, "../uploads/no-file.png")
-				
-				try {
-					// İstenen dosya var mı kontrol et
-					await require('fs').promises.access(filePath)
-					// Dosya varsa onu döndür
-					return reply.sendFile(requestedFile, path.join(__dirname, "../uploads"))
-				} catch (error) {
-					// Dosya yoksa default dosyayı döndür
-					try {
-						await require('fs').promises.access(defaultFilePath)
-						return reply.sendFile('no-file.png', path.join(__dirname, "../uploads"))
-					} catch (defaultError) {
-						return reply.code(404).send({ error: 'File not found' })
-					}
-				}
-			})
-		})
-
 		await server.register(app)
 
 		server.addHook("preHandler", languageMiddleware)
