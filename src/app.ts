@@ -57,6 +57,7 @@ export default async function app(fastify: FastifyInstance) {
           folder: string;
           filename: string;
         };
+        console.log(folder, filename);
         return reply.sendFile(path.join(folder, filename));
       } catch (err) {
         return reply.status(500).send({ error: "Dosya bulunamadı" });
