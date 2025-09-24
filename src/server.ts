@@ -17,7 +17,7 @@ const server = Fastify({ logger: false })
 const start = async () => {
 	try {
 		await server.register(cors, {
-			origin: ["http://167.71.3.100", "http://localhost:5173", "http://localhost:5174"],
+			origin: ["http://167.71.3.100", "http://localhost:5173", "http://localhost:5174", "https://admin.timhoty.com"],
 			methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 			credentials: true,
 			allowedHeaders: ["Content-Type", "Authorization", "Accept-Language"],

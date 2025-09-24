@@ -360,6 +360,7 @@ export default class TourController {
 					"tour_packages.discount",
 					"tour_packages.total_tax_amount",
 					"tour_packages.constant_price",
+					"tour_packages.date",
 
 					// Paket fiyatları
 					"tour_package_prices.id as price_id",
@@ -442,6 +443,7 @@ export default class TourController {
 						discount: row.discount,
 						total_tax_amount: row.total_tax_amount,
 						constant_price: row.constant_price,
+						date: row.date,
 						images: [],
 						opportunities: [],
 						features: [],
