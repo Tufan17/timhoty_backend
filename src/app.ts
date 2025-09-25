@@ -16,6 +16,9 @@ import adminMainRoutes from "./routes/admin";
 // User Routes
 import userMainRoutes from "./routes/user";
 
+// Payment Routes
+import paymentRoutes from "./routes/payment";
+
 export default async function app(fastify: FastifyInstance) {
   await fastify.register(dbPlugin);
 
@@ -48,6 +51,10 @@ export default async function app(fastify: FastifyInstance) {
   // ===========================================
   fastify.register(solutionPartnerMainRoutes, { prefix: "/solution-partner" });
 
+  // ===========================================
+  // PAYMENT ROUTES
+  // ===========================================
+  fastify.register(paymentRoutes, { prefix: "/payment" });
 
   fastify.get(
     "/uploads/:folder/:filename",
