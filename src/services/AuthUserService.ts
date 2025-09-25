@@ -139,7 +139,7 @@ export default class AuthUserService {
         password: passwordHash,
         language,
         currency_id: "57a4f07c-9d4a-4a3c-8b45-1f48707482a4",
-        avatar: "https://static.vecteezy.com/system/resources/previews/024/183/525/non_2x/avatar-of-a-man-portrait-of-a-young-guy-illustration-of-male-character-in-modern-color-style-vector.jpg"
+        avatar: "/uploads/avatar.png"
       });
 
       const body = {
@@ -149,7 +149,7 @@ export default class AuthUserService {
         email: user.email,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
-
+ 
       const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "1d" });
       const REFRESH_TOKEN = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
 

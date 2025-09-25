@@ -18,7 +18,8 @@
     "SOLUTION_PARTNER_NOT_ACTIVE": "Çözüm ortağı kullanıcısı aktif değil",
     "SOLUTION_PARTNER_COMPANY_NOT_ACTIVE": "Çözüm ortağı şirketi aktif değil",
     "PROFILE_SUCCESS": "Profil başarıyla getirildi",
-    "PROFILE_ERROR": "Profil getirme işlemi başarısız"
+    "PROFILE_ERROR": "Profil getirme işlemi başarısız",
+    "USER_NOT_FOUND": "Kullanıcı bulunamadı"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Adminler başarıyla getirildi",
