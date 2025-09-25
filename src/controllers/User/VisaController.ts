@@ -39,6 +39,7 @@ export default class VisaController {
 				.innerJoin("city_pivots", function () {
 					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
 				})
+
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("visas.location_id", location_id)
@@ -50,6 +51,17 @@ export default class VisaController {
 
 			// Get all visa packages for all visas in one query
 			const visaIds = visas.map((visa: any) => visa.id)
+			const mainImages = await knex("visa_galleries").select("visa_id", "image_url").whereIn("visa_id", visaIds).whereNull("deleted_at").whereRaw(`id IN (
+        SELECT id FROM visa_galleries vg
+        WHERE vg.visa_id = visa_galleries.visa_id
+        AND vg.deleted_at IS NULL
+        ORDER BY created_at ASC
+        LIMIT 1
+    )`)
+			visas.forEach((visa: any) => {
+				const image_url = mainImages.find((img: any) => img.visa_id === visa.id)
+				visa.image_url = image_url ? image_url.image_url : null
+			})
 
 			// Get all visa packages for all visas in one query
 			const allvisaPackages = await knex("visa_packages")
@@ -204,11 +216,11 @@ export default class VisaController {
 
 				// Gallery bilgileri
 				.leftJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
-				.leftJoin("visa_gallery_pivots", function () {
-					this.on("visa_galleries.id", "visa_gallery_pivots.visa_gallery_id")
-						.andOn("visa_gallery_pivots.language_code", knex.raw("?", [language]))
+				.leftJoin("visa_gallery_pivot", function () {
+					this.on("visa_galleries.id", "visa_gallery_pivot.visa_gallery_id")
+						.andOn("visa_gallery_pivot.language_code", knex.raw("?", [language]))
 						.andOnNull("visa_galleries.deleted_at")
-						.andOnNull("visa_gallery_pivots.deleted_at")
+						.andOnNull("visa_gallery_pivot.deleted_at")
 				})
 
 				// Visa özellikleri
@@ -221,13 +233,13 @@ export default class VisaController {
 				})
 
 				// Visa olanakları
-				.leftJoin("visa_opportunities", "visas.id", "visa_opportunities.visa_id")
-				.leftJoin("visa_opportunity_pivots", function () {
-					this.on("visa_opportunities.id", "visa_opportunity_pivots.visa_opportunity_id")
-						.andOn("visa_opportunity_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("visa_opportunities.deleted_at")
-						.andOnNull("visa_opportunity_pivots.deleted_at")
-				})
+				// .leftJoin("visa_opportunities", "visas.id", "visa_opportunities.visa_id")
+				// .leftJoin("visa_opportunity_pivots", function () {
+				// 	this.on("visa_opportunities.id", "visa_opportunity_pivots.visa_opportunity_id")
+				// 		.andOn("visa_opportunity_pivots.language_code", knex.raw("?", [language]))
+				// 		.andOnNull("visa_opportunities.deleted_at")
+				// 		.andOnNull("visa_opportunity_pivots.deleted_at")
+				// })
 
 				// Paket bilgileri
 				.leftJoin("visa_packages", "visas.id", "visa_packages.visa_id")
@@ -267,7 +279,7 @@ export default class VisaController {
 					// Visa bilgileri
 					"visas.*",
 					"visa_pivots.title as visa_title",
-					"visa_pivots.description as visa_description",
+					"visa_pivots.general_info as general_info",
 					"visa_pivots.visa_info",
 					"visa_pivots.refund_policy as visa_refund_policy",
 
@@ -279,7 +291,7 @@ export default class VisaController {
 					"visa_galleries.id as gallery_id",
 					"visa_galleries.image_url as gallery_image_url",
 					"visa_galleries.image_type as gallery_image_type",
-					"visa_gallery_pivots.category as gallery_category",
+					"visa_gallery_pivot.category as gallery_category",
 
 					// Visa features
 					"visa_features.id as feature_id",
@@ -287,8 +299,8 @@ export default class VisaController {
 					"visa_feature_pivots.name as feature_name",
 
 					// Visa opportunities
-					"visa_opportunities.id as opportunity_id",
-					"visa_opportunity_pivots.name as opportunity_name",
+					// "visa_opportunities.id as opportunity_id",
+					// "visa_opportunity_pivots.name as opportunity_name",
 
 					// Paket bilgileri
 					"visa_packages.id as package_id",
@@ -333,7 +345,7 @@ export default class VisaController {
 			const visa = {
 				id: firstRow.id,
 				title: firstRow.visa_title,
-				description: firstRow.visa_description,
+				general_info: firstRow.general_info,
 				visa_info: firstRow.visa_info,
 				refund_policy: firstRow.visa_refund_policy,
 				country_name: firstRow.country_name,
@@ -347,7 +359,7 @@ export default class VisaController {
 				packages: [],
 				galleries: [],
 				features: [],
-				opportunities: [],
+				// opportunities: [],
 			}
 
 			// Paketleri grupla (Activity ile aynı mantık)
@@ -489,20 +501,20 @@ export default class VisaController {
 			visa.features = Array.from(featureMap.values()) as any
 
 			// Visa olanakları grupla
-			const opportunityMap = new Map()
+			// const opportunityMap = new Map()
 
-			results.forEach((row: any) => {
-				if (!row.opportunity_id) return
+			// results.forEach((row: any) => {
+			// 	if (!row.opportunity_id) return
 
-				if (!opportunityMap.has(row.opportunity_id)) {
-					opportunityMap.set(row.opportunity_id, {
-						id: row.opportunity_id,
-						name: row.opportunity_name,
-					})
-				}
-			})
+			// 	if (!opportunityMap.has(row.opportunity_id)) {
+			// 		opportunityMap.set(row.opportunity_id, {
+			// 			id: row.opportunity_id,
+			// 			name: row.opportunity_name,
+			// 		})
+			// 	}
+			// })
 
-			visa.opportunities = Array.from(opportunityMap.values()) as any
+			// visa.opportunities = Array.from(opportunityMap.values()) as any
 
 			return res.status(200).send({
 				success: true,
