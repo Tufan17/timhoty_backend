@@ -9,6 +9,8 @@ import HotelReservationUserModel from "@/models/HotelReservationUserModel";
 interface CreatePaymentRequest {
   amount: number;
   currency?: string;
+  start_date?: string;
+  end_date?: string;
   customer: {
     first_name: string;
     last_name: string;
@@ -69,6 +71,8 @@ class UserHotelPayment {
         hotel_id,
         booking_id,
         description,
+        start_date,
+        end_date,
         users,
         different_invoice,
         package_id,
@@ -148,6 +152,8 @@ class UserHotelPayment {
           package_id: package_id,
           status: false,
           progress_id: booking_id,
+          start_date: start_date,
+          end_date: end_date,
         };
         const reservation = await reservationModel.create(body_form);
 

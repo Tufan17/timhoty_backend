@@ -31,6 +31,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string("payment_id").nullable();
     table.boolean("different_invoice").notNullable().defaultTo(false);
     table.boolean("status").notNullable().defaultTo(false);
+    table.string("start_date").notNullable();
+    table.string("end_date").notNullable();
+    table.string("check_in_date").nullable();
     table.timestamp("created_at").defaultTo(knex.fn.now());
     table.timestamp("updated_at").defaultTo(knex.fn.now());
     table.timestamp("deleted_at").nullable();
