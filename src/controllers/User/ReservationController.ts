@@ -23,5 +23,25 @@ export default class TourController {
    }
   }
 
-  async show(req: FastifyRequest, res: FastifyReply) {}
+  async show(req: FastifyRequest, res: FastifyReply) {
+    try{
+      const { id } = req.params as any
+      const reservationModel = new ReservationModel();
+      const reservation = await reservationModel.getUserReservationById(
+        id,
+        (req as any).language
+      );
+      return res.status(200).send({
+        success: true,
+        message: "Reservation retrieved successfully",
+        data: reservation,
+      });
+    }catch(error){
+      return res.status(500).send({
+        success: false,
+        message: "Error retrieving reservation",
+        data: error,
+      });
+    } 
+  }
 }

@@ -26,8 +26,9 @@ export async function up(knex: Knex): Promise<void> {
       .references("id")
       .inTable("sales_partners")
       .onDelete("CASCADE");
-
     table.string("progress_id").notNullable();
+    table.double("price").notNullable();
+    table.string("currency_code").notNullable();
     table.string("payment_id").nullable();
     table.boolean("different_invoice").notNullable().defaultTo(false);
     table.boolean("status").notNullable().defaultTo(false);

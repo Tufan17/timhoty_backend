@@ -154,6 +154,8 @@ class UserHotelPayment {
           progress_id: booking_id,
           start_date: start_date,
           end_date: end_date,
+          price: Number(amount)*100,
+          currency_code: currency,
         };
         const reservation = await reservationModel.create(body_form);
 
