@@ -76,6 +76,17 @@ export default class ActivityController {
 
 			// Get all car_rental packages for all activity in one query
 			const activityIds = activities.map((activity: any) => activity.id)
+			const mainImages = await knex("activity_galleries").select("activity_id", "image_url").whereIn("activity_id", activityIds).whereNull("deleted_at").whereRaw(`id IN (
+        SELECT id FROM activity_galleries ag
+        WHERE ag.activity_id = activity_galleries.activity_id
+        AND ag.deleted_at IS NULL
+        ORDER BY created_at ASC
+        LIMIT 1
+    )`)
+			activities.forEach((activity: any) => {
+				const image_url = mainImages.find((img: any) => img.activity_id === activity.id)
+				activity.image_url = image_url ? image_url.image_url : null
+			})
 
 			// Get all car_rental packages for all activity in one query
 			const allactivityPackages = await knex("activity_packages")
@@ -343,6 +354,7 @@ export default class ActivityController {
 					"activity_package_pivots.refund_policy as package_refund_policy",
 					"activity_packages.return_acceptance_period",
 					"activity_packages.discount",
+					"activity_packages.date",
 					"activity_packages.total_tax_amount",
 					"activity_packages.constant_price",
 
@@ -417,6 +429,7 @@ export default class ActivityController {
 				if (!packageMap.has(row.package_id)) {
 					packageMap.set(row.package_id, {
 						id: row.package_id,
+						date: row.date,
 						name: row.package_name,
 						description: row.package_description,
 						refund_policy: row.package_refund_policy,
@@ -479,18 +492,17 @@ export default class ActivityController {
 						})
 					}
 				}
-
+				// console.log(row)
 				// Paket fiyatları
-				if (row.price_id && !packageMap.get(row.package_id).selectedPrice) {
+				if (row.price_id && !packageData.selectedPrice) {
 					let selectedPrice = null
 
-					// Fiyat mantığını uygula
 					if (row.constant_price) {
-						// Sabit fiyat ise herhangi bir fiyat al
 						selectedPrice = {
 							id: row.price_id,
 							main_price: row.main_price,
 							child_price: row.child_price,
+
 							start_date: row.start_date,
 							end_date: row.end_date,
 							currency: {
@@ -500,16 +512,21 @@ export default class ActivityController {
 							},
 						}
 					} else {
-						// Sabit fiyat değilse şu anki tarihe göre fiyat bul
+						// Sabit fiyat değilse - fakat burada daha esnek bir yaklaşım uygulayalım
 						if (row.start_date && row.end_date) {
 							const startDate = new Date(row.start_date)
 							const endDate = new Date(row.end_date)
+							const today = new Date()
 
-							if (now >= startDate && now <= endDate) {
+							// Eğer aktivite gelecekteki bir tarih için ise, o fiyatı göster
+							// Veya eğer bugün tarih aralığında ise göster
+							if (today <= endDate) {
+								// Sadece bitiş tarihini kontrol et
 								selectedPrice = {
 									id: row.price_id,
 									main_price: row.main_price,
 									child_price: row.child_price,
+
 									start_date: row.start_date,
 									end_date: row.end_date,
 									currency: {
@@ -519,12 +536,26 @@ export default class ActivityController {
 									},
 								}
 							}
+						} else {
+							// Tarih aralığı yoksa direkt fiyatı al
+							selectedPrice = {
+								id: row.price_id,
+								main_price: row.main_price,
+								child_price: row.child_price,
+
+								start_date: row.start_date,
+								end_date: row.end_date,
+								currency: {
+									name: row.currency_name,
+									code: row.currency_code,
+									symbol: row.currency_symbol,
+								},
+							}
 						}
 					}
 
-					// Seçilen fiyatı pakete ata
 					if (selectedPrice) {
-						packageMap.get(row.package_id).selectedPrice = selectedPrice
+						packageData.selectedPrice = selectedPrice
 					}
 				}
 			})

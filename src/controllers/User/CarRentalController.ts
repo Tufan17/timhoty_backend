@@ -83,6 +83,17 @@ export default class car_rentalController {
 
 			// Get all car_rental packages for all car_rentals in one query
 			const car_rentalIds = car_rentals.map((car_rental: any) => car_rental.id)
+			const mainImages = await knex("car_rental_galleries").select("car_rental_id", "image_url").whereIn("car_rental_id", car_rentalIds).whereNull("deleted_at").whereRaw(`id IN (
+        SELECT id FROM car_rental_galleries vg
+        WHERE vg.car_rental_id = car_rental_galleries.car_rental_id
+        AND vg.deleted_at IS NULL
+        ORDER BY created_at ASC
+        LIMIT 1
+    )`)
+			car_rentals.forEach((car_rental: any) => {
+				const image_url = mainImages.find((img: any) => img.car_rental_id === car_rental.id)
+				car_rental.image_url = image_url ? image_url.image_url : null
+			})
 
 			// Get all car_rental packages for all car_rentals in one query
 			const allcar_rentalPackages = await knex("car_rental_packages")
