@@ -4,6 +4,7 @@ import UserTourPayment from "@/controllers/Payment/User/TourPayment";
 import UserCarRentalPayment from "@/controllers/Payment/User/CarRentalPayment";
 import UserVisaPayment from "@/controllers/Payment/User/VisaPayment";
 import WebhookController from "@/controllers/Payment/WebhookController";
+import { authUserMiddleware } from "@/middlewares/authUserMiddleware";
 
 export default async function paymentRoutes(fastify: FastifyInstance) {
   const hotelPayment = new UserHotelPayment();
@@ -14,9 +15,10 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
 
   // Hotel Payment Routes
   fastify.post("/user/hotel", {
+		preHandler: [authUserMiddleware],
     handler: hotelPayment.createPaymentIntent,
   });
-
+  
   fastify.get("/user/hotel/status/:charge_id", {
     handler: hotelPayment.getPaymentStatus,
   });

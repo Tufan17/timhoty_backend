@@ -40,6 +40,7 @@ class UserVisaPayment {
     try {
       const { amount, currency = 'USD', customer, visa_id, application_id, description, redirect_url, post_url } = req.body;
 
+      const user = (req as any).user;
       // Validate required fields
       if (!amount || amount <= 0) {
         return res.status(400).send({
@@ -77,6 +78,16 @@ class UserVisaPayment {
       };
 
       const paymentIntent = await tapPaymentsService.createCharge(chargeRequest);
+
+      const body={
+        progres_id: paymentIntent.id,
+        created_by: user.id,
+        
+      }
+
+
+
+
 
       return res.status(200).send({
         success: true,
