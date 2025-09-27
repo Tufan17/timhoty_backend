@@ -28,14 +28,14 @@ class VisaModel extends BaseModel {
     try {
       // First get highlighted visas
       const highlightedVisas = await this.getVisasByHighlightStatus(language, true);
-      
+
       // If we need more visas, get non-highlighted ones
       if (highlightedVisas.length < limit) {
         const remainingCount = limit - highlightedVisas.length;
         const additionalVisas = await this.getVisasByHighlightStatus(language, false, remainingCount);
         return [...highlightedVisas, ...additionalVisas];
       }
-      
+
       return highlightedVisas.slice(0, limit);
     } catch (error) {
       console.error("Error fetching dashboard visas:", error);
@@ -44,14 +44,14 @@ class VisaModel extends BaseModel {
   }
 
   private async getVisasByHighlightStatus(
-    language: string, 
-    isHighlighted: boolean, 
+    language: string,
+    isHighlighted: boolean,
     limit?: number
   ): Promise<any[]> {
     try {
       const now = new Date();
       const today = now.toISOString().split('T')[0]; // YYYY-MM-DD formatında bugünün tarihi
-      
+
       const query = knex("visas")
         .whereNull("visas.deleted_at")
         .where("visas.highlight", isHighlighted)
@@ -62,13 +62,13 @@ class VisaModel extends BaseModel {
         .whereNull('visa_packages.deleted_at')
         .leftJoin('visa_package_prices', 'visa_packages.id', 'visa_package_prices.visa_package_id')
         .whereNull('visa_package_prices.deleted_at')
-        .where(function() {
+        .where(function () {
           this.where('visa_packages.constant_price', true)
-            .orWhere(function() {
+            .orWhere(function () {
               this.where('visa_packages.constant_price', false)
-                .andWhere(function() {
+                .andWhere(function () {
                   this.where('visa_package_prices.start_date', '<=', today)
-                    .andWhere(function() {
+                    .andWhere(function () {
                       this.whereNull('visa_package_prices.end_date')
                         .orWhere('visa_package_prices.end_date', '>=', today);
                     });
@@ -76,10 +76,13 @@ class VisaModel extends BaseModel {
             });
         })
         .leftJoin('currencies', 'visa_package_prices.currency_id', 'currencies.id')
-        .leftJoin('currency_pivots', function(this: any) {
+        .leftJoin('currency_pivots', function (this: any) {
           this.on('currencies.id', '=', 'currency_pivots.currency_id')
             .andOn('currency_pivots.language_code', '=', knex.raw('?', [language]));
         })
+        .leftJoin('visa_galleries', 'visas.id', 'visa_galleries.visa_id')
+        .whereNull('visa_galleries.deleted_at')
+        .limit(1)
         .select(
           "visas.id",
           "visas.highlight",
@@ -87,6 +90,7 @@ class VisaModel extends BaseModel {
           "visas.refund_days",
           "visas.approval_period",
           "visa_pivots.title",
+          "visa_galleries.image_url",
           knex.raw(`
             CASE 
               WHEN visa_packages.constant_price = true THEN 
@@ -130,12 +134,13 @@ class VisaModel extends BaseModel {
           "currency_pivots.name",
           "currencies.code",
           "visa_package_prices.start_date",
-          "visa_package_prices.end_date"
+          "visa_package_prices.end_date",
+          "visa_galleries.image_url"
         )
         .orderBy("visas.created_at", "desc");
 
       const result = limit ? await query.limit(limit) : await query;
-      
+
       // Paket fiyatlarını temizle ve sadece geçerli olanları al
       return result.map(visa => {
         if (visa.package_price) {

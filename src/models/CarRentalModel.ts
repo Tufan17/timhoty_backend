@@ -33,14 +33,14 @@ class CarRentalModel extends BaseModel {
     try {
       // First get highlighted car rentals
       const highlightedCarRentals = await this.getCarRentalsByHighlightStatus(language, true);
-      
+
       // If we need more car rentals, get non-highlighted ones
       if (highlightedCarRentals.length < limit) {
         const remainingCount = limit - highlightedCarRentals.length;
         const additionalCarRentals = await this.getCarRentalsByHighlightStatus(language, false, remainingCount);
         return [...highlightedCarRentals, ...additionalCarRentals];
       }
-      
+
       return highlightedCarRentals.slice(0, limit);
     } catch (error) {
       console.error("Error fetching dashboard car rentals:", error);
@@ -49,14 +49,14 @@ class CarRentalModel extends BaseModel {
   }
 
   private async getCarRentalsByHighlightStatus(
-    language: string, 
-    isHighlighted: boolean, 
+    language: string,
+    isHighlighted: boolean,
     limit?: number
   ): Promise<any[]> {
     try {
       const now = new Date();
       const today = now.toISOString().split('T')[0]; // YYYY-MM-DD formatında bugünün tarihi
-      
+
       const query = knex("car_rentals")
         .whereNull("car_rentals.deleted_at")
         .where("car_rentals.highlight", isHighlighted)
@@ -67,21 +67,24 @@ class CarRentalModel extends BaseModel {
         .whereNull('car_rental_packages.deleted_at')
         .leftJoin('car_rental_package_prices', 'car_rental_packages.id', 'car_rental_package_prices.car_rental_package_id')
         .whereNull('car_rental_package_prices.deleted_at')
-        .where(function() {
+        .where(function () {
           this.where('car_rental_packages.constant_price', true)
-            .orWhere(function() {
+            .orWhere(function () {
               this.where('car_rental_packages.constant_price', false)
-                .andWhere(function() {
+                .andWhere(function () {
                   this.where('car_rental_package_prices.start_date', '<=', today)
-                    .andWhere(function() {
+                    .andWhere(function () {
                       this.whereNull('car_rental_package_prices.end_date')
                         .orWhere('car_rental_package_prices.end_date', '>=', today);
                     });
                 });
             });
         })
+        .leftJoin("car_rental_galleries", "car_rentals.id", "car_rental_galleries.car_rental_id")
+        .limit(1)
+        .whereNull("car_rental_galleries.deleted_at")
         .leftJoin('currencies', 'car_rental_package_prices.currency_id', 'currencies.id')
-        .leftJoin('currency_pivots', function(this: any) {
+        .leftJoin('currency_pivots', function (this: any) {
           this.on('currencies.id', '=', 'currency_pivots.currency_id')
             .andOn('currency_pivots.language_code', '=', knex.raw('?', [language]));
         })
@@ -92,6 +95,7 @@ class CarRentalModel extends BaseModel {
           "car_rentals.user_count",
           "car_rentals.door_count",
           "car_rental_pivots.title",
+          "car_rental_galleries.image_url",
           knex.raw(`
             CASE 
               WHEN car_rental_packages.constant_price = true THEN 
@@ -135,12 +139,13 @@ class CarRentalModel extends BaseModel {
           "currencies.code",
           "currencies.symbol",
           "car_rental_package_prices.start_date",
-          "car_rental_package_prices.end_date"
+          "car_rental_package_prices.end_date",
+          "car_rental_galleries.image_url"
         )
         .orderBy("car_rentals.created_at", "desc");
 
       const result = limit ? await query.limit(limit) : await query;
-      
+
       // Paket fiyatlarını temizle ve sadece geçerli olanları al
       return result.map(carRental => {
         if (carRental.package_price) {

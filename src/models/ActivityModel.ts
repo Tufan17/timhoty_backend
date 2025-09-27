@@ -52,6 +52,9 @@ class ActivityModel extends BaseModel {
 				.leftJoin("currency_pivots", function (this: any) {
 					this.on("currencies.id", "=", "currency_pivots.currency_id").andOn("currency_pivots.language_code", "=", knex.raw("?", [language]))
 				})
+				.leftJoin("activity_galleries", "activities.id", "activity_galleries.activity_id")
+				.whereNull("activity_galleries.deleted_at")
+				.limit(1)
 				.select(
 					"activities.id",
 					"activities.highlight",
@@ -59,6 +62,7 @@ class ActivityModel extends BaseModel {
 					"activities.approval_period",
 					"activities.duration",
 					"activity_pivots.title",
+					"activity_galleries.image_url",
 					knex.raw(`
 							CASE
 								WHEN activity_packages.constant_price = true THEN
@@ -104,7 +108,8 @@ class ActivityModel extends BaseModel {
 					"currencies.code",
 					"activity_package_prices.start_date",
 					"activity_package_prices.end_date",
-					"activity_packages.id"
+					"activity_packages.id",
+					"activity_galleries.image_url"
 				)
 				.orderBy("activities.created_at", "desc")
 
