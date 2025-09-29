@@ -71,6 +71,7 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
 
   // Visa Payment Routes
   fastify.post("/user/visa", {
+		preHandler: [authUserMiddleware],
     handler: visaPayment.createPaymentIntent,
   });
 

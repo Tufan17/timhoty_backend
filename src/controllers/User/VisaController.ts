@@ -94,9 +94,10 @@ export default class VisaController {
 			// visa packages içinde visa_package_prices'ı bul ve ata
 			allvisaPackages.forEach((item: any) => {
 				let visa_package_price = allvisaPackagePrices.filter((price: any) => price.visa_package_id === item.id)
-
-				if (date) {
-					item.visa_package_price = visa_package_price.find((price: any) => price.start_date <= new Date(date) && price.end_date >= new Date(date))
+				if(item.constant_price){
+					item.visa_package_price =visa_package_price.length > 0 ? visa_package_price[0] : null;
+				}else if (date) {
+					item.visa_package_price = visa_package_price.find((price: any) => price.date <= new Date(date) && price.date >= new Date(date))
 				} else {
 					// en düşük fiyatlı olanı ata
 					item.visa_package_price = visa_package_price.reduce((lowest: any, current: any) => {
