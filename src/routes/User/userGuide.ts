@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify"
-import UserGuideController from "../../controllers/Admin/UserGuideController"
+import UserGuideController from "../../controllers/User/UserGuideController"
 
 // import { makeAuditLogger } from "../../middlewares/logMiddleware"
 // import UserGuideModel from "@/models/UserGuideModel"
@@ -16,5 +16,8 @@ export default async function userGuideRoutes(fastify: FastifyInstance) {
 
 	fastify.get("/", {
 		handler: userGuideController.findAll,
+	})
+	fastify.get("/:id", {
+		handler: userGuideController.findOne,
 	})
 }
