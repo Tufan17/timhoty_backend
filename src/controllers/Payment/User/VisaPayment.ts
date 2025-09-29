@@ -233,8 +233,38 @@ class UserVisaPayment {
         });
       }
 
+      // charge_id kontrolü
+      if (!charge_id) {
+        return res.status(400).send({
+          success: false,
+          message: "Charge ID is required",
+        });
+      }
+
+      // charge bilgisini al
       const charge = await tapPaymentsService.getCharge(charge_id);
 
+      const reservationModel = new VisaReservationModel();
+
+      // rezervasyon bilgisini al
+      const reservation = await reservationModel.getReservationByPaymentId(
+        charge_id
+      );
+
+      // rezervasyon bulunamadıysa hata dön
+      if (!reservation) {
+        return res.status(400).send({
+          success: false,
+          message: "Reservation not found",
+        });
+      }
+
+      // charge status CAPTURED ise rezervasyonu güncelle
+      if(charge.status === "CAPTURED"){
+        await reservationModel.update(reservation.id, {status:true});
+      }
+
+      // rezervasyon bilgisini dön
       return res.status(200).send({
         success: true,
         message: "Payment status retrieved successfully",

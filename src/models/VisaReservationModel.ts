@@ -7,21 +7,21 @@ class VisaReservationModel extends BaseModel {
   }
 
   static columns = [
-    'id',
-    'visa_id',
-    'package_id',
-    'created_by',
-    'sales_partner_id',
-    'progress_id',
-    'price',
-    'currency_code',
-    'payment_id',
-    'different_invoice',
-    'status',
-    'date',
-    'created_at',
-    'updated_at',
-    'deleted_at',
+    "id",
+    "visa_id",
+    "package_id",
+    "created_by",
+    "sales_partner_id",
+    "progress_id",
+    "price",
+    "currency_code",
+    "payment_id",
+    "different_invoice",
+    "status",
+    "date",
+    "created_at",
+    "updated_at",
+    "deleted_at",
   ];
 
   async getReservationByVisaId(visaId: string) {
@@ -63,9 +63,9 @@ class VisaReservationModel extends BaseModel {
     return await knex("visa_reservations")
       .where("id", id)
       .whereNull("deleted_at")
-      .update({ 
+      .update({
         payment_id: paymentId,
-        updated_at: new Date() 
+        updated_at: new Date(),
       });
   }
 
@@ -73,24 +73,43 @@ class VisaReservationModel extends BaseModel {
     return await knex("visa_reservations")
       .where("id", id)
       .whereNull("deleted_at")
-      .update({ 
+      .update({
         status: status,
-        updated_at: new Date() 
+        updated_at: new Date(),
       });
   }
 
   async getReservationWithDetails(reservationId: string) {
     return await knex("visa_reservations")
       .leftJoin("visas", "visa_reservations.visa_id", "visas.id")
-      .leftJoin("visa_pivots", function() {
-        this.on("visas.id", "=", "visa_pivots.visa_id")
-          .andOn("visa_pivots.language_code", "=", "en");
+      .leftJoin("visa_pivots", function () {
+        this.on("visas.id", "=", "visa_pivots.visa_id").andOn(
+          "visa_pivots.language_code",
+          "=",
+          "en"
+        );
       })
-      .leftJoin("visa_packages", "visa_reservations.package_id", "visa_packages.id")
-      .leftJoin("visa_package_prices", "visa_packages.id", "visa_package_prices.visa_package_id")
-      .leftJoin("currencies", "visa_package_prices.currency_id", "currencies.id")
+      .leftJoin(
+        "visa_packages",
+        "visa_reservations.package_id",
+        "visa_packages.id"
+      )
+      .leftJoin(
+        "visa_package_prices",
+        "visa_packages.id",
+        "visa_package_prices.visa_package_id"
+      )
+      .leftJoin(
+        "currencies",
+        "visa_package_prices.currency_id",
+        "currencies.id"
+      )
       .leftJoin("users", "visa_reservations.created_by", "users.id")
-      .leftJoin("sales_partners", "visa_reservations.sales_partner_id", "sales_partners.id")
+      .leftJoin(
+        "sales_partners",
+        "visa_reservations.sales_partner_id",
+        "sales_partners.id"
+      )
       .select(
         "visa_reservations.*",
         "visa_pivots.title as visa_title",
@@ -107,18 +126,41 @@ class VisaReservationModel extends BaseModel {
       .first();
   }
 
-  async getReservationsWithDetails(where?: any, limit?: number, offset?: number) {
+  async getReservationsWithDetails(
+    where?: any,
+    limit?: number,
+    offset?: number
+  ) {
     let query = knex("visa_reservations")
       .leftJoin("visas", "visa_reservations.visa_id", "visas.id")
-      .leftJoin("visa_pivots", function() {
-        this.on("visas.id", "=", "visa_pivots.visa_id")
-          .andOn("visa_pivots.language_code", "=", "en");
+      .leftJoin("visa_pivots", function () {
+        this.on("visas.id", "=", "visa_pivots.visa_id").andOn(
+          "visa_pivots.language_code",
+          "=",
+          "en"
+        );
       })
-      .leftJoin("visa_packages", "visa_reservations.package_id", "visa_packages.id")
-      .leftJoin("visa_package_prices", "visa_packages.id", "visa_package_prices.visa_package_id")
-      .leftJoin("currencies", "visa_package_prices.currency_id", "currencies.id")
+      .leftJoin(
+        "visa_packages",
+        "visa_reservations.package_id",
+        "visa_packages.id"
+      )
+      .leftJoin(
+        "visa_package_prices",
+        "visa_packages.id",
+        "visa_package_prices.visa_package_id"
+      )
+      .leftJoin(
+        "currencies",
+        "visa_package_prices.currency_id",
+        "currencies.id"
+      )
       .leftJoin("users", "visa_reservations.created_by", "users.id")
-      .leftJoin("sales_partners", "visa_reservations.sales_partner_id", "sales_partners.id")
+      .leftJoin(
+        "sales_partners",
+        "visa_reservations.sales_partner_id",
+        "sales_partners.id"
+      )
       .select(
         "visa_reservations.*",
         "visa_pivots.title as visa_title",
@@ -177,13 +219,12 @@ class VisaReservationModel extends BaseModel {
       total: total?.total || 0,
       active: active?.active || 0,
       pending: pending?.pending || 0,
-      with_payment: withPayment?.with_payment || 0
+      with_payment: withPayment?.with_payment || 0,
     };
   }
 
   // user reservation visa adını istiyorum şehir ve ülkenin adı da olacak ve kaç kişi başvurmuşsa kişi bilgileri de olsun
   async getUserReservation(userId: string, language: string) {
-    // Kullanıcıya ait rezervasyonları, visa adı, şehir, ülke ve kişi bilgileriyle birlikte getirir
     return await knex("visa_reservations")
       .select(
         "visa_reservations.*",
@@ -199,27 +240,42 @@ class VisaReservationModel extends BaseModel {
           ORDER BY visa_galleries.created_at ASC
           LIMIT 1
         ) as visa_image`),
-        knex.raw("json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) as applicants")
+        knex.raw(
+          "COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+        )
       )
       .where("visa_reservations.created_by", userId)
       .where("visa_reservations.status", true)
       .whereNull("visa_reservations.deleted_at")
-      .leftJoin("visa_pivots", function() {
-        this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id")
-          .andOn("visa_pivots.language_code", "=", knex.raw("?", [language]));
+      .leftJoin("visa_pivots", function () {
+        this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn(
+          "visa_pivots.language_code",
+          "=",
+          knex.raw("?", [language])
+        );
       })
       .leftJoin("visas", "visa_reservations.visa_id", "visas.id")
       .leftJoin("cities", "visas.location_id", "cities.id")
-      .leftJoin("city_pivots", function() {
-        this.on("cities.id", "=", "city_pivots.city_id")
-          .andOn("city_pivots.language_code", "=", knex.raw("?", [language]));
+      .leftJoin("city_pivots", function () {
+        this.on("cities.id", "=", "city_pivots.city_id").andOn(
+          "city_pivots.language_code",
+          "=",
+          knex.raw("?", [language])
+        );
       })
       .leftJoin("countries", "cities.country_id", "countries.id")
-      .leftJoin("country_pivots", function() {
-        this.on("countries.id", "=", "country_pivots.country_id")
-          .andOn("country_pivots.language_code", "=", knex.raw("?", [language]));
+      .leftJoin("country_pivots", function () {
+        this.on("countries.id", "=", "country_pivots.country_id").andOn(
+          "country_pivots.language_code",
+          "=",
+          knex.raw("?", [language])
+        );
       })
-      .leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
+      .leftJoin(
+        "visa_reservation_users",
+        "visa_reservations.id",
+        "visa_reservation_users.visa_reservation_id"
+      )
       .whereNull("visa_reservation_users.deleted_at")
       .groupBy(
         "visa_reservations.id",
@@ -247,27 +303,42 @@ class VisaReservationModel extends BaseModel {
           ORDER BY visa_galleries.created_at ASC
           LIMIT 1
         ) as visa_image`),
-        knex.raw("json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) as applicants")
+        knex.raw(
+          "COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+        )
       )
       .where("visa_reservations.id", reservationId)
       .where("visa_reservations.status", true)
       .whereNull("visa_reservations.deleted_at")
-      .leftJoin("visa_pivots", function() {
-        this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id")
-          .andOn("visa_pivots.language_code", "=", knex.raw("?", [language]));
+      .leftJoin("visa_pivots", function () {
+        this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn(
+          "visa_pivots.language_code",
+          "=",
+          knex.raw("?", [language])
+        );
       })
       .leftJoin("visas", "visa_reservations.visa_id", "visas.id")
       .leftJoin("cities", "visas.location_id", "cities.id")
-      .leftJoin("city_pivots", function() {
-        this.on("cities.id", "=", "city_pivots.city_id")
-          .andOn("city_pivots.language_code", "=", knex.raw("?", [language]));
+      .leftJoin("city_pivots", function () {
+        this.on("cities.id", "=", "city_pivots.city_id").andOn(
+          "city_pivots.language_code",
+          "=",
+          knex.raw("?", [language])
+        );
       })
       .leftJoin("countries", "cities.country_id", "countries.id")
-      .leftJoin("country_pivots", function() {
-        this.on("countries.id", "=", "country_pivots.country_id")
-          .andOn("country_pivots.language_code", "=", knex.raw("?", [language]));
+      .leftJoin("country_pivots", function () {
+        this.on("countries.id", "=", "country_pivots.country_id").andOn(
+          "country_pivots.language_code",
+          "=",
+          knex.raw("?", [language])
+        );
       })
-      .leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
+      .leftJoin(
+        "visa_reservation_users",
+        "visa_reservations.id",
+        "visa_reservation_users.visa_reservation_id"
+      )
       .whereNull("visa_reservation_users.deleted_at")
       .groupBy(
         "visa_reservations.id",

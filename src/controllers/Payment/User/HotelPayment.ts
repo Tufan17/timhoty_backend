@@ -247,7 +247,6 @@ class UserHotelPayment {
           message: "Reservation not found",
         });
       }
-      console.log(reservation);
 
       if(charge.status === "CAPTURED"){
         await reservationModel.update(reservation.id, {status:true});
