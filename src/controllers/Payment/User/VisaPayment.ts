@@ -4,6 +4,10 @@ import { tapPaymentsService } from "@/services/Payment";
 import VisaReservationModel from "@/models/VisaReservationModel";
 import VisaReservationUserModel from "@/models/VisaReservationUserModel";
 import VisaReservationInvoiceModel from "@/models/VisaReservationInvoiceModel";
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 interface CreatePaymentRequest {
   amount: number;
@@ -119,10 +123,10 @@ class UserVisaPayment {
           description ||
           `Visa application payment - ${visa_id ? `Visa ID: ${visa_id}` : ""}`,
         redirect: {
-          url: `http://localhost:5173/reservation/visa-confirmation/${booking_id}`,
+          url: `${FRONTEND_URL}/reservation/visa-confirmation/${booking_id}`,
         },
         post: {
-          url: `http://localhost:5173/reservation/visa-confirmation/${booking_id}`,
+          url: `${FRONTEND_URL}/reservation/visa-confirmation/${booking_id}`,
         },
         metadata: {
           visa_id,

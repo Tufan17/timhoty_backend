@@ -5,6 +5,10 @@ import { title } from "process";
 import HotelReservationModel from "@/models/HotelReservationModel";
 import HotelReservationInvoiceModel from "@/models/HotelReservationInvoiceModel";
 import HotelReservationUserModel from "@/models/HotelReservationUserModel";
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 interface CreatePaymentRequest {
   amount: number;
@@ -121,10 +125,10 @@ class UserHotelPayment {
           description ||
           `Hotel booking payment - ${hotel_id ? `Hotel ID: ${hotel_id}` : ""}`,
         redirect: {
-          url: `http://localhost:5173/reservation/hotel-confirmation/${booking_id}`,
+          url: `${FRONTEND_URL}/reservation/hotel-confirmation/${booking_id}`,
         },
         post: {
-          url: `http://localhost:5173/reservation/hotel-confirmation/${booking_id}`,
+          url: `${FRONTEND_URL}/reservation/hotel-confirmation/${booking_id}`,
         },
         metadata: {
           hotel_id,
