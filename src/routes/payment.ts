@@ -3,6 +3,7 @@ import UserHotelPayment from "@/controllers/Payment/User/HotelPayment";
 import UserTourPayment from "@/controllers/Payment/User/TourPayment";
 import UserCarRentalPayment from "@/controllers/Payment/User/CarRentalPayment";
 import UserVisaPayment from "@/controllers/Payment/User/VisaPayment";
+import UserActivityPayment from "@/controllers/Payment/User/ActivityPayment";
 import WebhookController from "@/controllers/Payment/WebhookController";
 import { authUserMiddleware } from "@/middlewares/authUserMiddleware";
 
@@ -12,7 +13,7 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
   const carRentalPayment = new UserCarRentalPayment();
   const visaPayment = new UserVisaPayment();
   const webhookController = new WebhookController();
-
+  const activityPayment = new UserActivityPayment();
   // Hotel Payment Routes
   fastify.post("/user/hotel", {
 		preHandler: [authUserMiddleware],
@@ -87,6 +88,26 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
   fastify.get("/user/visa/refund/:refund_id", {
     handler: visaPayment.getRefundStatus,
   });
+
+
+  // Activity Payment Routes
+  fastify.post("/user/activity", {
+    preHandler: [authUserMiddleware],
+    handler: activityPayment.createPaymentIntent,
+  });
+  
+  fastify.get("/user/activity/status/:charge_id", {
+    handler: activityPayment.getPaymentStatus,
+  });
+  
+  fastify.post("/user/activity/refund", {
+    handler: activityPayment.createRefund,
+  });
+  
+  fastify.get("/user/activity/refund/:refund_id", {
+    handler: activityPayment.getRefundStatus,
+  });
+  
 
   // Webhook Routes
   fastify.post("/webhook", {
