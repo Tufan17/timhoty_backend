@@ -276,6 +276,17 @@ export default class HotelController {
               room.start_date <= now &&
               room.end_date >= now
           );
+          
+          if (!price) {
+            // Eğer fiyat bulunamazsa, varsayılan değerler kullan
+            item.price = {
+              main_price: 0,
+              child_price: 0,
+            };
+            item.totalPrice = 0;
+            return;
+          }
+          
           item.price = {
             main_price: price.main_price,
             child_price: price.child_price,
@@ -292,7 +303,7 @@ export default class HotelController {
           }
           item.total_price = totalPrice;
           item.nights = 1;
-        }
+        } 
       });
 
       hotelRooms.forEach(async (item: any) => {

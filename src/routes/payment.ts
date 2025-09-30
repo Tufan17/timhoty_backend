@@ -37,6 +37,7 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
 
   // Tour Payment Routes
   fastify.post("/user/tour", {
+    preHandler: [authUserMiddleware],
     handler: tourPayment.createPaymentIntent,
   });
 

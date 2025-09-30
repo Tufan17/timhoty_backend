@@ -86,6 +86,9 @@ export default class TourController {
 				.select("tour_departure_points.id", "tour_departure_points.location_id", "tour_departure_points.tour_id", "country_pivots.country_id as country_id", "city_pivots.name as city_name", "country_pivots.name as country_name")
 
 			// Group departure points by tour_id
+
+			
+
 			const departurePointsByTourId = allTourDeparturePoints.reduce((acc: Record<string, any[]>, point: any) => {
 				if (!acc[point.tour_id]) {
 					acc[point.tour_id] = []

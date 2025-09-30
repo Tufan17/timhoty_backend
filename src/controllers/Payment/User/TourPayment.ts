@@ -1,6 +1,11 @@
 import { FastifyReply } from "fastify";
 import { FastifyRequest } from "fastify";
 import { tapPaymentsService } from "@/services/Payment";
+import TourReservationModel from "@/models/TourReservationModel";
+import TourReservationInvoiceModel from "@/models/TourReservationInvoiceModel";
+import TourReservationUserModel from "@/models/TourReservationUserModel";
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 interface CreatePaymentRequest {
   amount: number;
@@ -19,6 +24,24 @@ interface CreatePaymentRequest {
   description?: string;
   redirect_url?: string;
   post_url?: string;
+  period?: string;
+  users?: {
+    tax_office_address: string;
+    title: string;
+    tax_office: string;
+    tax_number: string;
+    official: string;
+    address: string;
+    name: string;
+    surname: string;
+    birthday: string;
+    email: string;
+    phone: string;
+    type: string;
+    age: number;
+  }[];
+  different_invoice?: boolean;
+  package_id?: string;
 }
 
 interface PaymentStatusRequest {
@@ -36,10 +59,24 @@ class UserTourPayment {
   /**
    * Create a payment charge for tour booking
    */
-  async createPaymentIntent(req: FastifyRequest<{ Body: CreatePaymentRequest }>, res: FastifyReply) {
+  async createPaymentIntent(
+    req: FastifyRequest<{ Body: CreatePaymentRequest }>,
+    res: FastifyReply
+  ) {
     try {
-      const { amount, currency = 'USD', customer, tour_id, booking_id, description, redirect_url, post_url } = req.body;
-
+      const {
+        amount,
+        currency = "USD",
+        customer,
+        tour_id,
+        booking_id,
+        description,
+        period,
+        users,
+        different_invoice,
+        package_id,
+      } = req.body;
+      const user = (req as any).user;
       // Validate required fields
       if (!amount || amount <= 0) {
         return res.status(400).send({
@@ -55,6 +92,20 @@ class UserTourPayment {
         });
       }
 
+      if (!tour_id) {
+        return res.status(400).send({
+          success: false,
+          message: "Tour ID is required",
+        });
+      }
+
+      if (!users) {
+        return res.status(400).send({
+          success: false,
+          message: "Müşteri bilgileri eksik",
+        });
+      }
+
       // Create charge request
       const chargeRequest = {
         amount: Math.round(amount * 100), // Convert to smallest currency unit
@@ -63,20 +114,79 @@ class UserTourPayment {
           first_name: customer.first_name,
           last_name: customer.last_name,
           email: customer.email,
-          phone: customer.phone
+          phone: customer.phone,
         },
-        description: description || `Tour booking payment - ${tour_id ? `Tour ID: ${tour_id}` : ''}`,
-        redirect: redirect_url ? { url: redirect_url } : undefined,
-        post: post_url ? { url: post_url } : undefined,
+        description:
+          description ||
+          `Tour payment - ${tour_id ? `Tour ID: ${tour_id}` : ""}`,
+        redirect: {
+          url: `${FRONTEND_URL}/reservation/tour-confirmation/${booking_id}`,
+        },
+        post: {
+          url: `${FRONTEND_URL}/reservation/tour-confirmation/${booking_id}`,
+        },
         metadata: {
           tour_id,
           booking_id,
-          payment_type: 'tour_booking',
-          created_at: new Date().toISOString()
-        }
+          payment_type: "tour_booking",
+          created_at: new Date().toISOString(),
+        },
       };
 
-      const paymentIntent = await tapPaymentsService.createCharge(chargeRequest);
+      const paymentIntent = await tapPaymentsService.createCharge(
+        chargeRequest
+      );
+      const reservationModel = new TourReservationModel();
+
+      const existingReservation = await reservationModel.exists({
+        progress_id: booking_id,
+      });
+
+      if (!existingReservation) {
+        const body_form = {
+          payment_id: paymentIntent.id,
+          created_by: user.id,
+          different_invoice: different_invoice,
+          tour_id: tour_id,
+          package_id: package_id,
+          status: false,
+          progress_id: booking_id,
+          period: period || new Date().toISOString().split('T')[0], // Use current date if not provided
+          price: Number(amount) * 100,
+          currency_code: currency,
+        };
+        const reservation = await reservationModel.create(body_form);
+
+        const body_invoice = {
+          tour_reservation_id: reservation.id,
+          tax_office: different_invoice ? users?.[0]?.tax_office_address : "",
+          title: different_invoice ? users?.[0]?.title : user.name_surname,
+          tax_number: different_invoice ? users?.[0]?.tax_number : "",
+          payment_id: paymentIntent.id,
+          official: different_invoice ? users?.[0]?.official : "individual",
+          address: different_invoice ? users?.[0]?.address : "",
+        };
+
+        const invoiceModel = new TourReservationInvoiceModel();
+        const invoice = await invoiceModel.create(body_invoice);
+
+        if (users && users.length > 0) {
+          for (const user of users) {
+            const body_user = {
+              tour_reservation_id: reservation.id,
+              name: user.name,
+              surname: user.surname,
+              birthday: user.birthday,
+              email: user.email,
+              phone: user.phone,
+              type: user.type,
+              age: user.age,
+            };
+            const userModel = new TourReservationUserModel();
+            await userModel.create(body_user);
+          }
+        }
+      }
 
       return res.status(200).send({
         success: true,
@@ -88,16 +198,17 @@ class UserTourPayment {
           currency: paymentIntent.currency,
           redirect_url: paymentIntent.redirect?.url,
           payment_url: paymentIntent.transaction?.url, // Tap Payments URL'si transaction.url'de
-          created_at: paymentIntent.created ? new Date(paymentIntent.created * 1000).toISOString() : new Date().toISOString()
-        }
+          created_at: paymentIntent.created
+            ? new Date(paymentIntent.created * 1000).toISOString()
+            : new Date().toISOString(),
+        },
       });
-
     } catch (error: any) {
-      console.error('Tour Payment Error:', error);
+      console.error("Tour Payment Error:", error);
       return res.status(500).send({
         success: false,
         message: "Payment intent creation failed",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -117,7 +228,20 @@ class UserTourPayment {
       }
 
       const charge = await tapPaymentsService.getCharge(charge_id);
+      const reservationModel = new TourReservationModel();
+      const reservation = await reservationModel.getReservationByPaymentId(
+        charge_id
+      );
+      if (!reservation) {
+        return res.status(400).send({
+          success: false,
+          message: "Reservation not found",
+        });
+      }
 
+      if(charge.status === "CAPTURED"){
+        await reservationModel.update(reservation.id, {status:true});
+      }
       return res.status(200).send({
         success: true,
         message: "Payment status retrieved successfully",
