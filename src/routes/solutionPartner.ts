@@ -49,6 +49,7 @@ import activityPackageOpportunityRoutes from "./SolutionPartner/Activity/activit
 import activityPackageHourRoutes from "./SolutionPartner/Activity/activityPackageHour"
 import workerRoutes from "./SolutionPartner/Worker/worker"
 import hotelReservationRoutes from "./SolutionPartner/Reservation/hotelReservation"
+import visaReservationRoutes from "./SolutionPartner/Reservation/visaReservation"
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(countryRoutes, { prefix: "/countries" })
@@ -136,4 +137,8 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	// HOTEL RESERVATION ROUTES
 	// ===========================================
 	fastify.register(hotelReservationRoutes, { prefix: "/hotel-reservations" })
+	// ===========================================
+	// VISA RESERVATION ROUTES
+	// ===========================================
+	fastify.register(visaReservationRoutes, { prefix: "/visa-reservations" })
 }
