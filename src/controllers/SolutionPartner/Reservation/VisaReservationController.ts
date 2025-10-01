@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
 
-export default class HotelReservationController {
+export default class VisaReservationController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const {
@@ -9,7 +9,7 @@ export default class HotelReservationController {
 				limit = 10,
 				search = "",
 				status,
-				hotel_id,
+				visa_id,
 				start_date,
 				end_date,
 			} = req.query as {
@@ -17,7 +17,7 @@ export default class HotelReservationController {
 				limit: number
 				search: string
 				status?: boolean
-				hotel_id?: string
+				visa_id?: string
 				start_date?: string
 				end_date?: string
 			}
@@ -34,17 +34,16 @@ export default class HotelReservationController {
 				})
 			}
 
-			// Base query - solution partner'a ait otellerin rezervasyonları
-			const base = knex("hotel_reservations")
-				.whereNull("hotel_reservations.deleted_at")
-				.leftJoin("hotels", "hotel_reservations.hotel_id", "hotels.id")
-				.where("hotels.solution_partner_id", solutionPartnerId)
-				.where("hotel_reservations.status", true)
-				.whereNull("hotels.deleted_at")
-				.leftJoin("hotel_pivots", function () {
-					this.on("hotel_reservations.hotel_id", "=", "hotel_pivots.hotel_id").andOn("hotel_pivots.language_code", "=", knex.raw("?", [language]))
+			const base = knex("visa_reservations")
+				.whereNull("visa_reservations.deleted_at")
+				.leftJoin("visas", "visa_reservations.visa_id", "visas.id")
+				.where("visas.solution_partner_id", solutionPartnerId)
+				.where("visa_reservations.status", true)
+				.whereNull("visas.deleted_at")
+				.leftJoin("visa_pivots", function () {
+					this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("cities", "hotels.location_id", "cities.id")
+				.leftJoin("cities", "visas.location_id", "cities.id")
 				.leftJoin("city_pivots", function () {
 					this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -54,21 +53,21 @@ export default class HotelReservationController {
 				})
 				.modify(qb => {
 					// Filtreler
-					if (typeof status !== "undefined") qb.where("hotel_reservations.status", status)
-					if (hotel_id) qb.where("hotel_reservations.hotel_id", hotel_id)
-					if (start_date) qb.where("hotel_reservations.start_date", ">=", start_date)
-					if (end_date) qb.where("hotel_reservations.end_date", "<=", end_date)
+					if (typeof status !== "undefined") qb.where("visa_reservations.status", status)
+					if (visa_id) qb.where("visa_reservations.visa_id", visa_id)
+					if (start_date) qb.where("visa_reservations.created_at", ">=", start_date)
+					if (end_date) qb.where("visa_reservations.created_at", "<=", end_date)
 
 					if (search) {
 						const like = `%${search}%`
 						qb.andWhere(w => {
-							w.where("hotel_pivots.name", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("hotel_reservations.id", "ilike", like)
+							w.where("visa_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("visa_reservations.id", "ilike", like).orWhere("visa_reservations.progress_id", "ilike", like)
 						})
 					}
 				})
 
 			// Toplam sayım
-			const countRow = await base.clone().clearSelect().clearOrder().count<{ total: string }>("hotel_reservations.id as total").first()
+			const countRow = await base.clone().clearSelect().clearOrder().count<{ total: string }>("visa_reservations.id as total").first()
 
 			const total = Number(countRow?.total ?? 0)
 			const totalPages = Math.ceil(total / Number(limit))
@@ -76,13 +75,31 @@ export default class HotelReservationController {
 			// Veri seçimi - misafir bilgileri ile birlikte
 			const data = await base
 				.clone()
-				.select("hotel_reservations.progress_id", "hotel_reservations.id", "hotel_reservations.status", "hotel_reservations.start_date", "hotel_reservations.end_date", "hotel_reservations.price", "hotel_reservations.currency_code", "hotel_reservations.check_in_date", "hotel_pivots.name as hotel_name", "city_pivots.name as hotel_city", "country_pivots.name as hotel_country")
-				// .leftJoin("hotel_reservation_users", "hotel_reservations.id", "hotel_reservation_users.hotel_reservation_id")
-				// .whereNull("hotel_reservation_users.deleted_at")
-				.groupBy("hotel_reservations.id", "hotel_pivots.name", "city_pivots.name", "country_pivots.name")
-				.orderBy("hotel_reservations.created_at", "desc")
+				.select(
+					"visa_reservations.progress_id",
+					"visa_reservations.id",
+					"visa_reservations.status",
+					"visa_reservations.created_at",
+					"visa_reservations.price",
+					"visa_reservations.currency_code",
+					"visa_pivots.title as visa_title",
+					"city_pivots.name as visa_city",
+					"country_pivots.name as visa_country"
+					// Vize fotoğrafı için subquery
+					// 	knex.raw(`(
+					//   SELECT image_url
+					//   FROM visa_galleries
+					//   WHERE visa_galleries.visa_id = visa_reservations.visa_id
+					//   AND visa_galleries.deleted_at IS NULL
+					//   ORDER BY visa_galleries.created_at ASC
+					//   LIMIT 1
+					// ) as visa_image`)
+				)
+				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
+				.orderBy("visa_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
+			console.log(data)
 
 			const formattedData = data.map((item: any) => {
 				let locale = "en-US" // varsayılan
@@ -111,11 +128,8 @@ export default class HotelReservationController {
 				}
 				return {
 					...item,
-					hotel_location: `${item.hotel_country || ""}, ${item.hotel_city || ""}`.trim(),
-					start_date_formatted: item.start_date ? new Date(item.start_date).toLocaleDateString(locale) : null,
-					end_date_formatted: item.end_date ? new Date(item.end_date).toLocaleDateString(locale) : null,
-					// Eğer check_in_date varsa onu da formatla
-					check_in_date_formatted: item.check_in_date ? new Date(item.check_in_date).toLocaleDateString(locale) : null,
+					visa_location: `${item.visa_country || ""}, ${item.visa_city || ""}`.trim(),
+					created_at_formatted: item.created_at ? new Date(item.created_at).toLocaleDateString(locale) : null,
 					price_formatted: formatPrice(item.price, item.currency_code),
 				}
 			})
@@ -153,32 +167,32 @@ export default class HotelReservationController {
 				})
 			}
 
-			const reservation = await knex("hotel_reservations")
+			const reservation = await knex("visa_reservations")
 				.select(
-					"hotel_reservations.*",
-					"hotel_pivots.name as hotel_name",
-					"city_pivots.name as hotel_city",
-					"country_pivots.name as hotel_country",
+					"visa_reservations.*",
+					"visa_pivots.title as visa_title",
+					"city_pivots.name as visa_city",
+					"country_pivots.name as visa_country",
 					// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
 					knex.raw(`(
 						SELECT image_url
-						FROM hotel_galleries
-						WHERE hotel_galleries.hotel_id = hotel_reservations.hotel_id
-						AND hotel_galleries.deleted_at IS NULL
-						ORDER BY hotel_galleries.created_at ASC
+						FROM visa_galleries
+						WHERE visa_galleries.visa_id = visa_reservations.visa_id
+						AND visa_galleries.deleted_at IS NULL
+						ORDER BY visa_galleries.created_at ASC
 						LIMIT 1
-					) as hotel_image`),
-					knex.raw("json_agg(DISTINCT jsonb_build_object('id', hotel_reservation_users.id, 'name', hotel_reservation_users.name, 'surname', hotel_reservation_users.surname, 'email', hotel_reservation_users.email, 'phone', hotel_reservation_users.phone, 'type', hotel_reservation_users.type,'age', hotel_reservation_users.age)) as guests")
+					) as visa_image`),
+					knex.raw("COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests")
 				)
-				.where("hotel_reservations.id", id)
-				.whereNull("hotel_reservations.deleted_at")
-				.leftJoin("hotels", "hotel_reservations.hotel_id", "hotels.id")
-				.where("hotels.solution_partner_id", solutionPartnerId)
-				.whereNull("hotels.deleted_at")
-				.leftJoin("hotel_pivots", function () {
-					this.on("hotel_reservations.hotel_id", "=", "hotel_pivots.hotel_id").andOn("hotel_pivots.language_code", "=", knex.raw("?", [language]))
+				.where("visa_reservations.id", id)
+				.whereNull("visa_reservations.deleted_at")
+				.leftJoin("visas", "visa_reservations.visa_id", "visas.id")
+				.where("visas.solution_partner_id", solutionPartnerId)
+				.whereNull("visas.deleted_at")
+				.leftJoin("visa_pivots", function () {
+					this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("cities", "hotels.location_id", "cities.id")
+				.leftJoin("cities", "visas.location_id", "cities.id")
 				.leftJoin("city_pivots", function () {
 					this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -186,9 +200,9 @@ export default class HotelReservationController {
 				.leftJoin("country_pivots", function () {
 					this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("hotel_reservation_users", "hotel_reservations.id", "hotel_reservation_users.hotel_reservation_id")
-				.whereNull("hotel_reservation_users.deleted_at")
-				.groupBy("hotel_reservations.id", "hotel_pivots.name", "city_pivots.name", "country_pivots.name")
+				.leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
+				.whereNull("visa_reservation_users.deleted_at")
+				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
 				.first()
 
 			if (!reservation) {
@@ -227,10 +241,8 @@ export default class HotelReservationController {
 			// Veriyi formatla
 			const formattedReservation = {
 				...reservation,
-				hotel_location: `${reservation.hotel_country || ""}, ${reservation.hotel_city || ""}`.trim(),
-				start_date_formatted: reservation.start_date ? new Date(reservation.start_date).toLocaleDateString(locale) : null,
-				end_date_formatted: reservation.end_date ? new Date(reservation.end_date).toLocaleDateString(locale) : null,
-				check_in_date_formatted: reservation.check_in_date ? new Date(reservation.check_in_date).toLocaleDateString(locale) : null,
+				visa_location: `${reservation.visa_country || ""}, ${reservation.visa_city || ""}`.trim(),
+				created_at_formatted: reservation.created_at ? new Date(reservation.created_at).toLocaleDateString(locale) : null,
 				price_formatted: formatPrice(reservation.price, reservation.currency_code),
 				guest_count: reservation.guests?.length || 0,
 			}
