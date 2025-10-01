@@ -266,7 +266,7 @@ export default class TourController {
 			})
 
 			const updatedTour = await new TourModel().oneToMany(id, "tour_pivots", "tour_id")
-			console.log(updatedTour)
+			// console.log(updatedTour)
 
 			return res.status(200).send({
 				success: true,

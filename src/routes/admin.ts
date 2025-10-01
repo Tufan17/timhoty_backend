@@ -45,6 +45,8 @@ import visaRoutes from "./Admin/visa"
 import hotelReservationRoutes from "./Admin/hotelReservation"
 import visaReservationRoutes from "./Admin/visaReservation"
 import activityReservationRoutes from "./Admin/activityReservation"
+import carRentalReservationRoutes from "./Admin/carRentalReservation"
+import tourReservationRoutes from "./Admin/tourReservation"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -128,4 +130,12 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ACTIVITY RESERVATION ROUTES
 	// ===========================================
 	fastify.register(activityReservationRoutes, { prefix: "/activity-reservations" })
+	// ===========================================
+	// CAR RENTAL RESERVATION ROUTES
+	// ===========================================
+	fastify.register(carRentalReservationRoutes, { prefix: "/car-rental-reservations" })
+	// ===========================================
+	// TOUR RESERVATION ROUTES
+	// ===========================================
+	fastify.register(tourReservationRoutes, { prefix: "/tour-reservations" })
 }

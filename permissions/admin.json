@@ -36,5 +36,7 @@
 	"activity-types",
 	"visa-reservations",
 	"hotel-reservations",
-	"activity-reservations"
+	"activity-reservations",
+	"car-rental-reservations",
+	"tour-reservations"
 ]

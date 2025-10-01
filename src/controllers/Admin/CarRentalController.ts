@@ -214,7 +214,7 @@ export default class CarRentalController {
 				const prices = await knex("car_rental_package_prices").where("car_rental_package_prices.car_rental_package_id", pkg.id).whereNull("car_rental_package_prices.deleted_at").leftJoin("currencies", "car_rental_package_prices.currency_id", "currencies.id").select("car_rental_package_prices.*", "currencies.code as currency_code", "currencies.symbol as currency_symbol")
 				pkg.prices = prices
 			}
-			console.log(carRentalPackages)
+			// console.log(carRentalPackages)
 
 			carRental.car_rental_packages = carRentalPackages
 

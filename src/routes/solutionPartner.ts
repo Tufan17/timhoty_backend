@@ -51,6 +51,8 @@ import workerRoutes from "./SolutionPartner/Worker/worker"
 import hotelReservationRoutes from "./SolutionPartner/Reservation/hotelReservation"
 import visaReservationRoutes from "./SolutionPartner/Reservation/visaReservation"
 import activityReservationRoutes from "./SolutionPartner/Reservation/activityReservation"
+import carRentalReservationRoutes from "./SolutionPartner/Reservation/carRentalReservation"
+import tourReservationRoutes from "./SolutionPartner/Reservation/tourReservation"
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(countryRoutes, { prefix: "/countries" })
@@ -146,4 +148,12 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	// ACTIVITY RESERVATION ROUTES
 	// ===========================================
 	fastify.register(activityReservationRoutes, { prefix: "/activity-reservations" })
+	// ===========================================
+	// CAR RENTAL RESERVATION ROUTES
+	// ===========================================
+	fastify.register(carRentalReservationRoutes, { prefix: "/car-rental-reservations" })
+	// ===========================================
+	// TOUR RESERVATION ROUTES
+	// ===========================================
+	fastify.register(tourReservationRoutes, { prefix: "/tour-reservations" })
 }
