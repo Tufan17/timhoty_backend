@@ -3,6 +3,7 @@ import ReservationModel from "@/models/HotelReservationModel";
 import VisaReservationModel from "@/models/VisaReservationModel";
 import TourReservationModel from "@/models/TourReservationModel";
 import ActivityReservationModel from "@/models/ActivityReservationModel";
+import CarRentalReservationModel from "@/models/CarRentalReservationModel";
 
 export default class ReservationController {
   async index(req: FastifyRequest, res: FastifyReply) {
@@ -11,7 +12,7 @@ export default class ReservationController {
     const visaReservationModel = new VisaReservationModel();
     const tourReservationModel = new TourReservationModel();
     const activityReservationModel = new ActivityReservationModel();
-
+    const carRentalReservationModel = new CarRentalReservationModel();
     let reservations:any[]=[];
 
     const hotelReservations = await reservationModel.getUserReservation(
@@ -34,10 +35,15 @@ export default class ReservationController {
       (req as any).language
     );
 
+    const carRentalReservations = await carRentalReservationModel.getUserReservation(
+      req.user?.id as string,
+      (req as any).language
+    );
+
 // birleştir ve sırala ama bi tip ekle yani hotel mi visa mi tour mu activity mi
-    reservations = [...hotelReservations, ...visaReservations, ...tourReservations, ...activityReservations].map((reservation) => ({
+    reservations = [...hotelReservations, ...visaReservations, ...tourReservations, ...activityReservations, ...carRentalReservations].map((reservation) => ({
       ...reservation,
-      type: reservation.hotel_id ? "hotel" : reservation.visa_id ? "visa" : reservation.tour_id ? "tour" : "activity",
+      type: reservation.hotel_id ? "hotel" : reservation.visa_id ? "visa" : reservation.tour_id ? "tour" : reservation.activity_id ? "activity" : reservation.car_rental_id ? "car_rental" : "other",
     }));
 
     reservations = reservations.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -63,7 +69,7 @@ export default class ReservationController {
       const visaReservationModel = new VisaReservationModel();
       const tourReservationModel = new TourReservationModel();
       const activityReservationModel = new ActivityReservationModel();
-
+      const carRentalReservationModel = new CarRentalReservationModel();
       // Try to find the reservation in hotel reservations first
       let reservation = await reservationModel.getUserReservationById(
         id,
@@ -89,6 +95,14 @@ export default class ReservationController {
       // If not found in tour reservations, try activity reservations
       if (!reservation) {
         reservation = await activityReservationModel.getUserReservationById(
+          id,
+          (req as any).language
+        );
+      }
+
+      // If not found in activity reservations, try car rental reservations
+      if (!reservation) {
+        reservation = await carRentalReservationModel.getUserReservationById(
           id,
           (req as any).language
         );

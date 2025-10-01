@@ -56,6 +56,7 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
 
   // Car Rental Payment Routes
   fastify.post("/user/car-rental", {
+    preHandler: [authUserMiddleware],
     handler: carRentalPayment.createPaymentIntent,
   });
 

@@ -98,7 +98,7 @@ class UserVisaPayment {
         });
       }
 
-      if (!activity_id) {
+      if (!activity_id || activity_id.trim() === "") {
         return res.status(400).send({
           success: false,
           message: "Activity ID is required",
@@ -109,6 +109,20 @@ class UserVisaPayment {
         return res.status(400).send({
           success: false,
           message: "Müşteri bilgileri eksik",
+        });
+      }
+
+      if (!package_id || package_id.trim() === "") {
+        return res.status(400).send({
+          success: false,
+          message: "Package ID is required",
+        });
+      }
+
+      if (!hour_id || hour_id.trim() === "") {
+        return res.status(400).send({
+          success: false,
+          message: "Hour ID is required",
         });
       }
 
