@@ -55,6 +55,8 @@ class VisaModel extends BaseModel {
       const query = knex("visas")
         .whereNull("visas.deleted_at")
         .where("visas.highlight", isHighlighted)
+        .where("visas.status", true)
+        .where("visas.admin_approval", true)
         .innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
         .where("visa_pivots.language_code", language)
         .whereNull("visa_pivots.deleted_at")

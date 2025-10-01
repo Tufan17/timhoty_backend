@@ -60,6 +60,8 @@ class HotelModel extends BaseModel {
       const query = knex("hotels")
         .whereNull("hotels.deleted_at")
         .where("hotels.highlight", isHighlighted)
+        .where("hotels.status", true)
+        .where("hotels.admin_approval", true)
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
         .where("hotel_pivots.language_code", language)
         .whereNull("hotel_pivots.deleted_at")

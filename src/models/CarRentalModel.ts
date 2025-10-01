@@ -60,6 +60,8 @@ class CarRentalModel extends BaseModel {
       const query = knex("car_rentals")
         .whereNull("car_rentals.deleted_at")
         .where("car_rentals.highlight", isHighlighted)
+        .where("car_rentals.status", true)
+        .where("car_rentals.admin_approval", true)
         .innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
         .where("car_rental_pivots.language_code", language)
         .whereNull("car_rental_pivots.deleted_at")

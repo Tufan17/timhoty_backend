@@ -56,6 +56,8 @@ class TourModel extends BaseModel {
       const query = knex("tours")
         .whereNull("tours.deleted_at")
         .where("tours.highlight", isHighlighted)
+        .where("tours.status", true)
+        .where("tours.admin_approval", true)
         .innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
         .where("tour_pivots.language_code", language)
         .whereNull("tour_pivots.deleted_at")

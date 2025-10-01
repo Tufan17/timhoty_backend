@@ -64,8 +64,8 @@ export default class HotelController {
 
       const countQuery = knex("hotels")
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
-        // .where("hotels.status", true)
-        // .where("hotels.admin_approval", true)
+        .where("hotels.status", true)
+        .where("hotels.admin_approval", true)
 
         .whereNull("hotels.deleted_at")
         .where("hotel_pivots.language_code", language)
@@ -85,8 +85,8 @@ export default class HotelController {
 
       let hotel = await knex("hotels")
         .whereNull("hotels.deleted_at")
-        // .where("hotels.status", true)
-        // .where("hotels.admin_approval", true)
+        .where("hotels.status", true)
+        .where("hotels.admin_approval", true)
         .innerJoin("hotel_pivots", function () {
           this.on("hotels.id", "hotel_pivots.hotel_id").andOn(
             "hotel_pivots.language_code",

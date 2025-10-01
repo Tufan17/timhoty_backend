@@ -11,8 +11,8 @@ export default class VisaController {
 			// Count query: get the total number of visas matching the filters
 			const countQuery = knex("visas")
 				.innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-				// .where("visas.status", true)
-				// .where("visas.admin_approval", true)
+				.where("visas.status", true)
+				.where("visas.admin_approval", true)
 				.whereNull("visas.deleted_at")
 				.where("visa_pivots.language_code", language)
 				.modify(function (queryBuilder) {
@@ -27,8 +27,8 @@ export default class VisaController {
 
 			let visas = await knex("visas")
 				.whereNull("visas.deleted_at")
-				// .where("visas.status", true)
-				// .where("visas.admin_approval", true)
+				.where("visas.status", true)
+				.where("visas.admin_approval", true)
 				.innerJoin("visa_pivots", function () {
 					this.on("visas.id", "visa_pivots.visa_id").andOn("visa_pivots.language_code", knex.raw("?", [language]))
 				})

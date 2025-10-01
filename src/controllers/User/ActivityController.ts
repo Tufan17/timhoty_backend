@@ -11,8 +11,8 @@ export default class ActivityController {
 
 			const countQuery = knex("activities")
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
-				// .where("activities.status", true)
-				// .where("activities.admin_approval", true)
+				 .where("activities.status", true)
+				 .where("activities.admin_approval", true)
 
 				.whereNull("activities.deleted_at")
 				.where("activity_pivots.language_code", language)
@@ -32,8 +32,8 @@ export default class ActivityController {
 
 			let activities = await knex("activities")
 				.whereNull("activities.deleted_at")
-				// .where("activities.status", true)
-				// .where("activities.admin_approval", true)
+				.where("activities.status", true)
+				.where("activities.admin_approval", true)
 				.innerJoin("activity_pivots", function () {
 					this.on("activities.id", "activity_pivots.activity_id").andOn("activity_pivots.language_code", knex.raw("?", [language]))
 				})
@@ -232,6 +232,8 @@ export default class ActivityController {
 			const results = await knex("activities")
 				.where("activities.id", id)
 				.whereNull("activities.deleted_at")
+				.where("activities.status", true)
+				.where("activities.admin_approval", true)
 
 				// Activity bilgileri
 				.innerJoin("activity_pivots", function () {

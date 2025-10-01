@@ -12,8 +12,8 @@ export default class car_rentalController {
 
 			const countQuery = knex("car_rentals")
 				.innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
-				// .where("car_rentals.status", true)
-				// .where("car_rentals.admin_approval", true)
+				.where("car_rentals.status", true)
+				.where("car_rentals.admin_approval", true)
 
 				.whereNull("car_rentals.deleted_at")
 				.where("car_rental_pivots.language_code", language)
@@ -36,8 +36,8 @@ export default class car_rentalController {
 
 			let car_rentals = await knex("car_rentals")
 				.whereNull("car_rentals.deleted_at")
-				// .where("car_rentals.status", true)
-				// .where("car_rentals.admin_approval", true)
+				 .where("car_rentals.status", true)
+				 .where("car_rentals.admin_approval", true)
 				.innerJoin("car_rental_pivots", function () {
 					this.on("car_rentals.id", "car_rental_pivots.car_rental_id").andOn("car_rental_pivots.language_code", knex.raw("?", [language]))
 				})

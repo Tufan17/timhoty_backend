@@ -32,6 +32,8 @@ class ActivityModel extends BaseModel {
 			const query = knex("activities")
 				.whereNull("activities.deleted_at")
 				.where("activities.highlight", isHighlighted)
+				.where("activities.status", true)
+				.where("activities.admin_approval", true)
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
 				.where("activity_pivots.language_code", language)
 				.whereNull("activity_pivots.deleted_at")

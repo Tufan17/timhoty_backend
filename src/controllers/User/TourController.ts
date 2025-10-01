@@ -10,8 +10,8 @@ export default class TourController {
 
 			const countQuery = knex("tours")
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
-				// .where("tours.status", true)
-				// .where("tours.admin_approval", true)
+				.where("tours.status", true)
+				.where("tours.admin_approval", true)
 
 				.whereNull("tours.deleted_at")
 				.where("tour_pivots.language_code", language)
@@ -28,8 +28,8 @@ export default class TourController {
 
 			let tours = await knex("tours")
 				.whereNull("tours.deleted_at")
-				// .where("tours.status", true)
-				// .where("tours.admin_approval", true)
+				.where("tours.status", true)
+				.where("tours.admin_approval", true)
 				.innerJoin("tour_pivots", function () {
 					this.on("tours.id", "tour_pivots.tour_id").andOn("tour_pivots.language_code", knex.raw("?", [language]))
 				})
