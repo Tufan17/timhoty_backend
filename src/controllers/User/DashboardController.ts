@@ -118,4 +118,23 @@ export default class DashboardController {
 			})
 		}
 	}
+
+	async blogs(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const language = (req as any).language
+			const blogModel = new BlogModel()
+			const blogs = await blogModel.getDashboardBlogs(language,8)
+			return res.status(200).send({
+				success: true,
+				message: "Blogs fetched successfully",
+				data: blogs,
+			})
+		} catch (error) {
+			console.error("Blogs error:", error)
+			return res.status(500).send({
+				success: false,
+				message: "Blogs fetch failed",
+			})
+		}
+	}
 }

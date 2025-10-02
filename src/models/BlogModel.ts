@@ -51,7 +51,8 @@ class BlogModel extends BaseModel {
         "blogs.id",
         "blogs.created_at", 
         "blog_pivots.title",
-        "blog_pivots.description"
+        "blog_pivots.description",
+        "blogs. "
       )
       .orderBy("blogs.created_at", "desc");
 
