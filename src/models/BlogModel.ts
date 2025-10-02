@@ -44,6 +44,7 @@ class BlogModel extends BaseModel {
     const query = knex("blogs")
       .whereNull("blogs.deleted_at")
       .where("blogs.highlight", isHighlighted)
+      .where("blogs.status", true)
       .leftJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id")
       .where("blog_pivots.language_code", language)
       .whereNull("blog_pivots.deleted_at")

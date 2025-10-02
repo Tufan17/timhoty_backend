@@ -6,28 +6,68 @@ class CampaignModel extends BaseModel {
     super("campaigns");
   }
   static columns = [
-    'id',
-    'start_date',
-    'end_date',
-    'photo_url',
-    'service_type',
-    'status',
-    'created_at',
-    'updated_at',
-    'deleted_at',
+    "id",
+    "start_date",
+    "end_date",
+    "photo_url",
+    "service_type",
+    "status",
+    "created_at",
+    "updated_at",
+    "deleted_at",
   ];
 
-  async getDashboardCampaigns(language: string, limit: number = 4): Promise<any[]> {
+  async getDashboardCampaigns(
+    language: string,
+    limit: number = 4
+  ): Promise<any[]> {
     try {
+      // Get highlighted campaigns with priority
+      const highlightedCampaigns = await this.getCampaigns(language, limit, true);
+
+      // If we need more campaigns, get non-highlighted ones
+      if (highlightedCampaigns.length < limit) {
+        const remainingCount = limit - highlightedCampaigns.length;
+        const additionalCampaigns = await this.getCampaigns(
+          language,
+          remainingCount,
+          false
+        );
+        return [...highlightedCampaigns, ...additionalCampaigns];
+      }
+
+      return highlightedCampaigns.slice(0, limit);
+    } catch (error) {
+      console.error("Error fetching dashboard campaigns:", error);
+      return [];
+    }
+  }
+
+  async getCampaigns(
+    language: string,
+    limit: number = 4,
+    highlight: boolean = false
+  ): Promise<any[]> {
+    try {
+      // tarihi geçmiş kampanyalar gelmesin
+      const now = new Date();
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD formatında bugünün tarihi
       return await knex("campaigns")
         .whereNull("campaigns.deleted_at")
-        .innerJoin("campaign_pivots", "campaigns.id", "campaign_pivots.campaign_id")
+        .where("campaigns.highlight", highlight)
+        .where("campaigns.status", true)
+        .where("campaigns.end_date", ">=", today)
+        .innerJoin(
+          "campaign_pivots",
+          "campaigns.id",
+          "campaign_pivots.campaign_id"
+        )
         .where("campaign_pivots.language_code", language)
         .whereNull("campaign_pivots.deleted_at")
         .select(
           "campaigns.id",
           "campaigns.start_date",
-          "campaigns.end_date", 
+          "campaigns.end_date",
           "campaigns.photo_url",
           "campaign_pivots.title",
           "campaign_pivots.description"
@@ -35,19 +75,37 @@ class CampaignModel extends BaseModel {
         .orderBy("campaigns.created_at", "desc")
         .limit(limit);
     } catch (error) {
-      console.error('Error fetching dashboard campaigns:', error);
+      console.error("Error fetching dashboard campaigns:", error);
       return [];
     }
   }
 
-  async getCampaignsPaginated(language: string, page: number = 1, limit: number = 4,service_type: string = ""): Promise<{campaigns: any[], total: number, totalPages: number,service_type?: string}> {
+  async getCampaignsPaginated(
+    language: string,
+    page: number = 1,
+    limit: number = 4,
+    service_type: string = ""
+  ): Promise<{
+    campaigns: any[];
+    total: number;
+    totalPages: number;
+    service_type?: string;
+  }> {
     try {
       const campaigns = await knex("campaigns")
         .whereNull("campaigns.deleted_at")
-        .innerJoin("campaign_pivots", "campaigns.id", "campaign_pivots.campaign_id")
+        .innerJoin(
+          "campaign_pivots",
+          "campaigns.id",
+          "campaign_pivots.campaign_id"
+        )
         .where("campaign_pivots.language_code", language)
         .whereNull("campaign_pivots.deleted_at")
-        .select("campaigns.*", "campaign_pivots.title", "campaign_pivots.description")
+        .select(
+          "campaigns.*",
+          "campaign_pivots.title",
+          "campaign_pivots.description"
+        )
         .where(function () {
           if (service_type) {
             this.where("campaigns.service_type", service_type);
@@ -59,7 +117,11 @@ class CampaignModel extends BaseModel {
 
       const [{ count: total }] = await knex("campaigns")
         .whereNull("campaigns.deleted_at")
-        .innerJoin("campaign_pivots", "campaigns.id", "campaign_pivots.campaign_id")
+        .innerJoin(
+          "campaign_pivots",
+          "campaigns.id",
+          "campaign_pivots.campaign_id"
+        )
         .where("campaign_pivots.language_code", language)
         .whereNull("campaign_pivots.deleted_at")
         .where(function () {
@@ -73,20 +135,27 @@ class CampaignModel extends BaseModel {
 
       return { campaigns, total: Number(total), totalPages };
     } catch (error) {
-      console.error('Error fetching paginated campaigns:', error);
+      console.error("Error fetching paginated campaigns:", error);
       return { campaigns: [], total: 0, totalPages: 0 };
     }
   }
-
 
   async getCampaignById(language: string, id: string): Promise<any> {
     return await knex("campaigns")
       .where("campaigns.id", id)
       .whereNull("campaigns.deleted_at")
-      .innerJoin("campaign_pivots", "campaigns.id", "campaign_pivots.campaign_id")
+      .innerJoin(
+        "campaign_pivots",
+        "campaigns.id",
+        "campaign_pivots.campaign_id"
+      )
       .where("campaign_pivots.language_code", language)
       .whereNull("campaign_pivots.deleted_at")
-      .select("campaigns.*", "campaign_pivots.title", "campaign_pivots.description")
+      .select(
+        "campaigns.*",
+        "campaign_pivots.title",
+        "campaign_pivots.description"
+      )
       .first();
   }
 }

@@ -310,7 +310,11 @@
     "EMAIL_SUBSCRIPTION_CANCELED_SUCCESS": "Email subscription canceled successfully",
     "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "Email subscription cancel failed",
     "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "Email subscription reactivated successfully",
-    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "Email subscription reactivation failed"
+    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "Email subscription reactivation failed",
+    "EMAIL_SUBSCRIPTION_TITLE": "Timhoty Email Subscription",
+    "EMAIL_SUBSCRIPTION_DESCRIPTION": "Email subscription created successfully.",
+    "TITLE": "Eposta Aboneliği",
+    "DESCRIPTION": "Eposta aboneliği başarıyla oluşturuldu."
   },
   "HOTEL": {
     "HOTEL_FETCHED_SUCCESS": "Hotels fetched successfully",

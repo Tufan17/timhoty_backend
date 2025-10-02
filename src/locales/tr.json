@@ -313,7 +313,9 @@
     "EMAIL_SUBSCRIPTION_CANCELED_SUCCESS": "E-posta aboneliği başarıyla iptal edildi",
     "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "E-posta aboneliği iptal edilirken hata oluştu",
     "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "E-posta aboneliği başarıyla yeniden etkinleştirildi",
-    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "E-posta aboneliği yeniden etkinleştirilirken hata oluştu"
+    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "E-posta aboneliği yeniden etkinleştirilirken hata oluştu",
+    "TITLE": "Timhoty E-posta Aboneliği",
+    "DESCRIPTION": "E-posta aboneliği başarıyla oluşturuldu."
   },
   "HOTEL": {
     "HOTEL_FETCHED_SUCCESS": "Otel başarıyla getirildi",

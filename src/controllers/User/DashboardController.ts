@@ -8,6 +8,8 @@ import CarRentalModel from "@/models/CarRentalModel";
 import VisaModel from "@/models/VisaModel";
 import FaqModel from "@/models/FaqModel";
 import ActivityModel from "@/models/ActivityModel";
+import EmailSubscriptionModel from "@/models/EmailSubscriptionModel";
+import sendMail from "@/utils/mailer";
 
 export default class DashboardController {
   async index(req: FastifyRequest, res: FastifyReply) {
@@ -166,6 +168,51 @@ export default class DashboardController {
       return res.status(500).send({
         success: false,
         message: "Blogs fetch failed",
+      });
+    }
+  }
+
+  async subscription(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language;
+      const { email } = req.body as { email: string };
+      const subscriptionModel = new EmailSubscriptionModel();
+
+      const existingSubscription = await subscriptionModel.first({
+        email: email,
+      });
+
+      if (existingSubscription) {
+        return res.status(400).send({
+          success: false,
+          message: req.t(
+            "EMAIL_SUBSCRIPTION.EMAIL_SUBSCRIPTION_ALREADY_EXISTS"
+          ),
+        });
+      }
+
+
+
+      sendMail(email,req.t(
+            "EMAIL_SUBSCRIPTION.TITLE"
+          ), req.t(
+            "EMAIL_SUBSCRIPTION.DESCRIPTION"
+          ));
+      const subscription = await subscriptionModel.create({
+        email: email,
+        language_code: language,
+        is_canceled: false,
+      });
+      return res.status(200).send({
+        success: true,
+        message: req.t("EMAIL_SUBSCRIPTION.EMAIL_SUBSCRIPTION_CREATED_SUCCESS"),
+        data: subscription,
+      });
+    } catch (error) {
+      console.error("Subscription error:", error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("EMAIL_SUBSCRIPTION.EMAIL_SUBSCRIPTION_CREATED_ERROR"),
       });
     }
   }

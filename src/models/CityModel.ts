@@ -21,7 +21,7 @@ class CityModel extends BaseModel {
    */
   async getDashboardCities(language: string): Promise<any[]> {
  
-   const citiesId=["76ef53db-f690-4788-a71a-d15b67d632d8","7ca0cc4f-767a-40c7-beea-e981e3d80580","8e23962c-abfe-4b45-9cb0-6754480ffd8a","a1cbe96e-e576-4741-b8e6-767fa4024e96"]
+   const citiesId=["76ef53db-f690-4788-a71a-d15b67d632d8","7ca0cc4f-767a-40c7-beea-e981e3d80580","a1cbe96e-e576-4741-b8e6-767fa4024e96"]
 
     const cities = await knex("cities")
       .whereIn("cities.id", citiesId)

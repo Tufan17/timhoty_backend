@@ -33,4 +33,5 @@ export default async function userMainRoutes(fastify: FastifyInstance) {
 	fastify.register(activityRoutes, { prefix: "/activities" })
 	fastify.register(reservationRoutes, { prefix: "/reservations" })
 	fastify.register(userGuideRoutes, { prefix: "/user-guides" })
+	
 }
