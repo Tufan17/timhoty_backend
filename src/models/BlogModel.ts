@@ -44,16 +44,17 @@ class BlogModel extends BaseModel {
     const query = knex("blogs")
       .whereNull("blogs.deleted_at")
       .where("blogs.highlight", isHighlighted)
-      .innerJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id")
+      .leftJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id")
       .where("blog_pivots.language_code", language)
       .whereNull("blog_pivots.deleted_at")
       .select(
         "blogs.id",
+        "blogs.photo_url",
         "blogs.created_at", 
         "blog_pivots.title",
-        "blog_pivots.description",
-        "blogs. "
+        "blog_pivots.description"
       )
+      .groupBy("blogs.id", "blogs.photo_url", "blogs.created_at", "blog_pivots.title", "blog_pivots.description")
       .orderBy("blogs.created_at", "desc");
 
     return limit ? query.limit(limit) : query;
