@@ -13,6 +13,7 @@ import TourDeparturePointModel from "@/models/TourDeparturePointModel"
 import TourPackageFeatureModel from "@/models/TourPackageFeatureModel"
 import TourPackageModel from "@/models/TourPackageModel"
 import TourPackagePriceModel from "@/models/TourPackagePriceModel"
+import TourPackagePivotModel from "@/models/TourPackagePivotModel"
 
 export default class TourController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -464,6 +465,10 @@ export default class TourController {
 				tour_package_id: id,
 			})
 
+			let tourPackagesPivots = await new TourPackagePivotModel().exists({
+				tour_package_id: id,
+			})
+
 			const data = {
 				tour,
 				tourPackageOpportunities,
@@ -476,6 +481,7 @@ export default class TourController {
 				tourPackagesFeatures,
 				tourPackages,
 				tourPackagesPrices,
+				tourPackagesPivots,
 			}
 
 			if (tour && tourPackageOpportunities && tourGalleries && tourFeatures && tourLocations && tourPrograms && tourPackageImages && tourDeparturePoints && tourPackagesFeatures && tourPackages && tourPackagesPrices) {
