@@ -407,5 +407,16 @@
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Otel paket tarihleri çakışıyor",
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Otel paket fiyatları sayısı hatalı",
     "DATE_RANGE_ERROR": "Tarihler çakışıyor"
+  },
+  "FAVORITES": {
+    "FAVORITES_FETCHED_SUCCESS": "Favoriler başarıyla getirildi",
+    "FAVORITES_FETCHED_ERROR": "Favoriler getirilirken hata oluştu",
+    "FAVORITE_ADDED_SUCCESS": "Favori başarıyla eklendi",
+    "FAVORITE_ADDED_ERROR": "Favori eklenirken hata oluştu",
+    "FAVORITE_REMOVED_SUCCESS": "Favori başarıyla kaldırıldı",
+    "FAVORITE_REMOVED_ERROR": "Favori kaldırılırken hata oluştu",
+    "FAVORITE_TOGGLE_ERROR": "Favori değiştirilirken hata oluştu",
+    "SERVICE_NOT_FOUND": "Servis bulunamadı",
+    "FAVORITE_NOT_FOUND": "Favori bulunamadı"
   }
 }

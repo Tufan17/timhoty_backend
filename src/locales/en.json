@@ -393,5 +393,16 @@
     "HOTEL_ROOM_PACKAGE_ALREADY_EXISTS": "Hotel room package already exists",
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Hotel room package date range error",
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Hotel room package price count error"
+  },
+  "FAVORITES": {
+    "FAVORITES_FETCHED_SUCCESS": "Favorites fetched successfully",
+    "FAVORITES_FETCHED_ERROR": "Favorites fetch failed",
+    "FAVORITE_ADDED_SUCCESS": "Favorite added successfully",
+    "FAVORITE_ADDED_ERROR": "Favorite add failed",
+    "FAVORITE_REMOVED_SUCCESS": "Favorite removed successfully",
+    "FAVORITE_REMOVED_ERROR": "Favorite remove failed",
+    "FAVORITE_TOGGLE_ERROR": "Favorite toggle failed",
+    "SERVICE_NOT_FOUND": "Service not found",
+    "FAVORITE_NOT_FOUND": "Favorite not found"
   }
 }
