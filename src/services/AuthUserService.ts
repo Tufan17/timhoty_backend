@@ -134,7 +134,6 @@ export default class AuthUserService {
 				email,
 				password: passwordHash,
 				language,
-				currency_id: "57a4f07c-9d4a-4a3c-8b45-1f48707482a4",
 				avatar: "/uploads/avatar.png",
 			})
 

@@ -235,7 +235,7 @@ export default class VisaController {
 			})
 
 			const updatedVisa = await new VisaModel().oneToMany(id, "visa_pivots", "visa_id")
-			console.log(updatedVisa)
+			// console.log(updatedVisa)
 
 			return res.status(200).send({
 				success: true,

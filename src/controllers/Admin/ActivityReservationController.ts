@@ -23,7 +23,6 @@ export default class ActivityReservationController {
 				start_date?: string
 				end_date?: string
 			}
-			console.log(req.query)
 
 			const language = (req as any).language
 

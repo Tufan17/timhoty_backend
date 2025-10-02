@@ -261,7 +261,7 @@ export default class ActivityController {
 			})
 
 			const updatedActivity = await new ActivityModel().oneToMany(id, "activity_pivots", "activity_id")
-			console.log(updatedActivity)
+			// console.log(updatedActivity)
 
 			return res.status(200).send({
 				success: true,
