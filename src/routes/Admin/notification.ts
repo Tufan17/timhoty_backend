@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import NotificationController from "../../controllers/Admin/NotificationController";
 import { authAdminMiddleware } from "../../middlewares/authAdminMiddleware";
 import { makeAuditLogger } from "../../middlewares/logMiddleware";
-import { notificationSchema, notificationUpdateSchema } from "@/validators/notification";
+import { notificationSchema, notificationUpdateSchema, assignNotificationSchema } from "@/validators/notification";
 import NotificationModel from "@/models/NotificationModel";
 import { validate } from "@/middlewares/validate";
 
@@ -37,5 +37,10 @@ export default async function notificationRoutes(fastify: FastifyInstance) {
   fastify.delete("/:id", {
     preHandler: [authAdminMiddleware, notificationAuditLogger],
     handler: notificationController.delete,
+  });
+  fastify.post("/assign", {
+    preHandler: [authAdminMiddleware],
+    preValidation: [validate(assignNotificationSchema)],
+    handler: notificationController.assignToUsers,
   });
 }

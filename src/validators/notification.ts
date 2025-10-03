@@ -13,3 +13,9 @@ export const notificationUpdateSchema = Joi.object({
   title: Joi.string().optional(),
   description: Joi.string().optional(),
 });
+
+export const assignNotificationSchema = Joi.object({
+  notification_id: Joi.string().uuid().required(),
+  target_type: Joi.string().required().valid("admin", "solution_partner_users", "sale_partner_users", "users"),
+  target_ids: Joi.array().items(Joi.string().uuid()).min(1).required(),
+});

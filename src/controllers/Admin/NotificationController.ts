@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../db/knex";
 import NotificationModel from "@/models/NotificationModel";
+import UserNotificationModel from "@/models/UserNotificationModel";
 import { translateCreate } from "@/helper/translate";
 
 export default class NotificationController {
@@ -255,6 +256,69 @@ export default class NotificationController {
       return res.status(500).send({
         success: false,
         message: req.t("NOTIFICATION.NOTIFICATION_DELETED_ERROR"),
+      });
+    }
+  }
+
+  async assignToUsers(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { notification_id, target_type, target_ids } = req.body as {
+        notification_id: string;
+        target_type: string;
+        target_ids: string[];
+      };
+
+      // Check if notification exists
+      const notification = await new NotificationModel().first({ id: notification_id });
+      if (!notification) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("NOTIFICATION.NOTIFICATION_NOT_FOUND"),
+        });
+      }
+
+      // Get notification details with pivot data
+      const notificationWithPivot = await knex("notifications")
+        .innerJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+        .where("notifications.id", notification_id)
+        .where("notification_pivots.language_code", req.language)
+        .select("notifications.*", "notification_pivots.title", "notification_pivots.description")
+        .first();
+
+      const userNotificationModel = new UserNotificationModel();
+      const createdNotifications = [];
+
+      // Create user notifications for each target_id
+      for (const target_id of target_ids) {
+        const userNotificationData = {
+          notification_id,
+          target_type,
+          target_id,
+          title: notificationWithPivot?.title || null,
+          message: notificationWithPivot?.description || null,
+          link: null, // You can add link logic if needed
+          is_read: false,
+        };
+
+        const createdNotification = await userNotificationModel.create(userNotificationData);
+        createdNotifications.push(createdNotification);
+      }
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("NOTIFICATION.NOTIFICATION_ASSIGNED_SUCCESS"),
+        data: {
+          notification_id,
+          target_type,
+          assigned_count: createdNotifications.length,
+          assigned_notifications: createdNotifications,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("NOTIFICATION.NOTIFICATION_ASSIGNED_ERROR"),
       });
     }
   }

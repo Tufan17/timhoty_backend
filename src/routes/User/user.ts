@@ -21,4 +21,12 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preValidation: [validateFormData(avatarUpdateSchema)],
 		handler: updateAvatarController.updateAvatar,
 	})
+	fastify.put("/notifications", {
+		handler: userController.getAllNotifications,
+		preHandler: [authUserMiddleware],
+	})
+	fastify.put("/notifications/:id", {
+		handler: userController.readNotification,
+		preHandler: [authUserMiddleware],
+	})
 }
