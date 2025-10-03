@@ -14,6 +14,7 @@ const transporter: Transporter = nodemailer.createTransport({
 });
 
 async function sendMail(to: string, subject: string, html: string): Promise<void> {
+  console.log("Mail gönderiliyor");
   try {
     const info = await transporter.sendMail({
       from: `"Timhoty" <${process.env.SMTP_USER}>`,
