@@ -23,7 +23,8 @@
     "REGISTER_SUCCESS": "Timhoty'ye Hoşgeldiniz :)",
     "REGISTER_SUCCESS_DESCRIPTION": "Kullanıcı başarıyla oluşturuldu. teşekkür ederiz.",
     "PASSWORD_CHANGED_SUCCESS": "Şifre başarıyla değiştirildi",
-    "ELECTRONIC_CONTACT_PERMISSION_UPDATED_SUCCESS": "Elektronik iletişim izni başarıyla güncellendi"
+    "ELECTRONIC_CONTACT_PERMISSION_UPDATED_SUCCESS": "Elektronik iletişim izni başarıyla güncellendi",
+    "USER_DELETED_SUCCESS": "Kullanıcı başarıyla silindi"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Adminler başarıyla getirildi",

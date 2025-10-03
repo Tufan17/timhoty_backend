@@ -238,6 +238,29 @@ class UserController {
       });
     }
   }
+  async delete(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const userId = (req as any).user?.id;
+      const user = await new UserModel().findId(userId);
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
+      }
+      await new UserModel().delete(userId);
+      return res.status(200).send({
+        success: true,
+        message: req.t("AUTH.USER_DELETED_SUCCESS"),
+      });
+    } catch (error: any) {
+      console.error("Delete user error:", error);
+      return res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
 }
 
 export default UserController;

@@ -42,4 +42,8 @@ export default async function userRoutes(fastify: FastifyInstance) {
     preValidation: [validate(electronicContactPermissionSchema)],
     handler: userController.updateElectronicContactPermission,
   });
+  fastify.delete("/", {
+    preHandler: [authUserMiddleware],
+    handler: userController.delete,
+  });
 }

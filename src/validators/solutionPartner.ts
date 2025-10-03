@@ -93,3 +93,18 @@ export const solutionPartnerRegisterSchema = Joi.object({
   country: Joi.string().required(),
   city: Joi.string().required(),
 });
+
+export const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+export const verifyCodeSchema = Joi.object({
+  email: Joi.string().email().required(),
+  code: Joi.string().required(),
+});
+
+export const resetPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+  code: Joi.string().required(),
+  password: Joi.string().required(),
+});

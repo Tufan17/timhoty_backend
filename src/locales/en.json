@@ -1,5 +1,5 @@
 {
-  "VALIDATION_ERROR": "Validation error", 
+  "VALIDATION_ERROR": "Validation error",
   "AUTH": {
     "ADMIN_NOT_FOUND": "Admin not found",
     "INVALID_PASSWORD": "Invalid password",
@@ -23,7 +23,8 @@
     "REGISTER_SUCCESS": "Welcome to Timhoty :)",
     "REGISTER_SUCCESS_DESCRIPTION": "User created successfully. Thank you.",
     "PASSWORD_CHANGED_SUCCESS": "Password changed successfully",
-    "ELECTRONIC_CONTACT_PERMISSION_UPDATED_SUCCESS": "Electronic contact permission updated successfully"
+    "ELECTRONIC_CONTACT_PERMISSION_UPDATED_SUCCESS": "Electronic contact permission updated successfully",
+    "USER_DELETED_SUCCESS": "User deleted successfully"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Admins fetched successfully",

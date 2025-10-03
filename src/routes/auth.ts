@@ -7,7 +7,7 @@ import UserAuthController from "@/controllers/Auth/UserAuthController";
 import { AuthValidation } from "@/validators/userAuthValidation";
 import SolutionPartnerAuthController from "@/controllers/Auth/SolutionPartnerAuthController";
 import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
-import { solutionPartnerRegisterSchema } from "@/validators/solutionPartner";
+import { forgotPasswordSchema, resetPasswordSchema, solutionPartnerRegisterSchema, verifyCodeSchema } from "@/validators/solutionPartner";
 import { authUserMiddleware } from "@/middlewares/authUserMiddleware";
 
 export default async function authRoutes(fastify: FastifyInstance) {
@@ -45,6 +45,20 @@ export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post("/user/access-token-renew", {
     handler: userAuthController.accessTokenRenew,
   });
+  fastify.post("/user/forgot-password", {
+    preValidation: [validate(forgotPasswordSchema)],
+    handler: userAuthController.forgotPassword,
+  });
+  fastify.post("/user/verify-code", {
+    preValidation: [validate(verifyCodeSchema)],
+    handler: userAuthController.verifyCode,
+  });
+
+  fastify.post("/user/reset-password", {
+    preValidation: [validate(resetPasswordSchema)],
+    handler: userAuthController.resetPassword,
+  });
+
 
   // ===========================================
   // SOLUTION PARTNER AUTH ROUTES
