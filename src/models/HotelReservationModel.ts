@@ -185,44 +185,73 @@ class HotelReservationModel extends BaseModel {
 
   // user reservation ben otelin adını istiyorum şehir ve ülkenin adı da olacak ve kaç kişi kalmışsa kişi bilgileri de olsun
   async getUserReservation(userId: string, language: string) {
-    // Kullanıcıya ait rezervasyonları, otel adı, şehir, ülke ve kişi bilgileriyle birlikte getirir
     return await knex("hotel_reservations")
       .select(
         "hotel_reservations.*",
         "hotel_pivots.name as hotel_name",
         "city_pivots.name as hotel_city",
         "country_pivots.name as hotel_country",
-        // 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
+  
+        // 1 adet fotoğraf (ilk eklenen)
         knex.raw(`(
           SELECT image_url
           FROM hotel_galleries
           WHERE hotel_galleries.hotel_id = hotel_reservations.hotel_id
-          AND hotel_galleries.deleted_at IS NULL
+            AND hotel_galleries.deleted_at IS NULL
           ORDER BY hotel_galleries.created_at ASC
           LIMIT 1
-        ) as hotel_image`),
-        knex.raw("json_agg(DISTINCT jsonb_build_object('id', hotel_reservation_users.id, 'name', hotel_reservation_users.name, 'surname', hotel_reservation_users.surname, 'email', hotel_reservation_users.email, 'phone', hotel_reservation_users.phone, 'type', hotel_reservation_users.type,'age', hotel_reservation_users.age)) as guests")
+        ) AS hotel_image`),
+  
+        // Misafirler (null kaydı eklenmesin diye FILTER kullandık)
+        knex.raw(`
+          json_agg(DISTINCT jsonb_build_object(
+            'id', hotel_reservation_users.id,
+            'name', hotel_reservation_users.name,
+            'surname', hotel_reservation_users.surname,
+            'email', hotel_reservation_users.email,
+            'phone', hotel_reservation_users.phone,
+            'type', hotel_reservation_users.type,
+            'age', hotel_reservation_users.age
+          )) FILTER (WHERE hotel_reservation_users.id IS NOT NULL) AS guests
+        `),
+  
+        // Tek bir yorum (ör. en son eklenen)
+        knex.raw(`(
+          SELECT to_jsonb(c)
+          FROM comments c
+          WHERE c.reservation_id = hotel_reservations.id
+            AND c.deleted_at IS NULL
+          ORDER BY c.created_at DESC
+          LIMIT 1
+        ) AS comment`)
       )
       .where("hotel_reservations.created_by", userId)
       .where("hotel_reservations.status", true)
       .whereNull("hotel_reservations.deleted_at")
-      .leftJoin("hotel_pivots", function() {
+  
+      .leftJoin("hotel_pivots", function () {
         this.on("hotel_reservations.hotel_id", "=", "hotel_pivots.hotel_id")
           .andOn("hotel_pivots.language_code", "=", knex.raw("?", [language]));
       })
       .leftJoin("hotels", "hotel_reservations.hotel_id", "hotels.id")
       .leftJoin("cities", "hotels.location_id", "cities.id")
-      .leftJoin("city_pivots", function() {
+      .leftJoin("city_pivots", function () {
         this.on("cities.id", "=", "city_pivots.city_id")
           .andOn("city_pivots.language_code", "=", knex.raw("?", [language]));
       })
       .leftJoin("countries", "cities.country_id", "countries.id")
-      .leftJoin("country_pivots", function() {
+      .leftJoin("country_pivots", function () {
         this.on("countries.id", "=", "country_pivots.country_id")
           .andOn("country_pivots.language_code", "=", knex.raw("?", [language]));
       })
-      .leftJoin("hotel_reservation_users", "hotel_reservations.id", "hotel_reservation_users.hotel_reservation_id")
+      .leftJoin(
+        "hotel_reservation_users",
+        "hotel_reservations.id",
+        "hotel_reservation_users.hotel_reservation_id"
+      )
+      // Silinmiş misafirleri dahil etme
       .whereNull("hotel_reservation_users.deleted_at")
+  
       .groupBy(
         "hotel_reservations.id",
         "hotel_pivots.name",
@@ -231,6 +260,7 @@ class HotelReservationModel extends BaseModel {
       )
       .orderBy("hotel_reservations.created_at", "desc");
   }
+  
 
   async getUserReservationById(reservationId: string, language: string) {
     // Kullanıcıya ait rezervasyonları, otel adı, şehir, ülke ve kişi bilgileriyle birlikte getirir

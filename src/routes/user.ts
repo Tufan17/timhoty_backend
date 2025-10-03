@@ -16,6 +16,7 @@ import activityRoutes from "./User/activity"
 import reservationRoutes from "./User/reservation"
 import userGuideRoutes from "./User/userGuide"
 import favoritesRoutes from "./User/favorites"
+import commentsRoutes from "./User/comments"
 
 export default async function userMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -35,5 +36,6 @@ export default async function userMainRoutes(fastify: FastifyInstance) {
 	fastify.register(reservationRoutes, { prefix: "/reservations" })
 	fastify.register(userGuideRoutes, { prefix: "/user-guides" })
 	fastify.register(favoritesRoutes, { prefix: "/favorites" })
+	fastify.register(commentsRoutes, { prefix: "/comments" })
 	
 }
