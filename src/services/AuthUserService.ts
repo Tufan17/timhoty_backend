@@ -80,8 +80,6 @@ export default class AuthUserService {
         };
       }
 
-      console.log("user.password", user.password);
-      console.log("HashPassword(password)", HashPassword(password));
 
       if (user.password !== HashPassword(password)) {
         return {
