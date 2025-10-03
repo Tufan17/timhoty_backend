@@ -300,34 +300,39 @@ export default class TourController {
 	async update(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
-			const { tour_id, image_type, category } = req.body as {
-				tour_id?: string
-				image_type?: string
-				category?: string
+			const { night_count, day_count, refund_days, user_count, title, general_info, tour_info, refund_policy } = req.body as {
+				night_count: number
+				day_count: number
+				refund_days: number
+				user_count?: number
+				title: string
+				general_info: string
+				tour_info: string
+				refund_policy?: string
 			}
 
 			// Check if anything to update
-			if (!tour_id && !image_type && !category) {
+			if (!night_count && !day_count && !refund_days && !user_count && !title && !general_info && !tour_info && !refund_policy) {
 				return res.status(400).send({
 					success: false,
-					message: req.t("TOUR_GALLERY.NO_UPDATE_DATA"),
+					message: req.t("TOUR.NO_UPDATE_DATA"),
 				})
 			}
 
 			// Check image existence
-			const existingImage = await new TourGalleryModel().exists({ id })
+			const existingTour = await new TourModel().exists({ id })
 
-			if (!existingImage) {
+			if (!existingTour) {
 				return res.status(404).send({
 					success: false,
-					message: req.t("TOUR_GALLERY.NOT_FOUND"),
+					message: req.t("TOUR.NOT_FOUND"),
 				})
 			}
 
 			// Validate hotel if hotel_id is provided
-			if (tour_id) {
+			if (night_count || day_count || refund_days || user_count || title || general_info || tour_info || refund_policy) {
 				const tour = await new TourModel().exists({
-					id: tour_id,
+					id: id,
 				})
 
 				if (!tour) {
@@ -340,40 +345,49 @@ export default class TourController {
 
 			// Prepare update data
 			const updateData: any = {}
-			if (tour_id) updateData.tour_id = tour_id
-			if (image_type) updateData.image_type = image_type
-			if (category) updateData.category = category
+			if (night_count) updateData.night_count = night_count
+			if (day_count) updateData.day_count = day_count
+			if (refund_days) updateData.refund_days = refund_days
+			if (user_count) updateData.user_count = user_count
+			if (title) updateData.title = title
+			if (general_info) updateData.general_info = general_info
+			if (tour_info) updateData.tour_info = tour_info
+			if (refund_policy) updateData.refund_policy = refund_policy
+			updateData.admin_approval = false
 
 			// Update image
-			const updatedImage = await new TourGalleryModel().update(id, updateData)
+			const updatedTour = await new TourModel().update(id, updateData)
 
 			// Update translations if provided
-			if (category) {
-				await knex("tour_gallery_pivot").where({ tour_gallery_id: id }).update({ deleted_at: new Date() })
+			if (title || general_info || tour_info || refund_policy) {
+				await knex("tour_pivots").where({ tour_id: id }).update({ deleted_at: new Date() })
 
 				const newTranslations = await translateCreate({
-					target: "tour_gallery_pivot",
+					target: "tour_pivots",
 					target_id: id,
-					target_id_key: "tour_gallery_id",
+					target_id_key: "tour_id",
 					data: {
-						category,
+						title,
+						general_info,
+						tour_info,
+						refund_policy,
 					},
 					language_code: req.language,
 				})
 
-				updatedImage.translations = newTranslations
+				updatedTour.translations = newTranslations
 			}
 
 			return res.status(200).send({
 				success: true,
-				message: req.t("TOUR_GALLERY.UPDATED_SUCCESS"),
-				data: updatedImage,
+				message: req.t("TOUR.UPDATED_SUCCESS"),
+				data: updatedTour,
 			})
 		} catch (error) {
 			console.log(error)
 			return res.status(500).send({
 				success: false,
-				message: req.t("TOUR_GALLERY.UPDATED_ERROR"),
+				message: req.t("TOUR.UPDATED_ERROR"),
 			})
 		}
 	}

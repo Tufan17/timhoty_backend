@@ -356,6 +356,7 @@ export default class HotelController {
 				status: status !== undefined ? status : existingHotel.status,
 				highlight: highlight !== undefined ? highlight : existingHotel.highlight,
 				refund_days: refund_days !== undefined ? refund_days : existingHotel.refund_days,
+				admin_approval: false,
 			}
 
 			await new HotelModel().update(id, body)
