@@ -20,14 +20,18 @@ class UserNotificationModel extends BaseModel {
   ];
    
 
-  async userNotifications(id: string) {
+  async userNotifications(id: string, language: string) {
     return await knex("user_notifications")
       .where("user_notifications.target_id", id)
       .where("user_notifications.target_type", "users")
+      .whereNull("user_notifications.deleted_at")
       .innerJoin("notifications", "user_notifications.notification_id", "notifications.id")
+      .whereNull("notifications.deleted_at")  
+      .where("notification_pivots.language_code", language)
       .innerJoin("notification_pivots", "notifications.id", "notification_pivots.notification_id")
+      .whereNull("notification_pivots.deleted_at")
       .select("user_notifications.*", "notifications.service_type", "notifications.type", "notification_pivots.title", "notification_pivots.description")
-      .orderBy("created_at", "desc");
+      .orderBy("user_notifications.created_at", "desc");
   }
 }
 

@@ -59,40 +59,75 @@ class UserController {
 
   async getAllNotifications(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { id } = req.params as { id: string };
-      const notifications = await new UserNotificationModel().userNotifications(id);
+      const userId = (req as any).user?.id;
+      const language = (req as any).language;
+      if (!userId) {
+        return res.status(401).send({
+          success: false,
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
+      }
+
+      const notifications = await new UserNotificationModel().userNotifications(userId, language);
+      
+      return res.status(200).send({
+        success: true,
+        message: "Notifications fetched successfully",
+        data: notifications,
+      });
     } catch (error: any) {
-      return {
+      console.error("Get notifications error:", error);
+      return res.status(500).send({
         success: false,
         message: error.message,
-      };
+      });
     }
   }
 
   async readNotification(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).send({
+          success: false,
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
+      }
+
       const notification = await new UserNotificationModel().findId(id);
 
-	  if (!notification) {
-        return {
+      if (!notification) {
+        return res.status(404).send({
           success: false,
-          message: "Bildirim bulunamadı",
-        };
+          message: "Notification not found",
+        });
       }
-	  await new UserNotificationModel().update(id, {
+
+      // Check if notification belongs to this user
+      if (notification.target_id !== userId) {
+        return res.status(403).send({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      await new UserNotificationModel().update(id, {
         is_read: true,
       });
-      return {
+      
+      return res.status(200).send({
         success: true,
-        message: "Bildirim başarıyla okundu",
-        data: notification,
-      };
+        message: "Notification marked as read successfully",
+        data: { ...notification, is_read: true },
+      });
     } catch (error: any) {
-      return {
+      console.error("Read notification error:", error);
+      return res.status(500).send({
         success: false,
         message: error.message,
-      };
+      });
     }
   }
 }
