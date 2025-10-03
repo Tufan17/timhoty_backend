@@ -121,9 +121,10 @@ export default class DashboardController {
 
 	async blogs(req: FastifyRequest, res: FastifyReply) {
 		try {
+			const { service_type } = req.query as { service_type: string }
 			const language = (req as any).language
 			const blogModel = new BlogModel()
-			const blogs = await blogModel.getDashboardBlogs(language,8)
+			const blogs = await blogModel.getDashboardBlogs(language, 8, service_type)
 			return res.status(200).send({
 				success: true,
 				message: "Blogs fetched successfully",
@@ -134,6 +135,25 @@ export default class DashboardController {
 			return res.status(500).send({
 				success: false,
 				message: "Blogs fetch failed",
+			})
+		}
+	}
+	async blog(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const language = (req as any).language
+			const { id } = req.params as { id: string }
+			const blogModel = new BlogModel()
+			const blog = await blogModel.getBlogById(language, id)
+			return res.status(200).send({
+				success: true,
+				message: "Blog fetched successfully",
+				data: blog,
+			})
+		} catch (error) {
+			console.error("Blog error:", error)
+			return res.status(500).send({
+				success: false,
+				message: "Blog fetch failed",
 			})
 		}
 	}
