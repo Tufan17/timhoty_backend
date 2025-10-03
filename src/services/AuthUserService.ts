@@ -71,6 +71,17 @@ export default class AuthUserService {
 				}
 			}
 
+
+			console.log("user.password", user.password)
+			console.log("HashPassword(password)", HashPassword(password))
+
+			if (user.password !== HashPassword(password)) {
+				return {
+					success: false,
+					message: t("AUTH.INVALID_PASSWORD"),
+				}
+			}
+
 			const body = {
 				id: user.id,
 				name_surname: user.name_surname,
@@ -128,12 +139,11 @@ export default class AuthUserService {
 				}
 			}
 
-			const passwordHash = HashPassword(password)
 
 			const user = await new UserModel().create({
 				name_surname,
 				email,
-				password: passwordHash,
+				password: password,
 				language,
 				avatar: "/uploads/avatar.png",
 			})

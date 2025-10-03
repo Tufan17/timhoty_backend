@@ -1,59 +1,101 @@
 import UserModel from "@/models/UserModel";
 import { FastifyRequest, FastifyReply } from "fastify";
 import UserNotificationModel from "@/models/UserNotificationModel";
+import HashPassword from "@/utils/hashPassword";
 
 class UserController {
   async read(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
+      const userId = (req as any).user?.id;
+
+      // Check if authenticated user is reading their own account
+      if (userId !== id) {
+        return res.status(403).send({
+          success: false,
+          message: req.t("AUTH.UNAUTHORIZED"),
+        });
+      }
+
       const user = await new UserModel().findId(id);
       if (!user) {
-        return {
+        return res.status(404).send({
           success: false,
-          message: "Kullanıcı bulunamadı",
-        };
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
       }
-      return {
+
+      // Remove sensitive information before sending
+      delete user.password;
+
+      return res.status(200).send({
         success: true,
-        message: "Kullanıcı başarıyla okundu",
+        message: "User fetched successfully",
         data: user,
-      };
+      });
     } catch (error: any) {
-      return {
+      console.error("Read user error:", error);
+      return res.status(500).send({
         success: false,
         message: error.message,
-      };
+      });
     }
   }
 
   async update(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
+      const userId = (req as any).user?.id;
       const updateData = req.body as any;
-      console.log(updateData);
+
+      // Check if authenticated user is updating their own account
+      if (userId !== id) {
+        return res.status(403).send({
+          success: false,
+          message: req.t("AUTH.UNAUTHORIZED"),
+        });
+      }
 
       // Check if user exists
       const existingUser = await new UserModel().findId(id);
       if (!existingUser) {
-        return {
+        return res.status(404).send({
           success: false,
-          message: "Kullanıcı bulunamadı",
-        };
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
       }
+
+      // Clean up empty strings for date/nullable/UUID fields
+      if (updateData.birthday === "") {
+        updateData.birthday = null;
+      }
+      if (updateData.phone === "") {
+        updateData.phone = null;
+      }
+      if (updateData.currency_id === "") {
+        updateData.currency_id = null;
+      }
+
+      // Remove sensitive fields that shouldn't be updated via this endpoint
+      delete updateData.password;
+      delete updateData.email_verified;
+      delete updateData.phone_verified;
+      delete updateData.deleted_at;
 
       // Update only the fields that are provided
       const updatedUser = await new UserModel().update(id, updateData);
 
-      return {
+      return res.status(200).send({
         success: true,
-        message: "Kullanıcı başarıyla güncellendi",
+        message: req.t("USER.UPDATE_SUCCESS"),
         data: updatedUser[0], // BaseModel.update returns an array
-      };
+      });
     } catch (error: any) {
-      return {
+      console.error("Update user error:", error);
+      return res.status(500).send({
         success: false,
         message: error.message,
-      };
+      });
     }
   }
 
@@ -68,8 +110,11 @@ class UserController {
         });
       }
 
-      const notifications = await new UserNotificationModel().userNotifications(userId, language);
-      
+      const notifications = await new UserNotificationModel().userNotifications(
+        userId,
+        language
+      );
+
       return res.status(200).send({
         success: true,
         message: "Notifications fetched successfully",
@@ -88,7 +133,7 @@ class UserController {
     try {
       const { id } = req.params as { id: string };
       const userId = (req as any).user?.id;
-      
+
       if (!userId) {
         return res.status(401).send({
           success: false,
@@ -116,7 +161,7 @@ class UserController {
       await new UserNotificationModel().update(id, {
         is_read: true,
       });
-      
+
       return res.status(200).send({
         success: true,
         message: "Notification marked as read successfully",
@@ -124,6 +169,69 @@ class UserController {
       });
     } catch (error: any) {
       console.error("Read notification error:", error);
+      return res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async changePassword(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { old_password, new_password } = req.body as {
+        old_password: string;
+        new_password: string;
+      };
+      const userId = (req as any).user?.id;
+      const user = await new UserModel().findId(userId);
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
+      }
+      const isPasswordValid = await new UserModel().exists({
+        password: HashPassword(old_password),
+        id: userId,
+      });
+      if (!isPasswordValid) {
+        return res.status(400).send({
+          success: false,
+          message: req.t("AUTH.INVALID_PASSWORD"),
+        });
+      }
+      await new UserModel().update(userId, { password: new_password });
+      return res.status(200).send({
+        success: true,
+        message: req.t("AUTH.PASSWORD_CHANGED_SUCCESS"),
+      });
+    } catch (error: any) {
+      console.error("Change password error:", error);
+      return res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async updateElectronicContactPermission(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { electronic_contact_permission } = req.body as { electronic_contact_permission: boolean };
+      const userId = (req as any).user?.id;
+      const user = await new UserModel().findId(userId);
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: req.t("AUTH.USER_NOT_FOUND"),
+        });
+      }
+      await new UserModel().update(userId, { electronic_contact_permission });
+      return res.status(200).send({
+        success: true,
+        message: req.t("AUTH.ELECTRONIC_CONTACT_PERMISSION_UPDATED_SUCCESS"),
+      });
+    } catch (error: any) {
+      console.error("Update electronic contact permission error:", error);
       return res.status(500).send({
         success: false,
         message: error.message,

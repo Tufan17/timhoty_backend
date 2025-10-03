@@ -21,7 +21,9 @@
     "PROFILE_ERROR": "Profile retrieval failed",
     "USER_NOT_FOUND": "User not found",
     "REGISTER_SUCCESS": "Welcome to Timhoty :)",
-    "REGISTER_SUCCESS_DESCRIPTION": "User created successfully. Thank you."
+    "REGISTER_SUCCESS_DESCRIPTION": "User created successfully. Thank you.",
+    "PASSWORD_CHANGED_SUCCESS": "Password changed successfully",
+    "ELECTRONIC_CONTACT_PERMISSION_UPDATED_SUCCESS": "Electronic contact permission updated successfully"
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Admins fetched successfully",

@@ -39,3 +39,17 @@ export const userUpdateSchema = Joi.object({
 export const avatarUpdateSchema = Joi.object({
 	avatar: Joi.string().optional(),
 })
+export const changePasswordSchema = Joi.object({
+	old_password: Joi.string().required(),
+	new_password: Joi.string().required(),
+})
+
+export const electronicContactPermissionSchema = Joi.object({
+	electronic_contact_permission: Joi.boolean().optional(),
+	email_contact: Joi.boolean().optional(),
+	phone_contact: Joi.boolean().optional(),	
+	sms_contact: Joi.boolean().optional(),
+	push_contact: Joi.boolean().optional(),
+
+
+})
