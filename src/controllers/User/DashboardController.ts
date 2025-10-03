@@ -133,9 +133,10 @@ export default class DashboardController {
 
 	async blogs(req: FastifyRequest, res: FastifyReply) {
 		try {
+			const { service_type } = req.query as { service_type: string }
 			const language = (req as any).language
 			const blogModel = new BlogModel()
-			const blogs = await blogModel.getDashboardBlogs(language, 8)
+			const blogs = await blogModel.getDashboardBlogs(language, 8, service_type)
 			return res.status(200).send({
 				success: true,
 				message: "Blogs fetched successfully",
