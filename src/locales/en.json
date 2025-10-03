@@ -18,7 +18,10 @@
     "SOLUTION_PARTNER_NOT_ACTIVE": "Solution partner user not active",
     "SOLUTION_PARTNER_COMPANY_NOT_ACTIVE": "Solution partner company not active",
     "PROFILE_SUCCESS": "Profile retrieved successfully",
-    "PROFILE_ERROR": "Profile retrieval failed"
+    "PROFILE_ERROR": "Profile retrieval failed",
+    "USER_NOT_FOUND": "User not found",
+    "REGISTER_SUCCESS": "Welcome to Timhoty :)",
+    "REGISTER_SUCCESS_DESCRIPTION": "User created successfully. Thank you."
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Admins fetched successfully",
@@ -310,7 +313,11 @@
     "EMAIL_SUBSCRIPTION_CANCELED_SUCCESS": "Email subscription canceled successfully",
     "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "Email subscription cancel failed",
     "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "Email subscription reactivated successfully",
-    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "Email subscription reactivation failed"
+    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "Email subscription reactivation failed",
+    "EMAIL_SUBSCRIPTION_TITLE": "Timhoty Email Subscription",
+    "EMAIL_SUBSCRIPTION_DESCRIPTION": "Email subscription created successfully.",
+    "TITLE": "Eposta Aboneliği",
+    "DESCRIPTION": "Eposta aboneliği başarıyla oluşturuldu."
   },
   "HOTEL": {
     "HOTEL_FETCHED_SUCCESS": "Hotels fetched successfully",
@@ -389,5 +396,16 @@
     "HOTEL_ROOM_PACKAGE_ALREADY_EXISTS": "Hotel room package already exists",
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Hotel room package date range error",
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Hotel room package price count error"
+  },
+  "FAVORITES": {
+    "FAVORITES_FETCHED_SUCCESS": "Favorites fetched successfully",
+    "FAVORITES_FETCHED_ERROR": "Favorites fetch failed",
+    "FAVORITE_ADDED_SUCCESS": "Favorite added successfully",
+    "FAVORITE_ADDED_ERROR": "Favorite add failed",
+    "FAVORITE_REMOVED_SUCCESS": "Favorite removed successfully",
+    "FAVORITE_REMOVED_ERROR": "Favorite remove failed",
+    "FAVORITE_TOGGLE_ERROR": "Favorite toggle failed",
+    "SERVICE_NOT_FOUND": "Service not found",
+    "FAVORITE_NOT_FOUND": "Favorite not found"
   }
 }

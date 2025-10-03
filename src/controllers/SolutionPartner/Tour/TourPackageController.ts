@@ -373,7 +373,7 @@ export class TourPackageController {
         total_tax_amount,
         constant_price,
         return_acceptance_period,
-        date,
+      date,
       });
 
 

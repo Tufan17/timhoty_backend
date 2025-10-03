@@ -378,7 +378,6 @@ export default class CarRentalController {
 				solution_partner_id: solution_partner_id !== undefined ? solution_partner_id : existingCarRental.solution_partner_id,
 				status: status !== undefined ? status : existingCarRental.status,
 				highlight: highlight !== undefined ? highlight : existingCarRental.highlight,
-				admin_approval: admin_approval !== undefined ? admin_approval : existingCarRental.admin_approval,
 				car_type_id: car_type_id !== undefined ? car_type_id : existingCarRental.car_type_id,
 				gear_type_id: gear_type_id !== undefined ? gear_type_id : existingCarRental.gear_type_id,
 				user_count: user_count !== undefined ? user_count : existingCarRental.user_count,
@@ -386,6 +385,7 @@ export default class CarRentalController {
 				age_limit: age_limit !== undefined ? age_limit : existingCarRental.age_limit,
 				air_conditioning: air_conditioning !== undefined ? air_conditioning : existingCarRental.air_conditioning,
 				about_to_run_out: about_to_run_out !== undefined ? about_to_run_out : existingCarRental.about_to_run_out,
+				admin_approval: false,
 			}
 
 			await new CarRentalModel().update(id, body)

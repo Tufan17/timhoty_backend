@@ -30,7 +30,6 @@ export default class UserAuthController {
 		try {
 			const { email, password } = req.body as { email: string; password: string }
 			const user = await new AuthUserService().login(email, password, req.t)
-			console.log(user)
 			if (!user.success) {
 				return res.status(400).send({
 					success: false,
@@ -42,7 +41,7 @@ export default class UserAuthController {
 			return res.status(400).send(error.message)
 		}
 	}
-
+	
 	// User register
 	async register(req: FastifyRequest, res: FastifyReply) {
 		try {

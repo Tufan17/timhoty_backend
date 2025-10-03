@@ -1,3 +1,4 @@
+import sendMail from '@/utils/mailer';
 import UserModel from "@/models/UserModel.js"
 import HashPassword from "@/utils/hashPassword"
 import jwt from "jsonwebtoken"
@@ -145,6 +146,10 @@ export default class AuthUserService {
 				expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
 			}
 
+
+			sendMail(user.email, t("AUTH.REGISTER_SUCCESS"), t("AUTH.REGISTER_SUCCESS_DESCRIPTION"));
+
+			
 			const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "1d" })
 			const REFRESH_TOKEN = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" })
 

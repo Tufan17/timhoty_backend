@@ -19,7 +19,9 @@
     "SOLUTION_PARTNER_COMPANY_NOT_ACTIVE": "Çözüm ortağı şirketi aktif değil",
     "PROFILE_SUCCESS": "Profil başarıyla getirildi",
     "PROFILE_ERROR": "Profil getirme işlemi başarısız",
-    "USER_NOT_FOUND": "Kullanıcı bulunamadı"
+    "USER_NOT_FOUND": "Kullanıcı bulunamadı",
+    "REGISTER_SUCCESS": "Timhoty'ye Hoşgeldiniz :)",
+    "REGISTER_SUCCESS_DESCRIPTION": "Kullanıcı başarıyla oluşturuldu. teşekkür ederiz."
   },
   "ADMIN": {
     "ADMIN_FETCHED_SUCCESS": "Adminler başarıyla getirildi",
@@ -313,7 +315,9 @@
     "EMAIL_SUBSCRIPTION_CANCELED_SUCCESS": "E-posta aboneliği başarıyla iptal edildi",
     "EMAIL_SUBSCRIPTION_CANCELED_ERROR": "E-posta aboneliği iptal edilirken hata oluştu",
     "EMAIL_SUBSCRIPTION_REACTIVATED_SUCCESS": "E-posta aboneliği başarıyla yeniden etkinleştirildi",
-    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "E-posta aboneliği yeniden etkinleştirilirken hata oluştu"
+    "EMAIL_SUBSCRIPTION_REACTIVATED_ERROR": "E-posta aboneliği yeniden etkinleştirilirken hata oluştu",
+    "TITLE": "Timhoty E-posta Aboneliği",
+    "DESCRIPTION": "E-posta aboneliği başarıyla oluşturuldu."
   },
   "HOTEL": {
     "HOTEL_FETCHED_SUCCESS": "Otel başarıyla getirildi",
@@ -405,5 +409,16 @@
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Otel paket tarihleri çakışıyor",
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Otel paket fiyatları sayısı hatalı",
     "DATE_RANGE_ERROR": "Tarihler çakışıyor"
+  },
+  "FAVORITES": {
+    "FAVORITES_FETCHED_SUCCESS": "Favoriler başarıyla getirildi",
+    "FAVORITES_FETCHED_ERROR": "Favoriler getirilirken hata oluştu",
+    "FAVORITE_ADDED_SUCCESS": "Favori başarıyla eklendi",
+    "FAVORITE_ADDED_ERROR": "Favori eklenirken hata oluştu",
+    "FAVORITE_REMOVED_SUCCESS": "Favori başarıyla kaldırıldı",
+    "FAVORITE_REMOVED_ERROR": "Favori kaldırılırken hata oluştu",
+    "FAVORITE_TOGGLE_ERROR": "Favori değiştirilirken hata oluştu",
+    "SERVICE_NOT_FOUND": "Servis bulunamadı",
+    "FAVORITE_NOT_FOUND": "Favori bulunamadı"
   }
 }
