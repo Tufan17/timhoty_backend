@@ -411,6 +411,7 @@ export default class VisaController {
           approval_period != null
             ? approval_period
             : existingVisa.approval_period,
+        admin_approval: false,
       };
 
       await new VisaModel().update(id, body);
