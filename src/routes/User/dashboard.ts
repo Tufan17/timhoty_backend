@@ -4,25 +4,27 @@ import { validate } from '@/middlewares/validate'
 import { emailSubscriptionUpdateSchema } from '@/validators/emailSubscription'
 
 export default async function userRoutes(fastify: FastifyInstance) {
-  const dashboardController = new DashboardController()
-  fastify.get('/', {
-    handler: dashboardController.index
-  })
-  fastify.get('/campaign', {
-    handler: dashboardController.campaigns
-  })
-  fastify.get('/campaign/:id', {
-    handler: dashboardController.campaign
-  })
-  fastify.get('/cities', {
-    handler: dashboardController.cities
-  })
-  fastify.get('/blogs', {
-    handler: dashboardController.blogs
-  })
+	const dashboardController = new DashboardController()
+	fastify.get("/", {
+		handler: dashboardController.index,
+	})
+	fastify.get("/campaign", {
+		handler: dashboardController.campaigns,
+	})
+	fastify.get("/campaign/:id", {
+		handler: dashboardController.campaign,
+	})
+	fastify.get("/cities", {
+		handler: dashboardController.cities,
+	})
+	fastify.get("/blogs", {
+		handler: dashboardController.blogs,
+	})
+	fastify.get("/blogs/:id", {
+		handler: dashboardController.blog,
+	})
   fastify.post('/subscription', {
     preValidation: [validate(emailSubscriptionUpdateSchema)],
     handler: dashboardController.subscription
   })
-  
-  }
+}
