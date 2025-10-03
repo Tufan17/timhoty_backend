@@ -25,7 +25,7 @@ export default class CommentController {
       const commentModel = new CommentModel();
 
       // Check if user has already commented on this service
-      const hasCommented = await commentModel.hasUserCommented(service_type, service_id, userId);
+      const hasCommented = await commentModel.hasUserCommented(reservation_id,service_type, service_id, userId);
       if (hasCommented) {
         return res.status(400).send({
           success: false,

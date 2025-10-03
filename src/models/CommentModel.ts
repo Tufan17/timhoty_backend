@@ -73,8 +73,9 @@ class CommentModel extends BaseModel {
   }
 
   // Check if user has already commented on a service
-  async hasUserCommented(serviceType: string, serviceId: string, userId: string) {
+  async hasUserCommented(reservationId: string,   serviceType: string, serviceId: string, userId: string) {
     const comment = await knex("comments")
+      .where("reservation_id", reservationId)
       .where("service_type", serviceType)
       .where("service_id", serviceId)
       .where("user_id", userId)

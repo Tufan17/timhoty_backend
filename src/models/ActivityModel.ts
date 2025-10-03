@@ -145,6 +145,23 @@ class ActivityModel extends BaseModel {
 			return []
 		}
 	}
+
+	getComments(language: string, limit: number = 3): Promise<any[]> {
+		return knex("comments")
+		  .where("comments.service_type", "activity")
+		  .whereNull("comments.deleted_at")
+		  .where("comments.language_code", language)
+		  .leftJoin("users", "comments.user_id", "users.id")
+		  .leftJoin("activity_pivots", function() {
+		    this.on("comments.service_id", "activity_pivots.activity_id")
+		      .andOn("activity_pivots.language_code", knex.raw("?", [language]));
+		  })
+		  .whereNull("activity_pivots.deleted_at")
+		  .select("comments.comment as comment", "comments.created_at as created_at", "comments.rating as rating", "users.name_surname as user_name", "users.avatar as user_avatar", "activity_pivots.title as title")
+		  .orderBy("comments.created_at", "desc")
+		  .limit(limit);
+	
+	  }
 }
 
 export default ActivityModel

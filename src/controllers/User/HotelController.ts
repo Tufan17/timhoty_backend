@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "@/db/knex";
+import HotelModel from "@/models/HotelModel";
 
 // Helper function to calculate price for date range
 async function calculatePriceForDateRange(
@@ -655,6 +656,7 @@ export default class HotelController {
         galleries: [],
         opportunities: [],
         features: [],
+        comments: [],
       };
 
       // Odaları grupla ve yapılandır
@@ -828,6 +830,11 @@ export default class HotelController {
       });
 
       hotel.features = Array.from(featureMap.values()) as any;
+
+      // comments
+      const hotelModel = new HotelModel();
+      const comments = await hotelModel.getComments(language, 100);
+      hotel.comments = comments as any;
 
       return res.status(200).send({
         success: true,

@@ -161,6 +161,23 @@ class TourModel extends BaseModel {
       return [];
     }
   }
+
+  getComments(language: string, limit: number = 3): Promise<any[]> {
+    return knex("comments")
+      .where("comments.service_type", "tour")
+      .whereNull("comments.deleted_at")
+      .where("comments.language_code", language)
+      .leftJoin("users", "comments.user_id", "users.id")
+      .leftJoin("tour_pivots", function() {
+        this.on("comments.service_id", "tour_pivots.tour_id")
+          .andOn("tour_pivots.language_code", knex.raw("?", [language]));
+      })
+      .whereNull("tour_pivots.deleted_at")
+      .select("comments.comment as comment", "comments.created_at as created_at", "comments.rating as rating", "users.name_surname as user_name", "users.avatar as user_avatar", "tour_pivots.title as title")
+      .orderBy("comments.created_at", "desc")
+      .limit(limit);
+
+  }
    
 }
 

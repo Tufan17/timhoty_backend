@@ -1,5 +1,6 @@
 import BaseModel from "@/models/BaseModel";
 import knex from "@/db/knex";
+import comments from "@/routes/User/comments";
 
 class HotelModel extends BaseModel {
   constructor() {
@@ -142,6 +143,24 @@ class HotelModel extends BaseModel {
       console.error("Error fetching dashboard hotels:", error);
       return [];
     }
+  }
+
+
+  getComments(language: string, limit: number = 3): Promise<any[]> {
+    return knex("comments")
+      .where("comments.service_type", "hotel")
+      .whereNull("comments.deleted_at")
+      .where("comments.language_code", language)
+      .leftJoin("users", "comments.user_id", "users.id")
+      .leftJoin("hotel_pivots", function() {
+        this.on("comments.service_id", "hotel_pivots.hotel_id")
+          .andOn("hotel_pivots.language_code", knex.raw("?", [language]));
+      })
+      .whereNull("hotel_pivots.deleted_at")
+      .select("comments.comment as comment","comments.created_at as created_at", "comments.rating as rating", "users.name_surname as user_name", "users.avatar as user_avatar", "hotel_pivots.name as title")
+      .orderBy("comments.created_at", "desc")
+      .limit(limit);
+
   }
 }
 

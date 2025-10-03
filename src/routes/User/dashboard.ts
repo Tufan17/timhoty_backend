@@ -27,4 +27,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     preValidation: [validate(emailSubscriptionUpdateSchema)],
     handler: dashboardController.subscription
   })
+  fastify.get("/comments", {
+    handler: dashboardController.comments,
+  })
 }

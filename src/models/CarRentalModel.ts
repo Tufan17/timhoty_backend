@@ -1,5 +1,6 @@
 import BaseModel from "@/models/BaseModel";
 import knex from "@/db/knex";
+import comments from "@/routes/User/comments";
 
 class CarRentalModel extends BaseModel {
   constructor() {
@@ -162,6 +163,23 @@ class CarRentalModel extends BaseModel {
       console.error("Error fetching dashboard car rentals:", error);
       return [];
     }
+  }
+
+  getComments(language: string, limit: number = 3): Promise<any[]> {
+    return knex("comments")
+      .where("comments.service_type", "car_rental")
+      .whereNull("comments.deleted_at")
+      .where("comments.language_code", language)
+      .leftJoin("users", "comments.user_id", "users.id")
+      .leftJoin("car_rental_pivots", function() {
+        this.on("comments.service_id", "car_rental_pivots.car_rental_id")
+          .andOn("car_rental_pivots.language_code", knex.raw("?", [language]));
+      })
+      .whereNull("car_rental_pivots.deleted_at")
+      .select("comments.comment as comment", "comments.created_at as created_at", "comments.rating as rating", "users.name_surname as user_name", "users.avatar as user_avatar", "car_rental_pivots.title as title")
+      .orderBy("comments.created_at", "desc")
+      .limit(limit);
+
   }
 }
 
