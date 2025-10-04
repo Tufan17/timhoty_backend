@@ -146,12 +146,17 @@ class ActivityModel extends BaseModel {
 		}
 	}
 
-	getComments(language: string, limit: number = 3): Promise<any[]> {
+	getComments(language: string, limit: number = 3,id?:string): Promise<any[]> {
 		return knex("comments")
 		  .where("comments.service_type", "activity")
 		  .whereNull("comments.deleted_at")
 		  .where("comments.language_code", language)
 		  .leftJoin("users", "comments.user_id", "users.id")
+		  .modify(qb => {
+			if (id) {
+			  qb.where("comments.service_id", id);
+			}
+		  })
 		  .leftJoin("activity_pivots", function() {
 		    this.on("comments.service_id", "activity_pivots.activity_id")
 		      .andOn("activity_pivots.language_code", knex.raw("?", [language]));

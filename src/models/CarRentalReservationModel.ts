@@ -235,7 +235,16 @@ class CarRentalReservationModel extends BaseModel {
           ) as car_rental_image`),
           knex.raw(
             "COALESCE(json_agg(DISTINCT jsonb_build_object('id', car_rental_reservation_users.id, 'name', car_rental_reservation_users.name, 'surname', car_rental_reservation_users.surname, 'email', car_rental_reservation_users.email, 'phone', car_rental_reservation_users.phone, 'type', car_rental_reservation_users.type,'age', car_rental_reservation_users.age)) FILTER (WHERE car_rental_reservation_users.id IS NOT NULL), '[]'::json) as guests"
-          )
+          ),
+
+          knex.raw(`(
+            SELECT to_jsonb(c)
+            FROM comments c
+            WHERE c.reservation_id = car_rental_reservations.id
+              AND c.deleted_at IS NULL
+            ORDER BY c.created_at DESC
+            LIMIT 1
+          ) AS comment`)
         )
         .where("car_rental_reservations.created_by", userId)
         .where("car_rental_reservations.status", true)
@@ -314,11 +323,20 @@ class CarRentalReservationModel extends BaseModel {
           ORDER BY car_rental_galleries.created_at ASC
           LIMIT 1
         ) as car_rental_image`),
-        knex.raw(
-          "COALESCE(json_agg(DISTINCT jsonb_build_object('id', car_rental_reservation_users.id, 'name', car_rental_reservation_users.name, 'surname', car_rental_reservation_users.surname, 'email', car_rental_reservation_users.email, 'phone', car_rental_reservation_users.phone, 'type', car_rental_reservation_users.type,'age', car_rental_reservation_users.age)) FILTER (WHERE car_rental_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+          knex.raw(
+            "COALESCE(json_agg(DISTINCT jsonb_build_object('id', car_rental_reservation_users.id, 'name', car_rental_reservation_users.name, 'surname', car_rental_reservation_users.surname, 'email', car_rental_reservation_users.email, 'phone', car_rental_reservation_users.phone, 'type', car_rental_reservation_users.type,'age', car_rental_reservation_users.age)) FILTER (WHERE car_rental_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+          ),
+
+          knex.raw(`(
+            SELECT to_jsonb(c)
+            FROM comments c
+            WHERE c.reservation_id = car_rental_reservations.id
+              AND c.deleted_at IS NULL
+            ORDER BY c.created_at DESC
+            LIMIT 1
+          ) AS comment`)
         )
-      )
-      .where("car_rental_reservations.id", reservationId)
+        .where("car_rental_reservations.id", reservationId)
       .where("car_rental_reservations.status", true)
       .whereNull("car_rental_reservations.deleted_at")
       .leftJoin("car_rental_pivots", function () {

@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
 import ActivityTypeModel from "@/models/ActivityTypeModel"
+import ActivityModel from "@/models/ActivityModel"
 
 export default class ActivityController {
 	async index(req: FastifyRequest, res: FastifyReply) {
@@ -419,6 +420,7 @@ export default class ActivityController {
 				packages: [],
 				galleries: [],
 				features: [],
+				comments: [],
 			}
 
 			// grupla ve yapılandır
@@ -610,6 +612,13 @@ export default class ActivityController {
 			})
 
 			activity.features = Array.from(featureMap.values()) as any
+
+
+			const activityModel = new ActivityModel();
+			const comments = await activityModel.getComments(language, 100, id);
+			activity.comments = comments as any;
+
+
 
 			return res.status(200).send({
 				success: true,

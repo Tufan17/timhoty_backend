@@ -254,11 +254,20 @@ class ActivityReservationModel extends BaseModel {
         ORDER BY activity_galleries.created_at ASC
         LIMIT 1
       ) as activity_image`),
-      knex.raw(
-        "COALESCE(json_agg(DISTINCT jsonb_build_object('id', activity_reservation_users.id, 'name', activity_reservation_users.name, 'surname', activity_reservation_users.surname, 'email', activity_reservation_users.email, 'phone', activity_reservation_users.phone, 'type', activity_reservation_users.type,'age', activity_reservation_users.age)) FILTER (WHERE activity_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+        knex.raw(
+          "COALESCE(json_agg(DISTINCT jsonb_build_object('id', activity_reservation_users.id, 'name', activity_reservation_users.name, 'surname', activity_reservation_users.surname, 'email', activity_reservation_users.email, 'phone', activity_reservation_users.phone, 'type', activity_reservation_users.type,'age', activity_reservation_users.age)) FILTER (WHERE activity_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+        ),
+
+        knex.raw(`(
+          SELECT to_jsonb(c)
+          FROM comments c
+          WHERE c.reservation_id = activity_reservations.id
+            AND c.deleted_at IS NULL
+          ORDER BY c.created_at DESC
+          LIMIT 1
+        ) AS comment`)
       )
-    )
-    .where("activity_reservations.created_by", userId)
+      .where("activity_reservations.created_by", userId)
     .where("activity_reservations.status", true)
     .whereNull("activity_reservations.deleted_at")
     .leftJoin("activity_pivots", function () {
@@ -346,7 +355,16 @@ class ActivityReservationModel extends BaseModel {
         ) as activity_image`),
         knex.raw(
           "COALESCE(json_agg(DISTINCT jsonb_build_object('id', activity_reservation_users.id, 'name', activity_reservation_users.name, 'surname', activity_reservation_users.surname, 'email', activity_reservation_users.email, 'phone', activity_reservation_users.phone, 'type', activity_reservation_users.type,'age', activity_reservation_users.age)) FILTER (WHERE activity_reservation_users.id IS NOT NULL), '[]'::json) as guests"
-        )
+        ),
+
+        knex.raw(`(
+          SELECT to_jsonb(c)
+          FROM comments c
+          WHERE c.reservation_id = activity_reservations.id
+            AND c.deleted_at IS NULL
+          ORDER BY c.created_at DESC
+          LIMIT 1
+        ) AS comment`)
       )
       .where("activity_reservations.id", reservationId)
       .where("activity_reservations.status", true)

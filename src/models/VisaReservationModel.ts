@@ -242,7 +242,16 @@ class VisaReservationModel extends BaseModel {
         ) as visa_image`),
         knex.raw(
           "COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests"
-        )
+        ),
+
+        knex.raw(`(
+          SELECT to_jsonb(c)
+          FROM comments c
+          WHERE c.reservation_id = visa_reservations.id
+            AND c.deleted_at IS NULL
+          ORDER BY c.created_at DESC
+          LIMIT 1
+        ) AS comment`)
       )
       .where("visa_reservations.created_by", userId)
       .where("visa_reservations.status", true)
@@ -305,7 +314,16 @@ class VisaReservationModel extends BaseModel {
         ) as visa_image`),
         knex.raw(
           "COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests"
-        )
+        ),
+
+        knex.raw(`(
+          SELECT to_jsonb(c)
+          FROM comments c
+          WHERE c.reservation_id = visa_reservations.id
+            AND c.deleted_at IS NULL
+          ORDER BY c.created_at DESC
+          LIMIT 1
+        ) AS comment`)
       )
       .where("visa_reservations.id", reservationId)
       .where("visa_reservations.status", true)
