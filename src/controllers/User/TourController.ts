@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
+import TourModel from "@/models/TourModel";
 
 export default class TourController {
 	async index(req: FastifyRequest, res: FastifyReply) {
@@ -8,203 +9,341 @@ export default class TourController {
 
 			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, period, departure_point_id } = req.query as any
 
-			const countQuery = knex("tours")
+		// Toplam sayıyı al (groupBy olmadan)
+		const countResult = await knex("tours")
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
 				.where("tours.status", true)
 				.where("tours.admin_approval", true)
-
 				.whereNull("tours.deleted_at")
 				.where("tour_pivots.language_code", language)
 				.modify(function (queryBuilder) {
-					if (location_id) {
-						queryBuilder.where("tours.location_id", location_id)
-					}
+					
 					if (guest_rating) {
-						queryBuilder.where("tours.average_rating", ">=", guest_rating)
-					}
-				})
-				.groupBy("tours.id")
-				.countDistinct("tours.id as total")
-
-			let tours = await knex("tours")
-				.whereNull("tours.deleted_at")
-				.where("tours.status", true)
-				.where("tours.admin_approval", true)
-				.innerJoin("tour_pivots", function () {
-					this.on("tours.id", "tour_pivots.tour_id").andOn("tour_pivots.language_code", knex.raw("?", [language]))
-				})
-				.innerJoin("cities", "tours.location_id", "cities.id")
-				.innerJoin("country_pivots", function () {
-					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
-				})
-				.innerJoin("city_pivots", function () {
-					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
-				})
-				.modify(function (queryBuilder) {
-					if (location_id) {
-						queryBuilder.where("tours.location_id", location_id)
-					}
-					if (guest_rating) {
-						queryBuilder.where("tours.average_rating", ">=", guest_rating)
-					}
-				})
-				.leftJoin(
-					// Join only the first image per tour using lateral join
-					knex.raw(
-						`LATERAL (
-              SELECT image_url
-              FROM tour_galleries
-              WHERE tour_galleries.tour_id = tours.id
-              AND tour_galleries.deleted_at IS NULL
-              ORDER BY tour_galleries.created_at ASC
-              LIMIT 1
-            ) AS tour_gallery ON true`
-					)
-				)
-				.limit(limit)
-				.offset((page - 1) * limit)
-				.select("tours.id", "tour_pivots.title", "country_pivots.name as country_name", "city_pivots.name as city_name", "city_pivots.city_id as location_id", "country_pivots.country_id as country_id", "tours.average_rating", "tours.comment_count", "tours.refund_days", "tours.night_count", "tours.day_count", "tours.user_count", "tour_gallery.image_url")
-
-			// Get all tour departure points for all tours in one query
-			const tourIds = tours.map((tour: any) => tour.id)
-			const allTourDeparturePoints = await knex("tour_departure_points")
-				.whereIn("tour_departure_points.tour_id", tourIds)
-				.innerJoin("cities", "tour_departure_points.location_id", "cities.id")
-				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
-				.where("city_pivots.language_code", language)
-				.whereNull("city_pivots.deleted_at")
-				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-				.where("country_pivots.language_code", language)
-				.whereNull("country_pivots.deleted_at")
-				.whereNull("tour_departure_points.deleted_at")
-
-				.modify(function (queryBuilder) {
-					if (departure_point_id) {
-						queryBuilder.where("tour_departure_points.location_id", departure_point_id)
-					}
-				})
-				.select("tour_departure_points.id", "tour_departure_points.location_id", "tour_departure_points.tour_id", "country_pivots.country_id as country_id", "city_pivots.name as city_name", "country_pivots.name as country_name")
-
-			// Group departure points by tour_id
-
-			
-
-			const departurePointsByTourId = allTourDeparturePoints.reduce((acc: Record<string, any[]>, point: any) => {
-				if (!acc[point.tour_id]) {
-					acc[point.tour_id] = []
+					queryBuilder.where("tours.average_rating", ">=", guest_rating);
 				}
-				acc[point.tour_id].push(point)
-				return acc
-			}, {} as Record<string, any[]>)
-
-			// Assign departure points to tours
-			tours.forEach((tour: any) => {
-				tour.tour_departure_points = departurePointsByTourId[tour.id] || []
+				if (departure_point_id) {
+					// Sadece belirtilen başlangıç noktasına sahip turları filtrele
+					queryBuilder.whereIn("tours.id", function() {
+						this.select("tour_id")
+							.from("tour_departure_points")
+							.where("location_id", departure_point_id)
+							.whereNull("deleted_at");
+					});
+				}
 			})
+				.countDistinct("tours.id as total")
+			.first();
+		
+		const total = Number(countResult?.total ?? 0);
+		const totalPages = Math.ceil(total / limit);
 
-			// Get all tour packages for all tours in one query
+		// Tours ve ilk fotoğrafı tek sorguda al (LATERAL JOIN ile)
+		const tours = await knex("tours")
+			.innerJoin("tour_pivots", function() {
+				this.on("tours.id", "tour_pivots.tour_id")
+					.andOn("tour_pivots.language_code", knex.raw("?", [language]))
+			})
+			.whereNull("tour_pivots.deleted_at")
+			.where("tours.status", true)
+			.where("tours.admin_approval", true)
+			.whereNull("tours.deleted_at")
+			.modify(function (queryBuilder) {
+				if (location_id) {
+					// Sadece belirtilen başlangıç noktasına sahip turları filtrele
+					queryBuilder.whereIn("tours.id", function() {
+						this.select("tour_id")
+							.from("tour_locations")
+							.where("location_id", location_id)
+							.whereNull("deleted_at");
+					});
+				}
+				if (guest_rating) {
+					queryBuilder.where("tours.average_rating", ">=", guest_rating);
+				}
+				if (departure_point_id) {
+					// Sadece belirtilen başlangıç noktasına sahip turları filtrele
+					queryBuilder.whereIn("tours.id", function() {
+						this.select("tour_id")
+							.from("tour_departure_points")
+							.where("location_id", departure_point_id)
+							.whereNull("deleted_at");
+					});
+				}
+			})
+			.leftJoin(
+				knex.raw(
+					`LATERAL (
+						SELECT image_url
+						FROM tour_galleries
+						WHERE tour_galleries.tour_id = tours.id
+						AND tour_galleries.deleted_at IS NULL
+						ORDER BY tour_galleries.created_at ASC
+						LIMIT 1
+					) AS tour_gallery ON true`
+				)
+			)
+			.limit(limit)
+			.offset((page - 1) * limit)
+			.select(
+				"tours.id",
+				"tours.average_rating",
+				"tours.comment_count",
+				"tours.refund_days",
+				"tours.night_count",
+				"tours.day_count",
+				"tours.user_count",
+				"tour_pivots.title as title",
+				"tour_gallery.image_url"
+			);
+
+		// Tüm tour'ların başlangıç noktalarını tek sorguda al
+		if (tours.length > 0) {
+			const tourIds = tours.map((tour: any) => tour.id);
+			const allDeparturePoints = await knex("tour_departure_points")
+				.whereIn("tour_departure_points.tour_id", tourIds)
+				.whereNull("tour_departure_points.deleted_at")
+				.innerJoin("cities", "tour_departure_points.location_id", "cities.id")
+				.innerJoin("city_pivots", function() {
+					this.on("cities.id", "city_pivots.city_id")
+						.andOn("city_pivots.language_code", knex.raw("?", [language]))
+				})
+				.whereNull("city_pivots.deleted_at")
+				.innerJoin("country_pivots", function() {
+					this.on("cities.country_id", "country_pivots.country_id")
+						.andOn("country_pivots.language_code", knex.raw("?", [language]))
+				})
+				.whereNull("country_pivots.deleted_at")
+				.select(
+					"tour_departure_points.id",
+					"tour_departure_points.tour_id",
+					"tour_departure_points.location_id as departure_point_id",
+					"city_pivots.name as city_name",
+					"country_pivots.name as country_name",
+					"country_pivots.country_id as country_id"
+				);
+			const allLocations = await knex("tour_locations")
+				.whereIn("tour_locations.tour_id", tourIds)
+				.whereNull("tour_locations.deleted_at")
+				.innerJoin("cities", "tour_locations.location_id", "cities.id")
+				.innerJoin("city_pivots", function() {
+					this.on("cities.id", "city_pivots.city_id")
+						.andOn("city_pivots.language_code", knex.raw("?", [language]))
+				})
+				.whereNull("city_pivots.deleted_at")
+				.innerJoin("country_pivots", function() {
+					this.on("cities.country_id", "country_pivots.country_id")
+						.andOn("country_pivots.language_code", knex.raw("?", [language]))
+				})
+				.whereNull("country_pivots.deleted_at")
+				.select(
+					"tour_locations.id",
+					"tour_locations.tour_id",
+					"tour_locations.location_id",
+					"city_pivots.name as city_name",
+					"country_pivots.name as country_name",
+					"country_pivots.country_id as country_id"
+				);
+
+			// Başlangıç noktalarını tour_id'ye göre grupla
+			const departurePointsByTourId = allDeparturePoints.reduce((acc: Record<string, any[]>, point: any) => {
+				if (!acc[point.tour_id]) {
+					acc[point.tour_id] = [];
+				}
+				acc[point.tour_id].push({
+					id: point.id,
+					departure_point_id: point.departure_point_id,
+					city_name: point.city_name,
+					country_name: point.country_name,
+					country_id: point.country_id
+				});
+				return acc;
+			}, {} as Record<string, any[]>);
+
+			// Lokasyonları tour_id'ye göre grupla
+			const locationsByTourId = allLocations.reduce((acc: Record<string, any[]>, location: any) => {
+				if (!acc[location.tour_id]) {
+					acc[location.tour_id] = [];
+				}
+				acc[location.tour_id].push({
+					id: location.id,
+					location_id: location.location_id,
+					city_name: location.city_name,
+					country_name: location.country_name,
+					country_id: location.country_id
+				});
+				return acc;
+			}, {} as Record<string, any[]>);
+
+			// Başlangıç noktalarını ve lokasyonları tours'a ekle
+			tours.forEach((tour: any) => {
+				tour.tour_departure_points = departurePointsByTourId[tour.id] || [];
+				tour.tour_locations = locationsByTourId[tour.id] || [];
+			});
+
+			// Tüm tour'ların paketlerini ve fiyatlarını tek sorguda al
 			const allTourPackages = await knex("tour_packages")
 				.whereIn("tour_packages.tour_id", tourIds)
-				.innerJoin("tour_package_pivots", "tour_packages.id", "tour_package_pivots.tour_package_id")
-				.where("tour_package_pivots.language_code", language)
 				.whereNull("tour_packages.deleted_at")
-				.select("tour_packages.id", "tour_packages.tour_id", "tour_package_pivots.name", "return_acceptance_period", "discount", "total_tax_amount", "constant_price", "date")
-
-			// Group tour packages by tour_id
-			const tourPackagesByTourId = allTourPackages.reduce((acc: Record<string, any[]>, pkg: any) => {
-				if (!acc[pkg.tour_id]) {
-					acc[pkg.tour_id] = []
-				}
-				acc[pkg.tour_id].push(pkg)
-				return acc
-			}, {} as Record<string, any[]>)
-
-			// Assign tour packages to tours
-			tours.forEach((tour: any) => {
-				tour.tour_packages = tourPackagesByTourId[tour.id] || []
-			})
-
-			// Get all tour package prices in one query
-			const allTourPackageIds = allTourPackages.map((pkg: any) => pkg.id)
-			const allTourPackagePrices = await knex("tour_package_prices")
-				.whereIn("tour_package_prices.tour_package_id", allTourPackageIds)
-				.innerJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
-				.innerJoin("currency_pivots", "currencies.id", "currency_pivots.currency_id")
-				.modify(function (queryBuilder) {
-					if (period) {
-						queryBuilder.where("tour_package_prices.period", period)
-					}
+				.innerJoin("tour_package_pivots", function() {
+					this.on("tour_packages.id", "tour_package_pivots.tour_package_id")
+						.andOn("tour_package_pivots.language_code", knex.raw("?", [language]))
 				})
-				.where("currency_pivots.language_code", language)
-				.whereNull("tour_package_prices.deleted_at")
-				.select("tour_package_prices.id", "tour_package_prices.tour_package_id", "tour_package_prices.main_price", "tour_package_prices.child_price", "tour_package_prices.baby_price", "tour_package_prices.currency_id", "currency_pivots.name", "currencies.code", "currencies.symbol", "tour_package_prices.period")
+				.whereNull("tour_package_pivots.deleted_at")
+				.select(
+					"tour_packages.id",
+					"tour_packages.tour_id",
+					"tour_packages.constant_price",
+					"tour_packages.date",
+					"tour_package_pivots.name"
+				);
 
-			// Group prices by tour_package_id (only keep the first price for each package)
-			const pricesByPackageId = allTourPackagePrices.reduce((acc: Record<string, any>, price: any) => {
-				if (!acc[price.tour_package_id]) {
-					acc[price.tour_package_id] = price
-				}
-				return acc
-			}, {} as Record<string, any>)
-
-			// Assign prices to tour packages
-			tours.forEach((tour: any) => {
-				if (tour.tour_packages) {
-					// Assign prices to tour packages
-					tour.tour_packages.forEach((tourPackage: any) => {
-						tourPackage.tour_package_price = pricesByPackageId[tourPackage.id] || null
+			// Tüm paket fiyatlarını tek sorguda al
+			if (allTourPackages.length > 0) {
+				const packageIds = allTourPackages.map((pkg: any) => pkg.id);
+				const now = new Date();
+				
+				const allPackagePrices = await knex("tour_package_prices")
+					.whereIn("tour_package_prices.tour_package_id", packageIds)
+					.whereNull("tour_package_prices.deleted_at")
+					.leftJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
+					.leftJoin("currency_pivots", function() {
+						this.on("currencies.id", "currency_pivots.currency_id")
+							.andOn("currency_pivots.language_code", knex.raw("?", [language]))
 					})
+					.modify(function (queryBuilder) {
+						if (period) {
+							queryBuilder.where("tour_package_prices.period", period);
+						}
+					})
+					.select(
+						"tour_package_prices.id",
+						"tour_package_prices.tour_package_id",
+						"tour_package_prices.main_price",
+						"tour_package_prices.child_price",
+						"tour_package_prices.baby_price",
+						"tour_package_prices.start_date",
+						"tour_package_prices.end_date",
+						"tour_package_prices.period",
+						"currencies.code as currency_code",
+						"currencies.symbol as currency_symbol",
+						"currency_pivots.name as currency_name"
+					);
 
-					// Find the tour package with the lowest main_price
-					const cheapestPackage = tour.tour_packages.reduce((lowest: any, current: any) => {
-						const lowestPrice = lowest?.tour_package_price?.main_price ?? Infinity
-						const currentPrice = current?.tour_package_price?.main_price ?? Infinity
+				// Her paket için uygun fiyatı bul (constant_price veya tarihe göre)
+				const packagePriceMap: Record<string, any> = {};
+				allTourPackages.forEach((pkg: any) => {
+					const prices = allPackagePrices.filter((price: any) => price.tour_package_id === pkg.id);
+					
+					if (prices.length > 0) {
+						let selectedPrice = null;
+						
+						if (pkg.constant_price) {
+							// Sabit fiyat ise ilk fiyatı al
+							selectedPrice = prices[0];
+						} else {
+							// Tarih aralığına göre uygun fiyatı bul
+							selectedPrice = prices.find((price: any) => {
+								if (price.start_date && price.end_date) {
+									const startDate = new Date(price.start_date);
+									const endDate = new Date(price.end_date);
+									return now >= startDate && now <= endDate;
+								}
+								return true;
+							}) || prices[0];
+						}
+						
+						if (selectedPrice) {
+							packagePriceMap[pkg.id] = {
+								package_id: pkg.id,
+								package_name: pkg.name,
+								date: pkg.date,
+								main_price: selectedPrice.main_price,
+								child_price: selectedPrice.child_price,
+								baby_price: selectedPrice.baby_price,
+								period: selectedPrice.period,
+								currency_code: selectedPrice.currency_code,
+								currency_symbol: selectedPrice.currency_symbol,
+								currency_name: selectedPrice.currency_name
+							};
+						}
+					}
+				});
 
-						return currentPrice < lowestPrice ? current : lowest
-					}, null)
+			// Her tour için en ucuz paketi bul
+			tours.forEach((tour: any) => {
+				const tourPackages = allTourPackages.filter((pkg: any) => pkg.tour_id === tour.id);
+				let cheapestPackage: any = null;
+				let lowestPrice = Infinity;
 
-					// Keep only the cheapest package
-					tour.tour_packages = cheapestPackage ? cheapestPackage : null
+				tourPackages.forEach((pkg: any) => {
+					const priceInfo = packagePriceMap[pkg.id];
+					if (priceInfo && priceInfo.main_price < lowestPrice) {
+						lowestPrice = priceInfo.main_price;
+						cheapestPackage = priceInfo;
+					}
+				});
 
-					let totalPrice = tour?.tour_packages?.tour_package_price?.main_price * 1
-					tour.total_price = totalPrice
+				tour.tour_packages = cheapestPackage;
+				tour.total_price = lowestPrice !== Infinity ? lowestPrice : 0;
+				
+				// Para birimi bilgilerini tour seviyesinde de ekle
+				if (cheapestPackage) {
+					tour.currency_symbol = cheapestPackage.currency_symbol;
+					tour.currency_code = cheapestPackage.currency_code;
+					tour.currency_name = cheapestPackage.currency_name;
+				} else {
+					tour.currency_symbol = null;
+					tour.currency_code = null;
+					tour.currency_name = null;
 				}
-			})
-
-			if (isAvailable) {
-				tours = tours.filter((tour: any) => tour.tour_packages.tour_package_price.main_price > 0)
+			});
+			} else {
+				// Paket bulunamazsa tüm turlara default değerler ata
+				tours.forEach((tour: any) => {
+					tour.tour_packages = null;
+					tour.total_price = 0;
+					tour.currency_symbol = null;
+					tour.currency_code = null;
+					tour.currency_name = null;
+				});
 			}
+		}
 
-			if (min_price) {
-				tours = tours.filter((tour: any) => tour.total_price >= min_price)
-			}
-			if (max_price) {
-				tours = tours.filter((tour: any) => tour.total_price <= max_price)
-			}
+		// Fiyat filtrelemeleri uygula
+		let filteredTours = tours;
+		
+		if (isAvailable) {
+			filteredTours = filteredTours.filter((tour: any) => tour.total_price > 0);
+		}
+		
+		if (min_price) {
+			filteredTours = filteredTours.filter((tour: any) => tour.total_price >= Number(min_price));
+		}
+		
+		if (max_price) {
+			filteredTours = filteredTours.filter((tour: any) => tour.total_price <= Number(max_price));
+		}
 
-			if (arrangement === "price_increasing") {
-				tours.sort((a: any, b: any) => a.total_price - b.total_price)
-			} else if (arrangement === "price_decreasing") {
-				tours.sort((a: any, b: any) => b.total_price - a.total_price)
-			} else if (arrangement === "star_increasing") {
-				tours.sort((a: any, b: any) => a.star_rating - b.star_rating)
-			} else if (arrangement === "star_decreasing") {
-				tours.sort((a: any, b: any) => b.star_rating - a.star_rating)
-			} else if (arrangement === "rating_increasing") {
-				tours.sort((a: any, b: any) => a.average_rating - b.average_rating)
-			} else if (arrangement === "rating_decreasing") {
-				tours.sort((a: any, b: any) => b.average_rating - a.average_rating)
-			}
+		// Sıralama uygula
+		if (arrangement === "price_increasing") {
+			filteredTours.sort((a: any, b: any) => a.total_price - b.total_price);
+		} else if (arrangement === "price_decreasing") {
+			filteredTours.sort((a: any, b: any) => b.total_price - a.total_price);
+		} else if (arrangement === "rating_increasing") {
+			filteredTours.sort((a: any, b: any) => a.average_rating - b.average_rating);
+		} else if (arrangement === "rating_decreasing") {
+			filteredTours.sort((a: any, b: any) => b.average_rating - a.average_rating);
+		}
 
-			const total = await countQuery.first()
-			const totalPages = Math.ceil(total?.total ?? 0 / Number(limit))
-			return res.status(200).send({
-				success: true,
-				message: "Tours fetched successfully",
-				data: tours,
-				total: total?.total,
-				totalPages: totalPages,
-			})
+		return res.status(200).send({
+			success: true,
+			message: "Tours fetched successfully",
+			data: filteredTours,
+			limit: limit,
+			total: total,
+			currentPage: Number(page),
+			totalPages: totalPages,
+		})
 		} catch (error) {
 			console.error("Tours error:", error)
 			return res.status(500).send({
@@ -229,25 +368,31 @@ export default class TourController {
 				})
 				.whereNull("tour_pivots.deleted_at")
 
-				// Lokasyon bilgileri (tour_locations üzerinden)
-				.leftJoin("tour_locations", function () {
-					this.on("tours.id", "tour_locations.tour_id").andOnNull("tour_locations.deleted_at")
-				})
-				.leftJoin("cities", "tour_locations.location_id", "cities.id")
-				.leftJoin("country_pivots", function () {
-					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
-				})
-				.leftJoin("city_pivots", function () {
-					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
-				})
+			// Lokasyon bilgileri (tour_locations üzerinden)
+			.leftJoin("tour_locations", function () {
+				this.on("tours.id", "tour_locations.tour_id").andOnNull("tour_locations.deleted_at")
+			})
+			.leftJoin("cities as location_cities", "tour_locations.location_id", "location_cities.id")
+			.leftJoin("city_pivots as location_city_pivots", function () {
+				this.on("location_cities.id", "location_city_pivots.city_id")
+					.andOn("location_city_pivots.language_code", knex.raw("?", [language]))
+			})
+			.leftJoin("country_pivots as location_country_pivots", function () {
+				this.on("location_cities.country_id", "location_country_pivots.country_id")
+					.andOn("location_country_pivots.language_code", knex.raw("?", [language]))
+			})
 
-				// Kalkış noktaları
+			// Kalkış noktaları
 				.leftJoin("tour_departure_points", function () {
 					this.on("tours.id", "tour_departure_points.tour_id").andOnNull("tour_departure_points.deleted_at")
 				})
 				.leftJoin("cities as departure_cities", "tour_departure_points.location_id", "departure_cities.id")
 				.leftJoin("city_pivots as departure_city_pivots", function () {
 					this.on("departure_cities.id", "departure_city_pivots.city_id").andOn("departure_city_pivots.language_code", knex.raw("?", [language]))
+				})
+				.leftJoin("country_pivots as departure_country_pivots", function () {
+					this.on("departure_cities.country_id", "departure_country_pivots.country_id")
+						.andOn("departure_country_pivots.language_code", knex.raw("?", [language]))
 				})
 
 				// Gallery bilgileri
@@ -327,21 +472,25 @@ export default class TourController {
 				})
 
 				.select(
-					// Tour bilgileri
-					"tours.*",
-					"tour_pivots.title as tour_title",
-					"tour_pivots.general_info",
-					"tour_pivots.tour_info",
-					"tour_pivots.refund_policy as tour_refund_policy",
+				// Tour bilgileri
+				"tours.*",
+				"tour_pivots.title as tour_title",
+				"tour_pivots.general_info",
+				"tour_pivots.tour_info",
+				"tour_pivots.refund_policy as tour_refund_policy",
 
-					// Lokasyon bilgileri
-					"tour_locations.id as tour_location_id",
-					"country_pivots.name as country_name",
-					"city_pivots.name as city_name",
+			// Lokasyon bilgileri
+			"tour_locations.id as tour_location_id",
+			"tour_locations.location_id",
+			"location_city_pivots.name as location_city_name",
+			"location_country_pivots.name as location_country_name",
+			"location_country_pivots.country_id as location_country_id",
 
-					// Kalkış noktaları
-					"tour_departure_points.id as departure_point_id",
-					"departure_city_pivots.name as departure_city_name",
+			// Kalkış noktaları
+			"tour_departure_points.id as departure_point_id",
+			"departure_city_pivots.name as departure_city_name",
+			"departure_country_pivots.name as departure_country_name",
+			"departure_country_pivots.country_id as departure_country_id",
 
 					// Gallery bilgileri
 					"tour_galleries.id as gallery_id",
@@ -427,6 +576,7 @@ export default class TourController {
 				locations: [],
 				departure_points: [],
 				programs: [],
+				comments: [],
 			}
 
 			// grupla ve yapılandır
@@ -602,55 +752,62 @@ export default class TourController {
 
 			tour.features = Array.from(featureMap.values()) as any
 
-			const tourLocationsMap = new Map()
+		// Lokasyonları grupla
+		const tourLocationsMap = new Map()
+		results.forEach((row: any) => {
+			if (!row.tour_location_id) return
 
-			results.forEach((row: any) => {
-				if (!row.tour_location_id) return
+			if (!tourLocationsMap.has(row.tour_location_id)) {
+				tourLocationsMap.set(row.tour_location_id, {
+					id: row.tour_location_id,
+					location_id: row.location_id,
+					city_name: row.location_city_name,
+					country_name: row.location_country_name,
+					country_id: row.location_country_id,
+				})
+			}
+		})
+		tour.locations = Array.from(tourLocationsMap.values()) as any
+		
+		// Kalkış noktalarını grupla
+		const tourDeparturePointsMap = new Map()
+		results.forEach((row: any) => {
+			if (!row.departure_point_id) return
 
-				if (!tourLocationsMap.has(row.tour_location_id)) {
-					tourLocationsMap.set(row.tour_location_id, {
-						id: row.tour_location_id,
-						name: row.city_name,
-						country_name: row.country_name,
-						country_id: row.country_id,
-					})
-				}
-			})
-			tour.locations = Array.from(tourLocationsMap.values()) as any
-			const tourDeparturePointsMap = new Map()
-			results.forEach((row: any) => {
-				if (!row.departure_point_id) return
+			if (!tourDeparturePointsMap.has(row.departure_point_id)) {
+				tourDeparturePointsMap.set(row.departure_point_id, {
+					id: row.departure_point_id,
+					city_name: row.departure_city_name,
+					country_name: row.departure_country_name,
+					country_id: row.departure_country_id,
+				})
+			}
+		})
+		tour.departure_points = Array.from(tourDeparturePointsMap.values()) as any
 
-				if (!tourDeparturePointsMap.has(row.departure_point_id)) {
-					tourDeparturePointsMap.set(row.departure_point_id, {
-						id: row.departure_point_id,
-						name: row.departure_city_name,
-						country_name: row.country_name,
-						country_id: row.country_id,
-					})
-				}
-			})
-			tour.departure_points = Array.from(tourDeparturePointsMap.values()) as any
+		// Programları grupla
+		const tourProgramsMap = new Map()
+		results.forEach((row: any) => {
+			if (!row.program_id) return
 
-			const tourProgramsMap = new Map()
-			results.forEach((row: any) => {
-				if (!row.program_id) return
-
-				if (!tourProgramsMap.has(row.program_id)) {
-					tourProgramsMap.set(row.program_id, {
-						id: row.program_id,
-						title: row.program_title,
-						content: row.program_content,
-						order: row.program_order,
-					})
-				}
-			})
-			tour.programs = Array.from(tourProgramsMap.values()) as any
-			return res.status(200).send({
-				success: true,
-				message: "Tour retrieved successfully",
-				data: tour,
-			})
+			if (!tourProgramsMap.has(row.program_id)) {
+				tourProgramsMap.set(row.program_id, {
+					id: row.program_id,
+					title: row.program_title,
+					content: row.program_content,
+					order: row.program_order,
+				})
+			}
+		})
+		tour.programs = Array.from(tourProgramsMap.values()) as any
+		const tourModel = new TourModel();
+		const comments = await tourModel.getComments(language, 100, id);
+		tour.comments = comments as any;
+		return res.status(200).send({
+			success: true,
+			message: "Tour retrieved successfully",
+			data: tour,
+		})
 		} catch (error) {
 			console.error("Tour show error:", error)
 			return res.status(500).send({

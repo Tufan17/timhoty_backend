@@ -240,9 +240,39 @@ class TourReservationModel extends BaseModel {
           ORDER BY tour_galleries.created_at ASC
           LIMIT 1
         ) as tour_image`),
+        // Turun tüm lokasyonlarını getir
+        knex.raw(
+          `(
+          SELECT COALESCE(json_agg(
+            jsonb_build_object(
+              'id', tl.id,
+              'location_id', tl.location_id,
+              'city_name', cp.name,
+              'country_name', cnp.name,
+              'country_id', cnp.country_id
+            )
+          ), '[]'::json)
+          FROM tour_locations tl
+          LEFT JOIN cities c ON tl.location_id = c.id
+          LEFT JOIN city_pivots cp ON c.id = cp.city_id AND cp.language_code = ?
+          LEFT JOIN country_pivots cnp ON c.country_id = cnp.country_id AND cnp.language_code = ?
+          WHERE tl.tour_id = tour_reservations.tour_id
+          AND tl.deleted_at IS NULL
+        ) as tour_locations`,
+          [language, language]
+        ),
         knex.raw(
           "COALESCE(json_agg(DISTINCT jsonb_build_object('id', tour_reservation_users.id, 'name', tour_reservation_users.name, 'surname', tour_reservation_users.surname, 'email', tour_reservation_users.email, 'phone', tour_reservation_users.phone, 'type', tour_reservation_users.type,'age', tour_reservation_users.age)) FILTER (WHERE tour_reservation_users.id IS NOT NULL), '[]'::json) as guests"
-        )
+        ),
+
+        knex.raw(`(
+          SELECT to_jsonb(c)
+          FROM comments c
+          WHERE c.reservation_id = tour_reservations.id
+            AND c.deleted_at IS NULL
+          ORDER BY c.created_at DESC
+          LIMIT 1
+        ) AS comment`)
       )
       .where("tour_reservations.created_by", userId)
       .where("tour_reservations.status", true)
@@ -303,6 +333,27 @@ class TourReservationModel extends BaseModel {
           ORDER BY tour_galleries.created_at ASC
           LIMIT 1
         ) as tour_image`),
+        // Turun tüm lokasyonlarını getir
+        knex.raw(
+          `(
+          SELECT COALESCE(json_agg(
+            jsonb_build_object(
+              'id', tl.id,
+              'location_id', tl.location_id,
+              'city_name', cp.name,
+              'country_name', cnp.name,
+              'country_id', cnp.country_id
+            )
+          ), '[]'::json)
+          FROM tour_locations tl
+          LEFT JOIN cities c ON tl.location_id = c.id
+          LEFT JOIN city_pivots cp ON c.id = cp.city_id AND cp.language_code = ?
+          LEFT JOIN country_pivots cnp ON c.country_id = cnp.country_id AND cnp.language_code = ?
+          WHERE tl.tour_id = tour_reservations.tour_id
+          AND tl.deleted_at IS NULL
+        ) as tour_locations`,
+          [language, language]
+        ),
         knex.raw(
           "COALESCE(json_agg(DISTINCT jsonb_build_object('id', tour_reservation_users.id, 'name', tour_reservation_users.name, 'surname', tour_reservation_users.surname, 'email', tour_reservation_users.email, 'phone', tour_reservation_users.phone, 'type', tour_reservation_users.type,'age', tour_reservation_users.age)) FILTER (WHERE tour_reservation_users.id IS NOT NULL), '[]'::json) as guests"
         )

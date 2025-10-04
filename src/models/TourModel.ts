@@ -162,11 +162,16 @@ class TourModel extends BaseModel {
     }
   }
 
-  getComments(language: string, limit: number = 3): Promise<any[]> {
+  getComments(language: string, limit: number = 3,id?:string): Promise<any[]> {
     return knex("comments")
       .where("comments.service_type", "tour")
       .whereNull("comments.deleted_at")
       .where("comments.language_code", language)
+      .modify(qb => {
+        if (id) {
+          qb.where("comments.service_id", id);
+        }
+      })
       .leftJoin("users", "comments.user_id", "users.id")
       .leftJoin("tour_pivots", function() {
         this.on("comments.service_id", "tour_pivots.tour_id")

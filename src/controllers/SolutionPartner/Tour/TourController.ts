@@ -451,9 +451,7 @@ export default class TourController {
 			let tourGalleries = await new TourGalleryModel().exists({
 				tour_id: id,
 			})
-			let tourPackageOpportunities = await new TourPackageOpportunityModel().exists({
-				tour_package_id: id,
-			})
+		
 			let tourFeatures = await new TourFeatureModel().exists({
 				tour_id: id,
 			})
@@ -463,25 +461,30 @@ export default class TourController {
 			let tourPrograms = await new TourProgramModel().exists({
 				tour_id: id,
 			})
+			let tourPackages = await new TourPackageModel().first({
+				tour_id: id,
+			})
 			let tourPackageImages = await new TourPackageImageModel().exists({
-				tour_package_id: id,
+				tour_package_id: tourPackages?.id,
 			})
 			let tourDeparturePoints = await new TourDeparturePointModel().exists({
 				tour_id: id,
 			})
-			let tourPackagesFeatures = await new TourPackageFeatureModel().exists({
-				tour_package_id: id,
+			let tourPackageFeatures = await new TourPackageFeatureModel().exists({
+				tour_package_id: tourPackages?.id,
 			})
-			let tourPackages = await new TourPackageModel().exists({
-				tour_id: id,
+			let tourPackageOpportunities = await new TourPackageOpportunityModel().exists({
+				tour_package_id: tourPackages?.id,
 			})
+		
 			let tourPackagesPrices = await new TourPackagePriceModel().exists({
-				tour_package_id: id,
+				tour_package_id: tourPackages?.id,
+			})
+			let tourPackagesImages = await new TourPackageImageModel().exists({
+				tour_package_id: tourPackages?.id,
 			})
 
-			let tourPackagesPivots = await new TourPackagePivotModel().exists({
-				tour_package_id: id,
-			})
+		
 
 			const data = {
 				tour,
@@ -492,17 +495,20 @@ export default class TourController {
 				tourPrograms,
 				tourPackageImages,
 				tourDeparturePoints,
-				tourPackagesFeatures,
-				tourPackages,
+				tourPackageFeatures,
+				tourPackages: tourPackages ? true : false,
 				tourPackagesPrices,
-				tourPackagesPivots,
+				tourPackagesImages,
+				adminApproval: false,
 			}
 
-			if (tour && tourPackageOpportunities && tourGalleries && tourFeatures && tourLocations && tourPrograms && tourPackageImages && tourDeparturePoints && tourPackagesFeatures && tourPackages && tourPackagesPrices) {
+			if (tour && tourPackageOpportunities && tourGalleries && tourFeatures && tourLocations && tourPrograms && tourPackageImages && tourDeparturePoints && tourPackageFeatures && tourPackages && tourPackagesPrices && tourPackagesImages) {
 				await new TourModel().update(id, {
 					status: true,
 				})
+				data.adminApproval = true;
 			}
+
 
 			return res.status(200).send({
 				success: true,
