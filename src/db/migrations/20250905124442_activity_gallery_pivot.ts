@@ -1,7 +1,7 @@
 import type { Knex } from "knex"
 
 export async function up(knex: Knex): Promise<void> {
-	await knex.schema.createTable("activity_gallery_pivotss", table => {
+	await knex.schema.createTable("activity_gallery_pivots", table => {
 		table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"))
 		table.uuid("activity_gallery_id").references("id").inTable("activity_galleries").onDelete("CASCADE")
 		table.string("category").notNullable()

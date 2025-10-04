@@ -152,6 +152,7 @@ export default class ActivityPackageOpportunityController {
 				activity_package_id: string
 				name: string
 			}
+			console.log(activity_package_id)
 			const existActivityPackage = await new ActivityPackageModel().findId(activity_package_id)
 			if (!existActivityPackage) {
 				return res.status(400).send({

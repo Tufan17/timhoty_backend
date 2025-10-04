@@ -155,6 +155,7 @@ export default class ActivityController {
 	async findOne(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
+
 			const activity = await knex("activities").whereNull("activities.deleted_at").where("activities.id", id).select("activities.*", "activity_pivots.title as title", "activity_pivots.general_info", "activity_pivots.activity_info", "activity_pivots.refund_policy").innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id").where("activity_pivots.language_code", req.language).first()
 
 			if (!activity) {
@@ -472,31 +473,35 @@ export default class ActivityController {
 	async sendForApproval(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
-			let activity = await new ActivityModel().exists({ id })
-
+			// console.log("id", id)
+			let activity = await new ActivityModel().findId(id)
+			// console.log("activity", activity)
+			let activityPackages = await new ActivityPackageModel().first({
+				activity_id: id,
+			})
+			// console.log("activityPackages", activityPackages)
 			let activityGalleries = await new ActivityGalleryModel().exists({
 				activity_id: id,
 			})
 			let activityPackageOpportunities = await new ActivityPackageOpportunityModel().exists({
-				activity_package_id: id,
+				activity_package_id: activityPackages?.id,
 			})
+			// console.log("activityPackageOpportunities", activityPackageOpportunities)
 			let activityFeatures = await new ActivityFeatureModel().exists({
 				activity_id: id,
 			})
 			let activityPackagesFeatures = await new ActivityPackageFeatureModel().exists({
-				activity_package_id: id,
+				activity_package_id: activityPackages?.id,
 			})
 			let activityPackagesHours = await new ActivityPackageHourModel().exists({
-				activity_package_id: id,
+				activity_package_id: activityPackages?.id,
 			})
 			let activityPackagesImages = await new ActivityPackageImageModel().exists({
-				activity_package_id: id,
+				activity_package_id: activityPackages?.id,
 			})
-			let activityPackages = await new ActivityPackageModel().exists({
-				activity_id: id,
-			})
+
 			let activityPackagesPrices = await new ActivityPackagePriceModel().exists({
-				activity_package_id: id,
+				activity_package_id: activityPackages?.id,
 			})
 
 			const data = {
@@ -510,8 +515,10 @@ export default class ActivityController {
 				activityPackages,
 				activityPackagesPrices,
 			}
+			// console.log(data)
 
 			if (activity && activityPackageOpportunities && activityGalleries && activityFeatures && activityPackagesFeatures && activityPackagesHours && activityPackagesImages && activityPackages && activityPackagesPrices) {
+				// console.log("girdi")
 				await new ActivityModel().update(id, {
 					status: true,
 				})
