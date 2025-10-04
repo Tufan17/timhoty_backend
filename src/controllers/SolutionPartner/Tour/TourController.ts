@@ -347,13 +347,10 @@ export default class TourController {
 			const updateData: any = {}
 			if (night_count) updateData.night_count = night_count
 			if (day_count) updateData.day_count = day_count
-			if (refund_days) updateData.refund_days = refund_days
-			if (user_count) updateData.user_count = user_count
-			if (title) updateData.title = title
-			if (general_info) updateData.general_info = general_info
-			if (tour_info) updateData.tour_info = tour_info
-			if (refund_policy) updateData.refund_policy = refund_policy
-			updateData.admin_approval = false
+		if (refund_days) updateData.refund_days = refund_days
+		if (user_count) updateData.user_count = user_count
+		// title, general_info, tour_info, refund_policy are in tour_pivots, not tours table
+		updateData.admin_approval = false
 
 			// Update image
 			const updatedTour = await new TourModel().update(id, updateData)
