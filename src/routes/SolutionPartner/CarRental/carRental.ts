@@ -1,57 +1,60 @@
-import { FastifyInstance } from "fastify";
-import CarRentalController from "../../../controllers/SolutionPartner/CarRental/CarRentalController";
-import { makeAuditLogger } from "../../../middlewares/logMiddleware";
-import { validateQuery } from "../../../middlewares/validateQuery";
-import { validate } from "../../../middlewares/validate";
-import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
-import CarRentalModel from "@/models/CarRentalModel";
-import { carRentalQuerySchema } from "@/validators/CarRental/carRental";
-import { carRentalSchema } from "@/validators/CarRental/carRental";
-import { carRentalUpdateSchema } from "@/validators/CarRental/carRental";
-import carRentalPackageRoutes from "./carRentalPackage";
-
+import { FastifyInstance } from "fastify"
+import CarRentalController from "../../../controllers/SolutionPartner/CarRental/CarRentalController"
+import { makeAuditLogger } from "../../../middlewares/logMiddleware"
+import { validateQuery } from "../../../middlewares/validateQuery"
+import { validate } from "../../../middlewares/validate"
+import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware"
+import CarRentalModel from "@/models/CarRentalModel"
+import { carRentalQuerySchema } from "@/validators/CarRental/carRental"
+import { carRentalSchema } from "@/validators/CarRental/carRental"
+import { carRentalUpdateSchema } from "@/validators/CarRental/carRental"
+import carRentalPackageRoutes from "./carRentalPackage"
 
 export default async function carRentalRoutes(fastify: FastifyInstance) {
-  const carRentalController = new CarRentalController();
-  
-  const carRentalAuditLogger = makeAuditLogger({
-    targetName: "car_rentals",
-    model: new CarRentalModel(),
-    idParam: "id",
-    getUser: (request) => (request as any).user || {}
-  });
+	const carRentalController = new CarRentalController()
 
-  fastify.get("/", {
-    preHandler: [authSolutionPartnerMiddleware],
-    preValidation: [validateQuery(carRentalQuerySchema)],
-    handler: carRentalController.dataTable,
-  });
-  fastify.get("/:id", {
-    preHandler: [authSolutionPartnerMiddleware],
-    handler: carRentalController.findOne,
-  })
-  fastify.get("/all", {
-    preHandler: [authSolutionPartnerMiddleware],
-    handler: carRentalController.findAll,
-  });
+	const carRentalAuditLogger = makeAuditLogger({
+		targetName: "car_rentals",
+		model: new CarRentalModel(),
+		idParam: "id",
+		getUser: request => (request as any).user || {},
+	})
 
-  fastify.post("/", {
-    preHandler: [authSolutionPartnerMiddleware],
-    preValidation: [validate(carRentalSchema)],
-    handler: carRentalController.create,
-  });
+	fastify.get("/", {
+		preHandler: [authSolutionPartnerMiddleware],
+		preValidation: [validateQuery(carRentalQuerySchema)],
+		handler: carRentalController.dataTable,
+	})
+	fastify.get("/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: carRentalController.findOne,
+	})
+	fastify.get("/all", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: carRentalController.findAll,
+	})
 
-  fastify.put("/:id", {
-    preHandler: [authSolutionPartnerMiddleware],
-    preValidation: [validate(carRentalUpdateSchema)],
-    handler: carRentalController.update,
-  });
+	fastify.post("/", {
+		preHandler: [authSolutionPartnerMiddleware],
+		preValidation: [validate(carRentalSchema)],
+		handler: carRentalController.create,
+	})
 
-  fastify.delete("/:id", {
-    preHandler: [authSolutionPartnerMiddleware],
-    handler: carRentalController.delete,
-  });
+	fastify.put("/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		preValidation: [validate(carRentalUpdateSchema)],
+		handler: carRentalController.update,
+	})
 
-  // Register car rental package routes
-  fastify.register(carRentalPackageRoutes, { prefix: "/:car_rental_id/packages" });
+	fastify.delete("/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: carRentalController.delete,
+	})
+	fastify.post("/send-for-approval/:id", {
+		preHandler: [authSolutionPartnerMiddleware],
+		handler: carRentalController.sendForApproval,
+	})
+
+	// Register car rental package routes
+	fastify.register(carRentalPackageRoutes, { prefix: "/:car_rental_id/packages" })
 }

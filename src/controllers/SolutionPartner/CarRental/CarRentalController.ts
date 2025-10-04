@@ -5,6 +5,13 @@ import CarRentalModel from "@/models/CarRentalModel"
 import CarRentalPivotModel from "@/models/CarRentalPivotModel"
 import { translateCreate, translateUpdate } from "@/helper/translate"
 import SolutionPartnerModel from "@/models/SolutionPartnerModel"
+import CarRentalPackageModel from "@/models/CarRentalPackageModel"
+import CarRentalGalleryModel from "@/models/CarRentalGalleryModel"
+import ActivityPackageFeatureModel from "@/models/ActivityPackageFeatureModel"
+import CarRentalPackageFeatureModel from "@/models/CarRentalPackageFeatureModel"
+import CarRentalPackageImageModel from "@/models/CarRentalPackageImageModel"
+import CarRentalPackagePriceModel from "@/models/CarRentalPackagePriceModel"
+import CarRentalFeatureModel from "@/models/CarRentalFeatureModel"
 
 export default class CarRentalController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -446,6 +453,68 @@ export default class CarRentalController {
 			return res.status(500).send({
 				success: false,
 				message: req.t("CAR_RENTAL.CAR_RENTAL_DELETED_ERROR"),
+			})
+		}
+	}
+	async sendForApproval(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { id } = req.params as { id: string }
+			// console.log("id", id)
+			let carRental = await new CarRentalModel().findId(id)
+			// console.log("activity", activity)
+			let carRentalPackages = await new CarRentalPackageModel().first({
+				car_rental_id: id,
+			})
+			// console.log("activityPackages", activityPackages)
+			let carRentalGalleries = await new CarRentalGalleryModel().exists({
+				car_rental_id: id,
+			})
+
+			let carRentalFeatures = await new CarRentalFeatureModel().exists({
+				car_rental_id: id,
+			})
+			let carRentalPackagesFeatures = await new CarRentalPackageFeatureModel().exists({
+				car_rental_package_id: carRentalPackages?.id,
+			})
+
+			let carRentalPackagesImages = await new CarRentalPackageImageModel().exists({
+				car_rental_package_id: carRentalPackages?.id,
+			})
+
+			let carRentalPackagesPrices = await new CarRentalPackagePriceModel().exists({
+				car_rental_package_id: carRentalPackages?.id,
+			})
+
+			const data = {
+				carRental,
+
+				carRentalGalleries,
+				carRentalFeatures,
+				carRentalPackagesFeatures,
+
+				carRentalPackagesImages,
+				carRentalPackages,
+				carRentalPackagesPrices,
+			}
+			// console.log(data)
+
+			if (carRental && carRentalGalleries && carRentalFeatures && carRentalPackagesFeatures && carRentalPackagesImages && carRentalPackages && carRentalPackagesPrices) {
+				// console.log("girdi")
+				await new CarRentalModel().update(id, {
+					status: true,
+				})
+			}
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("CAR_RENTAL.CAR_RENTAL_SEND_FOR_APPROVAL_SUCCESS"),
+				data,
+			})
+		} catch (error) {
+			console.log(error)
+			return res.status(500).send({
+				success: false,
+				message: req.t("CAR_RENTAL.CAR_RENTAL_SEND_FOR_APPROVAL_ERROR"),
 			})
 		}
 	}
