@@ -55,6 +55,9 @@ export default class ActivityController {
 					if (type && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(type)) {
 						queryBuilder.where("activities.activity_type_id", type)
 					}
+					if (guest_rating) {
+						queryBuilder.where("activities.average_rating", ">=", guest_rating)
+					}
 				})
 				.limit(limit)
 				.offset((page - 1) * limit)
@@ -178,15 +181,18 @@ export default class ActivityController {
 				activities.sort((a: any, b: any) => (a.total_price || 0) - (b.total_price || 0))
 			} else if (arrangement === "price_decreasing") {
 				activities.sort((a: any, b: any) => (b.total_price || 0) - (a.total_price || 0))
-			} else if (arrangement === "star_increasing") {
-				activities.sort((a: any, b: any) => 0)
-			} else if (arrangement === "star_decreasing") {
-				activities.sort((a: any, b: any) => 0)
 			} else if (arrangement === "rating_increasing") {
 				activities.sort((a: any, b: any) => a.average_rating - b.average_rating)
 			} else if (arrangement === "rating_decreasing") {
 				activities.sort((a: any, b: any) => b.average_rating - a.average_rating)
 			}
+
+
+
+
+
+
+
 
 			const total = await countQuery.first()
 			const totalPages = Math.ceil(total?.total ?? 0 / Number(limit))
