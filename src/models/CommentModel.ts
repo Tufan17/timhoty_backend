@@ -48,13 +48,19 @@ class CommentModel extends BaseModel {
       .where("service_type", serviceType)
       .where("service_id", serviceId)
       .whereNull("deleted_at")
-      .avg("rating as average_rating")
-      .count("id as total_comments")
-      .first();
+      .select("*");
+
+    const totalComments = result.length;
+    const averageRating =
+      totalComments > 0
+        ? parseFloat(
+            (result.reduce((acc: any, curr: any) => acc + curr.rating, 0) / totalComments).toFixed(2)
+          )*2
+        : 0;
 
     return {
-      average_rating: parseFloat(result?.average_rating || "0"),
-      total_comments: parseInt(result?.total_comments || "0")
+      average_rating: averageRating,
+      total_comments: totalComments
     };
   }
 

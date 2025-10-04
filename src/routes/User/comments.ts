@@ -13,6 +13,6 @@ export default async function userRoutes(fastify: FastifyInstance) {
       preHandler: [authUserMiddleware],
       preValidation: [validate(createCommentSchema)],
     },
-    commentsController.create
+    commentsController.create.bind(commentsController)
   );
 }

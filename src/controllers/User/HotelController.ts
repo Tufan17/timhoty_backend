@@ -833,7 +833,7 @@ export default class HotelController {
 
       // comments
       const hotelModel = new HotelModel();
-      const comments = await hotelModel.getComments(language, 100);
+      const comments = await hotelModel.getComments(language, 100, id);
       hotel.comments = comments as any;
 
       return res.status(200).send({

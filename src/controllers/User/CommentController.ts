@@ -1,17 +1,23 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import CommentModel from "@/models/CommentModel";
+import HotelModel from "@/models/HotelModel";
+import CarRentalModel from "@/models/CarRentalModel";
+import ActivityModel from "@/models/ActivityModel";
+import TourModel from "@/models/TourModel";
+import VisaModel from "@/models/VisaModel";
 
 export default class CommentController {
   // Add a new comment
   async create(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { reservation_id, service_type, service_id, comment, rating } = req.body as {
-        reservation_id: string;
-        service_type: string;
-        service_id: string;
-        comment: string;
-        rating: number;
-      };
+      const { reservation_id, service_type, service_id, comment, rating } =
+        req.body as {
+          reservation_id: string;
+          service_type: string;
+          service_id: string;
+          comment: string;
+          rating: number;
+        };
       const userId = (req as any).user?.id;
       const language = (req as any).language || "en";
 
@@ -25,7 +31,12 @@ export default class CommentController {
       const commentModel = new CommentModel();
 
       // Check if user has already commented on this service
-      const hasCommented = await commentModel.hasUserCommented(reservation_id,service_type, service_id, userId);
+      const hasCommented = await commentModel.hasUserCommented(
+        reservation_id,
+        service_type,
+        service_id,
+        userId
+      );
       if (hasCommented) {
         return res.status(400).send({
           success: false,
@@ -42,6 +53,7 @@ export default class CommentController {
         rating,
         language_code: language,
       });
+      this.calculateAverageRating(service_type, service_id);
 
       return res.status(201).send({
         success: true,
@@ -57,227 +69,39 @@ export default class CommentController {
     }
   }
 
-  // Update user's existing comment
-  async update(req: FastifyRequest, res: FastifyReply) {
+  async calculateAverageRating(service_type: string, service_id: string) {
     try {
-      const { id } = req.params as { id: string };
-      const { comment, rating } = req.body as { comment: string; rating: number };
-      const userId = (req as any).user?.id;
-
-      if (!userId) {
-        return res.status(401).send({
-          success: false,
-          message: req.t("AUTH.USER_NOT_FOUND"),
-        });
-      }
-
       const commentModel = new CommentModel();
-
-      // Check if comment exists and belongs to user
-      const existingComment = await commentModel.findId(id);
-      if (!existingComment) {
-        return res.status(404).send({
-          success: false,
-          message: req.t("COMMENTS.COMMENT_NOT_FOUND"),
-        });
+      let model = null;
+      if (service_type === "hotel") {
+        model = new HotelModel();
+      } else if (service_type === "car_rental") {
+        model = new CarRentalModel();
+      } else if (service_type === "activity") {
+        model = new ActivityModel();
+      } else if (service_type === "tour") {
+        model = new TourModel();
+      } else if (service_type === "visa") {
+        model = new VisaModel();
       }
+      const averageRating = await commentModel.getAverageRating(
+        service_type,
+        service_id
+      );
 
-      if (existingComment.user_id !== userId) {
-        return res.status(403).send({
-          success: false,
-          message: req.t("COMMENTS.COMMENT_NOT_OWNED"),
-        });
-      }
-
-      const updatedComment = await commentModel.update(id, {
-        comment,
-        rating,
-      });
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("COMMENTS.COMMENT_UPDATED_SUCCESS"),
-        data: updatedComment[0],
-      });
-    } catch (error: any) {
-      console.error("Update comment error:", error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("COMMENTS.COMMENT_UPDATE_ERROR"),
-      });
-    }
-  }
-
-  // Delete user's comment
-  async delete(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { id } = req.params as { id: string };
-      const userId = (req as any).user?.id;
-
-      if (!userId) {
-        return res.status(401).send({
-          success: false,
-          message: req.t("AUTH.USER_NOT_FOUND"),
-        });
-      }
-
-      const commentModel = new CommentModel();
-
-      // Check if comment exists and belongs to user
-      const existingComment = await commentModel.findId(id);
-      if (!existingComment) {
-        return res.status(404).send({
-          success: false,
-          message: req.t("COMMENTS.COMMENT_NOT_FOUND"),
-        });
-      }
-
-      if (existingComment.user_id !== userId) {
-        return res.status(403).send({
-          success: false,
-          message: req.t("COMMENTS.COMMENT_NOT_OWNED"),
-        });
-      }
-
-      await commentModel.delete(id);
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("COMMENTS.COMMENT_DELETED_SUCCESS"),
-        data: null,
-      });
-    } catch (error: any) {
-      console.error("Delete comment error:", error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("COMMENTS.COMMENT_DELETE_ERROR"),
-      });
-    }
-  }
-
-  // Get comments for a specific service
-  async getByService(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { service_type, service_id } = req.query as {
-        service_type: string;
-        service_id: string;
-      };
-      const language = (req as any).language || "en";
-
-      if (!service_type || !service_id) {
-        return res.status(400).send({
-          success: false,
-          message: req.t("COMMENTS.SERVICE_TYPE_AND_ID_REQUIRED"),
-        });
-      }
-
-      const commentModel = new CommentModel();
-      const comments = await commentModel.getCommentsByService(service_type, service_id, language);
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("COMMENTS.COMMENTS_FETCHED_SUCCESS"),
-        data: comments,
-      });
-    } catch (error: any) {
-      console.error("Get comments by service error:", error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("COMMENTS.COMMENTS_FETCH_ERROR"),
-      });
-    }
-  }
-
-  // Get service rating statistics
-  async getRatingStats(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { service_type, service_id } = req.query as {
-        service_type: string;
-        service_id: string;
-      };
-
-      if (!service_type || !service_id) {
-        return res.status(400).send({
-          success: false,
-          message: req.t("COMMENTS.SERVICE_TYPE_AND_ID_REQUIRED"),
-        });
-      }
-
-      const commentModel = new CommentModel();
-      const [averageRating, ratingDistribution] = await Promise.all([
-        commentModel.getAverageRating(service_type, service_id),
-        commentModel.getRatingDistribution(service_type, service_id),
-      ]);
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("COMMENTS.RATING_STATS_FETCHED_SUCCESS"),
-        data: {
+      if (model) {
+        await model.update(service_id, {
           average_rating: averageRating.average_rating,
-          total_comments: averageRating.total_comments,
-          rating_distribution: ratingDistribution,
-        },
-      });
-    } catch (error: any) {
-      console.error("Get rating stats error:", error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("COMMENTS.RATING_STATS_FETCH_ERROR"),
-      });
-    }
-  }
-
-  // Get user's own comments
-  async getMyComments(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const userId = (req as any).user?.id;
-      const language = (req as any).language || "en";
-
-      if (!userId) {
-        return res.status(401).send({
-          success: false,
-          message: req.t("AUTH.USER_NOT_FOUND"),
+          comment_count: averageRating.total_comments,
         });
       }
-
-      const commentModel = new CommentModel();
-      const comments = await commentModel.where("user_id", userId, "*", "created_at desc");
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("COMMENTS.MY_COMMENTS_FETCHED_SUCCESS"),
-        data: comments,
-      });
+      return averageRating;
     } catch (error: any) {
-      console.error("Get my comments error:", error);
-      return res.status(500).send({
+      console.error("Calculate average rating error:", error);
+      return {
         success: false,
-        message: req.t("COMMENTS.MY_COMMENTS_FETCH_ERROR"),
-      });
-    }
-  }
-
-  // Get recent comments (public endpoint)
-  async getRecentComments(req: FastifyRequest, res: FastifyReply) {
-    try {
-      const { limit } = req.query as { limit?: string };
-      const language = (req as any).language || "en";
-      const limitNum = limit ? parseInt(limit) : 10;
-
-      const commentModel = new CommentModel();
-      const comments = await commentModel.getRecentComments(limitNum, language);
-
-      return res.status(200).send({
-        success: true,
-        message: req.t("COMMENTS.RECENT_COMMENTS_FETCHED_SUCCESS"),
-        data: comments,
-      });
-    } catch (error: any) {
-      console.error("Get recent comments error:", error);
-      return res.status(500).send({
-        success: false,
-        message: req.t("COMMENTS.RECENT_COMMENTS_FETCH_ERROR"),
-      });
+        message: "Calculate average rating error",
+      };
     }
   }
 }
