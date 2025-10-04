@@ -277,7 +277,7 @@ export default class HotelController {
               room.start_date <= now &&
               room.end_date >= now
           );
-          
+
           if (!price) {
             // Eğer fiyat bulunamazsa, varsayılan değerler kullan
             item.price = {
@@ -287,7 +287,7 @@ export default class HotelController {
             item.totalPrice = 0;
             return;
           }
-          
+
           item.price = {
             main_price: price.main_price,
             child_price: price.child_price,
@@ -304,7 +304,7 @@ export default class HotelController {
           }
           item.total_price = totalPrice;
           item.nights = 1;
-        } 
+        }
       });
 
       hotelRooms.forEach(async (item: any) => {
@@ -741,10 +741,12 @@ export default class HotelController {
                   end_date: row.end_date,
                   currency_code: row.currency_code,
                   currency_symbol: row.currency_symbol,
-				  total_price: (row.main_price * (adult??1) + row.child_price * (child??0)) * total_days,
+                  total_price:
+                    (row.main_price * (adult ?? 1) +
+                      row.child_price * (child ?? 0)) *
+                    total_days,
                 }
               : null;
-
           } else {
             // Sabit fiyat değilse şu anki tarihe göre fiyat bul
             if (row.price_id && row.start_date && row.end_date) {
@@ -760,9 +762,11 @@ export default class HotelController {
                   end_date: row.end_date,
                   currency_code: row.currency_code,
                   currency_symbol: row.currency_symbol,
-				  total_price: (row.main_price * (adult??1) + row.child_price * (child??0)) * total_days,
+                  total_price:
+                    (row.main_price * (adult ?? 1) +
+                      row.child_price * (child ?? 0)) *
+                    total_days,
                 };
-                
               }
             }
           }

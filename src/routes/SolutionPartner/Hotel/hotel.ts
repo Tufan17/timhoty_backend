@@ -1,11 +1,11 @@
-import { FastifyInstance } from "fastify";
-import HotelController from "../../../controllers/SolutionPartner/Hotel/HotelController";
-import { hotelSchema, hotelUpdateSchema, hotelQuerySchema } from "../../../validators/Hotel/hotel";
-import { makeAuditLogger } from "../../../middlewares/logMiddleware";
-import { validateQuery } from "../../../middlewares/validateQuery";
-import { validate } from "../../../middlewares/validate";
-import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
-import HotelModel from "@/models/HotelModel";
+import { FastifyInstance } from "fastify"
+import HotelController from "../../../controllers/SolutionPartner/Hotel/HotelController"
+import { hotelSchema, hotelUpdateSchema, hotelQuerySchema } from "../../../validators/Hotel/hotel"
+import { makeAuditLogger } from "../../../middlewares/logMiddleware"
+import { validateQuery } from "../../../middlewares/validateQuery"
+import { validate } from "../../../middlewares/validate"
+import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware"
+import HotelModel from "@/models/HotelModel"
 
 export default async function hotelRoutes(fastify: FastifyInstance) {
   const hotelController = new HotelController();
@@ -18,9 +18,11 @@ export default async function hotelRoutes(fastify: FastifyInstance) {
   });
   fastify.get("/", {
     preValidation: [validateQuery(hotelQuerySchema)],
+    preHandler: [authSolutionPartnerMiddleware],
     handler: hotelController.dataTable,
   });
   fastify.get("/all", {
+    preHandler: [authSolutionPartnerMiddleware],
     handler: hotelController.findAll,
   });
    

@@ -23,7 +23,7 @@ export default class HotelFeatureController {
       const language = (req as any).language;
       const solutionPartnerUser = (req as any).user;
       const spFromUser = solutionPartnerUser?.solution_partner_id;
-
+console.log(spFromUser);
       // Base query with JOINs
       const base = knex("hotel_features")
         .whereNull("hotel_features.deleted_at")
