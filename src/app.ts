@@ -27,7 +27,7 @@ export default async function app(fastify: FastifyInstance) {
 
   fastify.register((fastify) => {
     fastify.get("/", (request, reply) => {
-      return reply.send({ message: "Timhoty'e Hoşgeldiniz :)" });
+      return reply.send({ message: "Timhoty Test Api'ye Hoşgeldiniz :)" });
     });
   });
 
