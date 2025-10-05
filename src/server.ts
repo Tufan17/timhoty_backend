@@ -23,6 +23,7 @@ const start = async () => {
         "http://localhost:5174",
         "https://partner.timhoty.com",
         "https://www.timhoty.com",
+        "https://timhoty.com",
         "https://admin.timhoty.com",
         "https://site.timhoty.com"
       ],
