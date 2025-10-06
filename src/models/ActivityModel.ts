@@ -29,7 +29,35 @@ class ActivityModel extends BaseModel {
 			const now = new Date()
 			const today = now.toISOString().split("T")[0] // YYYY-MM-DD formatında bugünün tarihi
 
-			const query = knex("activities")
+			// Window function kullanarak her activity için en ucuz paketi seçiyoruz
+			const subquery = knex
+				.select(
+					"activities.id",
+					"activities.highlight",
+					"activities.average_rating",
+					"activities.approval_period",
+					"activities.duration",
+					"activity_pivots.title",
+					"activity_galleries.image_url",
+					"activity_packages.constant_price",
+					"activity_package_prices.main_price",
+					"activity_package_prices.child_price",
+					"activity_package_prices.currency_id",
+					"currency_pivots.name as currency_name",
+					"currencies.code as currency_code",
+					"currencies.symbol as currency_symbol",
+					"activity_package_prices.start_date",
+					"activity_package_prices.end_date",
+					"activity_packages.id as package_id",
+					"activities.created_at",
+					knex.raw(`
+						ROW_NUMBER() OVER (
+							PARTITION BY activities.id 
+							ORDER BY activity_package_prices.main_price ASC, activity_galleries.id ASC
+						) as rn
+					`)
+				)
+				.from("activities")
 				.whereNull("activities.deleted_at")
 				.where("activities.highlight", isHighlighted)
 				.where("activities.status", true)
@@ -37,6 +65,8 @@ class ActivityModel extends BaseModel {
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
 				.where("activity_pivots.language_code", language)
 				.whereNull("activity_pivots.deleted_at")
+				.innerJoin("activity_galleries", "activities.id", "activity_galleries.activity_id")
+				.whereNull("activity_galleries.deleted_at")
 				.leftJoin("activity_packages", "activities.id", "activity_packages.activity_id")
 				.whereNull("activity_packages.deleted_at")
 				.leftJoin("activity_package_prices", "activity_packages.id", "activity_package_prices.activity_package_id")
@@ -53,67 +83,50 @@ class ActivityModel extends BaseModel {
 				.leftJoin("currencies", "activity_package_prices.currency_id", "currencies.id")
 				.leftJoin("currency_pivots", function (this: any) {
 					this.on("currencies.id", "=", "currency_pivots.currency_id").andOn("currency_pivots.language_code", "=", knex.raw("?", [language]))
-				})
-				.leftJoin("activity_galleries", "activities.id", "activity_galleries.activity_id")
-				.whereNull("activity_galleries.deleted_at")
-				.limit(1)
+				});
+
+			const query = knex
 				.select(
-					"activities.id",
-					"activities.highlight",
-					"activities.average_rating",
-					"activities.approval_period",
-					"activities.duration",
-					"activity_pivots.title",
-					"activity_galleries.image_url",
+					"id",
+					"highlight",
+					"average_rating",
+					"approval_period",
+					"duration",
+					"title",
+					"image_url",
 					knex.raw(`
-							CASE
-								WHEN activity_packages.constant_price = true THEN
-									json_build_object(
-										'main_price', activity_package_prices.main_price,
-										'child_price', activity_package_prices.child_price,
-										'currency_id', activity_package_prices.currency_id,
-										'currency_name', currency_pivots.name,
-										'currency_code', currencies.code,
-										'currency_symbol', currencies.symbol,
-										'is_constant', true
-									)
-								WHEN activity_packages.constant_price = false THEN
-									json_build_object(
-										'main_price', activity_package_prices.main_price,
-										'child_price', activity_package_prices.child_price,
-										'currency_id', activity_package_prices.currency_id,
-										'currency_name', currency_pivots.name,
-										'currency_code', currencies.code,
-										'currency_symbol', currencies.symbol,
-										'is_constant', false,
-										'start_date', activity_package_prices.start_date,
-										'end_date', activity_package_prices.end_date
-									)
-								ELSE NULL
-							END as package_price
-						`),
-					"activity_packages.id as package_id"
+						CASE
+							WHEN constant_price = true THEN
+								json_build_object(
+									'main_price', main_price,
+									'child_price', child_price,
+									'currency_id', currency_id,
+									'currency_name', currency_name,
+									'currency_code', currency_code,
+									'currency_symbol', currency_symbol,
+									'is_constant', true
+								)
+							WHEN constant_price = false THEN
+								json_build_object(
+									'main_price', main_price,
+									'child_price', child_price,
+									'currency_id', currency_id,
+									'currency_name', currency_name,
+									'currency_code', currency_code,
+									'currency_symbol', currency_symbol,
+									'is_constant', false,
+									'start_date', start_date,
+									'end_date', end_date
+								)
+							ELSE NULL
+						END as package_price
+					`),
+					"package_id",
+					"created_at"
 				)
-				.groupBy(
-					"activities.id",
-					"activities.highlight",
-					"activities.average_rating",
-					"activities.approval_period",
-					"activities.duration",
-					"activity_pivots.title",
-					"activity_packages.constant_price",
-					"activity_package_prices.main_price",
-					"activity_package_prices.child_price",
-					"activity_package_prices.currency_id",
-					"currencies.symbol",
-					"currency_pivots.name",
-					"currencies.code",
-					"activity_package_prices.start_date",
-					"activity_package_prices.end_date",
-					"activity_packages.id",
-					"activity_galleries.image_url"
-				)
-				.orderBy("activities.created_at", "desc")
+				.from(knex.raw(`(${subquery.toString()}) as ranked_activities`))
+				.where('rn', 1)
+				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
 
