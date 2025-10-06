@@ -8,15 +8,48 @@ export default class car_rentalController {
 		try {
 			const language = (req as any).language
 
-			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, type, gear_type } = req.query as any
+			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, type, gear_type, user_count, door_count, air_conditioning } = req.query as any
+
+			const totalCountQuery = knex("car_rentals")
+				.innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
+				.where("car_rentals.status", true)
+				.where("car_rentals.admin_approval", true)
+				.whereNull("car_rentals.deleted_at")
+				.where("car_rental_pivots.language_code", language)
+				.innerJoin("cities", "car_rentals.location_id", "cities.id")
+				.innerJoin("gear_type_pivots", function () {
+					this.on("car_rentals.gear_type_id", "gear_type_pivots.gear_type_id").andOn("gear_type_pivots.language_code", knex.raw("?", [language]))
+				})
+				.innerJoin("car_type_pivots", function () {
+					this.on("car_rentals.car_type_id", "car_type_pivots.car_type_id").andOn("car_type_pivots.language_code", knex.raw("?", [language]))
+				})
+				.innerJoin("country_pivots", function () {
+					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
+				})
+				.innerJoin("city_pivots", function () {
+					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
+				})
+				.countDistinct("car_rentals.id as total")
 
 			const countQuery = knex("car_rentals")
 				.innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
 				.where("car_rentals.status", true)
 				.where("car_rentals.admin_approval", true)
-
 				.whereNull("car_rentals.deleted_at")
 				.where("car_rental_pivots.language_code", language)
+				.innerJoin("cities", "car_rentals.location_id", "cities.id")
+				.innerJoin("gear_type_pivots", function () {
+					this.on("car_rentals.gear_type_id", "gear_type_pivots.gear_type_id").andOn("gear_type_pivots.language_code", knex.raw("?", [language]))
+				})
+				.innerJoin("car_type_pivots", function () {
+					this.on("car_rentals.car_type_id", "car_type_pivots.car_type_id").andOn("car_type_pivots.language_code", knex.raw("?", [language]))
+				})
+				.innerJoin("country_pivots", function () {
+					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
+				})
+				.innerJoin("city_pivots", function () {
+					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
+				})
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("car_rentals.location_id", location_id)
@@ -30,14 +63,22 @@ export default class car_rentalController {
 					if (gear_type) {
 						queryBuilder.where("car_rentals.gear_type_id", gear_type)
 					}
+					if (user_count) {
+						queryBuilder.where("car_rentals.user_count", user_count)
+					}
+					if (door_count) {
+						queryBuilder.where("car_rentals.door_count", door_count)
+					}
+					if (air_conditioning) {
+						queryBuilder.where("car_rentals.air_conditioning", air_conditioning)
+					}
 				})
-				.groupBy("car_rentals.id")
 				.countDistinct("car_rentals.id as total")
 
 			let car_rentals = await knex("car_rentals")
 				.whereNull("car_rentals.deleted_at")
-				 .where("car_rentals.status", true)
-				 .where("car_rentals.admin_approval", true)
+				.where("car_rentals.status", true)
+				.where("car_rentals.admin_approval", true)
 				.innerJoin("car_rental_pivots", function () {
 					this.on("car_rentals.id", "car_rental_pivots.car_rental_id").andOn("car_rental_pivots.language_code", knex.raw("?", [language]))
 				})
@@ -57,6 +98,24 @@ export default class car_rentalController {
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("car_rentals.location_id", location_id)
+					}
+					if (type) {
+						queryBuilder.where("car_rentals.car_type_id", type)
+					}
+					if (gear_type) {
+						queryBuilder.where("car_rentals.gear_type_id", gear_type)
+					}
+					if (user_count) {
+						queryBuilder.where("car_rentals.user_count", user_count)
+					}
+					if (door_count) {
+						queryBuilder.where("car_rentals.door_count", door_count)
+					}
+					if (air_conditioning) {
+						queryBuilder.where("car_rentals.air_conditioning", air_conditioning)
+					}
+					if (guest_rating) {
+						queryBuilder.where("car_rentals.average_rating", ">=", guest_rating)
 					}
 				})
 				.limit(limit)
@@ -187,13 +246,16 @@ export default class car_rentalController {
 				car_rentals.sort((a: any, b: any) => b.average_rating - a.average_rating)
 			}
 
-			const total = await countQuery.first()
-			const totalPages = Math.ceil(total?.total ?? 0 / Number(limit))
+			const [totalCount, filteredCount] = await Promise.all([totalCountQuery.first(), countQuery.first()])
+			const totalPages = Math.ceil((filteredCount?.total ?? 0) / Number(limit))
+
 			return res.status(200).send({
 				success: true,
 				message: "car_rentals fetched successfully",
 				data: car_rentals,
-				total: Number(total?.total),
+				total: Number(filteredCount?.total), // Filtrelenmiş sayı
+				totalCount: Number(totalCount?.total), // Toplam sayı
+				filteredCount: Number(filteredCount?.total), // Filtrelenmiş sayı (açık olması için)
 				totalPages: totalPages,
 			})
 		} catch (error) {
