@@ -56,7 +56,34 @@ class VisaModel extends BaseModel {
       const now = new Date();
       const today = now.toISOString().split("T")[0]; // YYYY-MM-DD formatında bugünün tarihi
 
-      const query = knex("visas")
+      // Window function kullanarak her visa için en ucuz paketi seçiyoruz
+      const subquery = knex
+        .select(
+          "visas.id",
+          "visas.highlight",
+          "visas.average_rating",
+          "visas.refund_days",
+          "visas.approval_period",
+          "visa_pivots.title",
+          "visa_galleries.image_url",
+          "visa_packages.constant_price",
+          "visa_package_prices.main_price",
+          "visa_package_prices.child_price",
+          "visa_package_prices.currency_id",
+          "currency_pivots.name as currency_name",
+          "currencies.code as currency_code",
+          "currencies.symbol as currency_symbol",
+          "visa_package_prices.start_date",
+          "visa_package_prices.end_date",
+          "visas.created_at",
+          knex.raw(`
+            ROW_NUMBER() OVER (
+              PARTITION BY visas.id 
+              ORDER BY visa_package_prices.main_price ASC, visa_galleries.id ASC
+            ) as rn
+          `)
+        )
+        .from("visas")
         .whereNull("visas.deleted_at")
         .where("visas.highlight", isHighlighted)
         .where("visas.status", true)
@@ -64,6 +91,8 @@ class VisaModel extends BaseModel {
         .innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
         .where("visa_pivots.language_code", language)
         .whereNull("visa_pivots.deleted_at")
+        .innerJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
+        .whereNull("visa_galleries.deleted_at")
         .leftJoin("visa_packages", "visas.id", "visa_packages.visa_id")
         .whereNull("visa_packages.deleted_at")
         .leftJoin(
@@ -102,65 +131,49 @@ class VisaModel extends BaseModel {
             "=",
             knex.raw("?", [language])
           );
-        })
-        .leftJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
-        .whereNull("visa_galleries.deleted_at")
-        .limit(1)
+        });
+
+      const query = knex
         .select(
-          "visas.id",
-          "visas.highlight",
-          "visas.average_rating",
-          "visas.refund_days",
-          "visas.approval_period",
-          "visa_pivots.title",
-          "visa_galleries.image_url",
+          "id",
+          "highlight",
+          "average_rating",
+          "refund_days",
+          "approval_period",
+          "title",
+          "image_url",
           knex.raw(`
             CASE 
-              WHEN visa_packages.constant_price = true THEN 
+              WHEN constant_price = true THEN 
                 json_build_object(
-                  'main_price', visa_package_prices.main_price,
-                  'child_price', visa_package_prices.child_price,
-                  'currency_id', visa_package_prices.currency_id,
-                  'currency_name', currency_pivots.name,
-                  'currency_code', currencies.code,
-                  'currency_symbol', currencies.symbol,
+                  'main_price', main_price,
+                  'child_price', child_price,
+                  'currency_id', currency_id,
+                  'currency_name', currency_name,
+                  'currency_code', currency_code,
+                  'currency_symbol', currency_symbol,
                   'is_constant', true
                 )
-              WHEN visa_packages.constant_price = false THEN 
+              WHEN constant_price = false THEN 
                 json_build_object(
-                  'main_price', visa_package_prices.main_price,
-                  'child_price', visa_package_prices.child_price,
-                  'currency_id', visa_package_prices.currency_id,
-                  'currency_name', currency_pivots.name,
-                  'currency_code', currencies.code,
-                  'currency_symbol', currencies.symbol,
+                  'main_price', main_price,
+                  'child_price', child_price,
+                  'currency_id', currency_id,
+                  'currency_name', currency_name,
+                  'currency_code', currency_code,
+                  'currency_symbol', currency_symbol,
                   'is_constant', false,
-                  'start_date', visa_package_prices.start_date,
-                  'end_date', visa_package_prices.end_date
+                  'start_date', start_date,
+                  'end_date', end_date
                 )
               ELSE NULL
             END as package_price
-          `)
+          `),
+          "created_at"
         )
-        .groupBy(
-          "visas.id",
-          "visas.highlight",
-          "visas.average_rating",
-          "visas.refund_days",
-          "visas.approval_period",
-          "visa_pivots.title",
-          "visa_packages.constant_price",
-          "visa_package_prices.main_price",
-          "visa_package_prices.child_price",
-          "visa_package_prices.currency_id",
-          "currencies.symbol",
-          "currency_pivots.name",
-          "currencies.code",
-          "visa_package_prices.start_date",
-          "visa_package_prices.end_date",
-          "visa_galleries.image_url"
-        )
-        .orderBy("visas.created_at", "desc");
+        .from(knex.raw(`(${subquery.toString()}) as ranked_visas`))
+        .where('rn', 1)
+        .orderBy("created_at", "desc");
 
       const result = limit ? await query.limit(limit) : await query;
 
