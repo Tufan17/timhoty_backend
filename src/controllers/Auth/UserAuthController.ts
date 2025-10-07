@@ -115,7 +115,7 @@ export default class UserAuthController {
           message: req.t("AUTH.USER_NOT_FOUND"),
         });
       }
-	
+
       if (new Date() > new Date(exists.verification_code_expires_at)) {
         return res.status(400).send({
           success: false,
@@ -123,7 +123,7 @@ export default class UserAuthController {
         });
       }
 
-	if (exists.verification_code !== code) {
+      if (exists.verification_code !== code) {
         return res.status(400).send({
           success: false,
           message: req.t("AUTH.INVALID_VERIFICATION_CODE"),
@@ -138,7 +138,7 @@ export default class UserAuthController {
       return res.status(400).send({
         success: false,
         message: error.message,
-        error: error,	
+        error: error,
       });
     }
   }
@@ -146,8 +146,34 @@ export default class UserAuthController {
   // User reset password
   async resetPassword(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { email, code, password } = req.body as { email: string; code: string; password: string };
-      const user = await new AuthUserService().resetPassword(email, code, password, req.t);
+      const { email, code, password } = req.body as {
+        email: string;
+        code: string;
+        password: string;
+      };
+      const user = await new AuthUserService().resetPassword(
+        email,
+        code,
+        password,
+        req.t
+      );
+      if (!user.success) {
+        return res.status(400).send({
+          success: false,
+          message: user.message,
+        });
+      }
+      return user;
+    } catch (error: any) {
+      return res.status(400).send(error.message);
+    }
+  }
+
+  // User google login
+  async googleLogin(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { credential } = req.body as { credential: string };
+      const user = await new AuthUserService().googleLogin(credential, req.t);
       if (!user.success) {
         return res.status(400).send({
           success: false,

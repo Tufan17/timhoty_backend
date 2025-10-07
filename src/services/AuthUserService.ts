@@ -3,6 +3,7 @@ import UserModel from "@/models/UserModel.js";
 import HashPassword from "@/utils/hashPassword";
 import jwt from "jsonwebtoken";
 import UserTokensModel from "@/models/UserTokensModel";
+import { OAuth2Client } from "google-auth-library";
 
 export default class AuthUserService {
   async accessTokenRenew(refreshToken: string) {
@@ -80,7 +81,6 @@ export default class AuthUserService {
         };
       }
 
-
       if (user.password !== HashPassword(password)) {
         return {
           success: false,
@@ -111,7 +111,7 @@ export default class AuthUserService {
         // Mevcut kaydı güncelle - revoked_at'i null yap ve yeni token'ı kaydet
         await new UserTokensModel().update(existingToken.id, {
           token_hash: refreshToken,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           revoked_at: null,
         });
       } else {
@@ -119,8 +119,7 @@ export default class AuthUserService {
         await new UserTokensModel().create({
           user_id: user.id,
           token_hash: refreshToken,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          device_name: "web",
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
       }
 
@@ -187,7 +186,7 @@ export default class AuthUserService {
       await new UserTokensModel().create({
         user_id: user.id,
         token_hash: REFRESH_TOKEN,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
       user.access_token = ACCESS_TOKEN;
       user.refresh_token = REFRESH_TOKEN;
@@ -305,6 +304,106 @@ export default class AuthUserService {
       return {
         success: false,
         message: t("AUTH.RESET_PASSWORD_ERROR"),
+      };
+    }
+  }
+
+  async googleLogin(credential: string, t: (key: string) => string) {
+    try {
+      // Google OAuth2Client oluştur
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      
+      // Token'ı verify et ve decode et
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      
+      const payload = ticket.getPayload();
+      
+      if (!payload || !payload.email) {
+        return {
+          success: false,
+          message: t("AUTH.GOOGLE_LOGIN_ERROR"),
+        };
+      }
+
+      // Kullanıcı bilgileri
+      const googleEmail = payload.email;
+      const googleName = payload.name || "";
+      const googlePicture = payload.picture || "/uploads/avatar.png";
+      const emailVerified = payload.email_verified || false;
+
+      // Kullanıcı zaten kayıtlı mı kontrol et
+      let user = await new UserModel().first({ email: googleEmail });
+
+      if (!user) {
+        // Yeni kullanıcı oluştur
+        user = await new UserModel().create({
+          name_surname: googleName,
+          email: googleEmail,
+          password: HashPassword(Math.random().toString(36).substring(2, 15)), // Random password
+          language: "tr",
+          avatar: googlePicture,
+          email_verified: emailVerified,
+        });
+      }
+
+      if (!user) {
+        return {
+          success: false,
+          message: t("AUTH.GOOGLE_LOGIN_ERROR"),
+        };
+      }
+
+      // JWT token oluştur
+      const body = {
+        id: user.id,
+        name_surname: user.name_surname,
+        language: user.language,
+        email: user.email,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      };
+
+      const accessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, {
+        expiresIn: "1d",
+      });
+      const refreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, {
+        expiresIn: "7d",
+      });
+
+      // Token kaydını güncelle veya oluştur
+      const existingToken = await new UserTokensModel().first({
+        user_id: user.id,
+      });
+
+      if (existingToken) {
+        await new UserTokensModel().update(existingToken.id, {
+          token_hash: refreshToken,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          revoked_at: null,
+        });
+      } else {
+        await new UserTokensModel().create({
+          user_id: user.id,
+          token_hash: refreshToken,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
+      }
+
+      user.access_token = accessToken;
+      user.refresh_token = refreshToken;
+
+      return {
+        success: true,
+        message: t("AUTH.LOGIN_SUCCESS"),
+        data: user,
+      };
+    } catch (error) {
+      console.error("Google login error:", error);
+      return {
+        success: false,
+        message: t("AUTH.GOOGLE_LOGIN_ERROR"),
       };
     }
   }

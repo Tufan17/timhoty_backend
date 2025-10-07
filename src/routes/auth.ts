@@ -34,6 +34,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
     preValidation: [AuthValidation.login],
     handler: userAuthController.login,
   });
+  
+  fastify.post("/user/google/login", {
+    handler: userAuthController.googleLogin,
+  });
+  
   fastify.post("/user/register", {
     preHandler: [AuthValidation.register],
     handler: userAuthController.register,
