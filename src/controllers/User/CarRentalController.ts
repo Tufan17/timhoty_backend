@@ -8,7 +8,8 @@ export default class car_rentalController {
 		try {
 			const language = (req as any).language
 
-			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, type, gear_type, user_count, door_count, air_conditioning } = req.query as any
+			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, type, gear_type, user_count, door_count, air_conditioning, pickup_date, dropoff_date } = req.query as any
+			console.log(req.query)
 
 			const totalCountQuery = knex("car_rentals")
 				.innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
@@ -184,40 +185,114 @@ export default class car_rentalController {
 				.innerJoin("currency_pivots", "currencies.id", "currency_pivots.currency_id")
 				.where("currency_pivots.language_code", language)
 				.whereNull("car_rental_package_prices.deleted_at")
-				.select("car_rental_package_prices.id", "car_rental_package_prices.car_rental_package_id", "car_rental_package_prices.main_price", "car_rental_package_prices.child_price", "car_rental_package_prices.currency_id", "currency_pivots.name", "currencies.code", "currencies.symbol")
+				.select("car_rental_package_prices.id", "car_rental_package_prices.car_rental_package_id", "car_rental_package_prices.start_date", "car_rental_package_prices.end_date", "car_rental_package_prices.main_price", "car_rental_package_prices.child_price", "car_rental_package_prices.currency_id", "currency_pivots.name", "currencies.code", "currencies.symbol")
 
 			// Group prices by car_rental_package_id (only keep the first price for each package)
 			const pricesByPackageId = allcar_rentalPackagePrices.reduce((acc: Record<string, any>, price: any) => {
 				if (!acc[price.car_rental_package_id]) {
-					acc[price.car_rental_package_id] = price
+					acc[price.car_rental_package_id] = [] // Array
 				}
+				acc[price.car_rental_package_id].push(price) // Array'e ekle
 				return acc
 			}, {} as Record<string, any>)
 
 			// Assign prices to car_rental packages
 			car_rentals.forEach((car_rental: any) => {
-				if (car_rental.car_rental_packages) {
-					// Assign prices to car_rental packages
-					car_rental.car_rental_packages.forEach((car_rentalPackage: any) => {
-						car_rentalPackage.car_rental_package_price = pricesByPackageId[car_rentalPackage.id] || null
+				if (car_rental.car_rental_packages && car_rental.car_rental_packages.length > 0) {
+					// Her pakete fiyat ata
+					car_rental.car_rental_packages.forEach((carRentalPackage: any) => {
+						const packagePrices = pricesByPackageId[carRentalPackage.id] || []
+
+						if (pickup_date && dropoff_date) {
+							// Tarih aralığı verilmişse, tarihe göre fiyat hesapla
+							const pickupDateObj = new Date(pickup_date)
+							const dropoffDateObj = new Date(dropoff_date)
+							const diffTime = Math.abs(dropoffDateObj.getTime() - pickupDateObj.getTime())
+							const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+							// Tarih aralığına göre fiyatları bul
+							const applicablePrices: number[] = []
+
+							for (let i = 0; i < days; i++) {
+								const currentDay = new Date(pickupDateObj)
+								currentDay.setDate(pickupDateObj.getDate() + i)
+
+								// Sabit fiyat mı yoksa tarihsel fiyat mı kontrol et
+								const price = carRentalPackage.constant_price
+									? packagePrices.find((p: any) => p.car_rental_package_id === carRentalPackage.id)
+									: packagePrices.find((p: any) => {
+											if (!p.start_date || !p.end_date) return false
+											const priceStart = new Date(p.start_date)
+											const priceEnd = new Date(p.end_date)
+											return currentDay >= priceStart && currentDay <= priceEnd
+									  })
+
+								if (price) {
+									applicablePrices.push(price.main_price)
+								}
+							}
+
+							// Eğer tüm günler için fiyat bulunduysa
+							if (applicablePrices.length === days) {
+								const totalPrice = applicablePrices.reduce((sum, price) => sum + price, 0)
+								carRentalPackage.car_rental_package_price = {
+									...packagePrices[0],
+									main_price: packagePrices[0]?.main_price || 0,
+									total_price: totalPrice,
+									days: days,
+								}
+							} else {
+								carRentalPackage.car_rental_package_price = null
+							}
+						} else if (carRentalPackage.constant_price) {
+							// Tarih yok ama sabit fiyat varsa
+							const price = packagePrices.find((p: any) => p.car_rental_package_id === carRentalPackage.id)
+							if (price) {
+								carRentalPackage.car_rental_package_price = {
+									...price,
+									total_price: price.main_price,
+									days: 1,
+								}
+							} else {
+								carRentalPackage.car_rental_package_price = null
+							}
+						} else {
+							// Tarih yok ve sabit fiyat da değilse, şu anki tarihe göre fiyat bul
+							const now = new Date()
+							const price = packagePrices.find((p: any) => {
+								if (!p.start_date || !p.end_date) return false
+								const priceStart = new Date(p.start_date)
+								const priceEnd = new Date(p.end_date)
+								return now >= priceStart && now <= priceEnd
+							})
+
+							if (price) {
+								carRentalPackage.car_rental_package_price = {
+									...price,
+									total_price: price.main_price,
+									days: 1,
+								}
+							} else {
+								carRentalPackage.car_rental_package_price = null
+							}
+						}
 					})
 
-					// Find the car_rental package with the lowest main_price
+					// En ucuz paketi bul
 					const cheapestPackage = car_rental.car_rental_packages.reduce((lowest: any, current: any) => {
-						const lowestPrice = lowest?.car_rental_package_price?.main_price ?? Infinity
-						const currentPrice = current?.car_rental_package_price?.main_price ?? Infinity
+						const lowestPrice = lowest?.car_rental_package_price?.total_price ?? Infinity
+						const currentPrice = current?.car_rental_package_price?.total_price ?? Infinity
 
 						return currentPrice < lowestPrice ? current : lowest
 					}, null)
 
-					// Keep only the cheapest package
-					car_rental.car_rental_packages = cheapestPackage ? cheapestPackage : null
+					// Sadece en ucuz paketi tut
+					car_rental.car_rental_packages = cheapestPackage && cheapestPackage.car_rental_package_price ? cheapestPackage : null
 
-					let totalPrice = 0
-					// Note: baby_price column doesn't exist in car_rental_package_prices table
-
-					totalPrice += car_rental.car_rental_packages.car_rental_package_price.main_price * 1
-					car_rental.total_price = totalPrice
+					if (car_rental.car_rental_packages && car_rental.car_rental_packages.car_rental_package_price) {
+						car_rental.total_price = car_rental.car_rental_packages.car_rental_package_price.total_price
+						car_rental.days = car_rental.car_rental_packages.car_rental_package_price.days
+					}
 				}
 			})
 
@@ -308,6 +383,7 @@ export default class car_rentalController {
 		try {
 			const { id } = req.params as any
 			const language = (req as any).language
+			const { pickup_date, dropoff_date } = req.query as any
 
 			// Tek sorguda tüm veriyi çek
 			const results = await knex("car_rentals")
@@ -503,6 +579,14 @@ export default class car_rentalController {
 			// Paketleri grupla (Activity ile aynı mantık)
 			const packageMap = new Map()
 			const now = new Date()
+			let total_days = 1
+
+			if (pickup_date && dropoff_date) {
+				const pickupDateObj = new Date(pickup_date)
+				const dropoffDateObj = new Date(dropoff_date)
+				total_days = Math.ceil((dropoffDateObj.getTime() - pickupDateObj.getTime()) / (1000 * 60 * 60 * 24))
+			}
+			const allPricesMap = new Map<string, any[]>()
 
 			results.forEach((row: any) => {
 				if (!row.package_id) return
@@ -551,40 +635,62 @@ export default class car_rentalController {
 				if (row.price_id && !packageData.selectedPrice) {
 					let selectedPrice = null
 
+					// Fiyat mantığını uygula
 					if (row.constant_price) {
 						// Sabit fiyat ise herhangi bir fiyat al
-						selectedPrice = {
-							id: row.price_id,
-							main_price: row.main_price,
-							child_price: row.child_price,
-
-							start_date: row.start_date,
-							end_date: row.end_date,
-							currency: {
-								name: row.currency_name,
-								code: row.currency_code,
-								symbol: row.currency_symbol,
-							},
-						}
+						selectedPrice = row.price_id
+							? {
+									id: row.price_id,
+									main_price: row.main_price,
+									child_price: row.child_price,
+									start_date: row.start_date,
+									end_date: row.end_date,
+									currency_code: row.currency_code,
+									currency_symbol: row.currency_symbol,
+									currency_name: row.currency_name,
+									total_price: row.main_price * total_days,
+									days: total_days,
+							  }
+							: null
 					} else {
-						// Sabit fiyat değilse şu anki tarihe göre fiyat bul
-						if (row.start_date && row.end_date) {
+						// Sabit fiyat değilse tarihe göre fiyat bul
+						if (row.price_id && row.start_date && row.end_date) {
 							const startDate = new Date(row.start_date)
 							const endDate = new Date(row.end_date)
 
-							if (now >= startDate && now <= endDate) {
+							if (pickup_date && dropoff_date) {
+								// Pickup ve dropoff tarihleri verilmişse
+								const pickupDateObj = new Date(pickup_date)
+								const dropoffDateObj = new Date(dropoff_date)
+
+								// Bu fiyat aralığı pickup ve dropoff tarihlerini kapsıyor mu kontrol et
+								if (pickupDateObj >= startDate && dropoffDateObj <= endDate) {
+									selectedPrice = {
+										id: row.price_id,
+										main_price: row.main_price,
+										child_price: row.child_price,
+										start_date: row.start_date,
+										end_date: row.end_date,
+										currency_code: row.currency_code,
+										currency_symbol: row.currency_symbol,
+										currency_name: row.currency_name,
+										total_price: row.main_price * total_days,
+										days: total_days,
+									}
+								}
+							} else if (now >= startDate && now <= endDate) {
+								// Tarih verilmemişse şu anki tarihe göre fiyat bul
 								selectedPrice = {
 									id: row.price_id,
 									main_price: row.main_price,
 									child_price: row.child_price,
-
 									start_date: row.start_date,
 									end_date: row.end_date,
-									currency: {
-										name: row.currency_name,
-										code: row.currency_code,
-										symbol: row.currency_symbol,
-									},
+									currency_code: row.currency_code,
+									currency_symbol: row.currency_symbol,
+									currency_name: row.currency_name,
+									total_price: row.main_price * total_days,
+									days: total_days,
 								}
 							}
 						}
