@@ -185,4 +185,21 @@ export default class UserAuthController {
       return res.status(400).send(error.message);
     }
   }
+
+  // User facebook login
+  async facebookLogin(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { accessToken, userID } = req.body as { accessToken: string; userID: string };
+      const user = await new AuthUserService().facebookLogin(accessToken, userID, req.t);
+      if (!user.success) {
+        return res.status(400).send({
+          success: false,
+          message: user.message,
+        });
+      }
+      return user;
+    } catch (error: any) {
+      return res.status(400).send(error.message);
+    }
+  }
 }

@@ -4,6 +4,7 @@ import HashPassword from "@/utils/hashPassword";
 import jwt from "jsonwebtoken";
 import UserTokensModel from "@/models/UserTokensModel";
 import { OAuth2Client } from "google-auth-library";
+import axios from "axios";
 
 export default class AuthUserService {
   async accessTokenRenew(refreshToken: string) {
@@ -404,6 +405,101 @@ export default class AuthUserService {
       return {
         success: false,
         message: t("AUTH.GOOGLE_LOGIN_ERROR"),
+      };
+    }
+  }
+
+  async facebookLogin(accessToken: string, userID: string, t: (key: string) => string) {
+    try {
+      // Facebook Graph API'den kullanıcı bilgilerini al
+      const response = await axios.get(
+        `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
+      );
+
+      const { id, name, email, picture } = response.data;
+
+      if (!email) {
+        return {
+          success: false,
+          message: t("AUTH.FACEBOOK_EMAIL_REQUIRED"),
+        };
+      }
+
+      // Kullanıcı bilgileri
+      const facebookEmail = email;
+      const facebookName = name || "";
+      const facebookPicture = picture?.data?.url || "/uploads/avatar.png";
+
+      // Kullanıcı zaten kayıtlı mı kontrol et
+      let user = await new UserModel().first({ email: facebookEmail });
+
+      if (!user) {
+        // Yeni kullanıcı oluştur
+        user = await new UserModel().create({
+          name_surname: facebookName,
+          email: facebookEmail,
+          password: HashPassword(Math.random().toString(36).substring(2, 15)), // Random password
+          language: "tr",
+          avatar: facebookPicture,
+          email_verified: true, // Facebook'tan gelen email'ler verify edilmiş kabul ediyoruz
+        });
+      }
+
+      if (!user) {
+        return {
+          success: false,
+          message: t("AUTH.FACEBOOK_LOGIN_ERROR"),
+        };
+      }
+
+      // JWT token oluştur
+      const body = {
+        id: user.id,
+        name_surname: user.name_surname,
+        language: user.language,
+        email: user.email,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      };
+
+      const jwtAccessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, {
+        expiresIn: "1d",
+      });
+      const refreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, {
+        expiresIn: "7d",
+      });
+
+      // Token kaydını güncelle veya oluştur
+      const existingToken = await new UserTokensModel().first({
+        user_id: user.id,
+      });
+
+      if (existingToken) {
+        await new UserTokensModel().update(existingToken.id, {
+          token_hash: refreshToken,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          revoked_at: null,
+        });
+      } else {
+        await new UserTokensModel().create({
+          user_id: user.id,
+          token_hash: refreshToken,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
+      }
+
+      user.access_token = jwtAccessToken;
+      user.refresh_token = refreshToken;
+
+      return {
+        success: true,
+        message: t("AUTH.LOGIN_SUCCESS"),
+        data: user,
+      };
+    } catch (error) {
+      console.error("Facebook login error:", error);
+      return {
+        success: false,
+        message: t("AUTH.FACEBOOK_LOGIN_ERROR"),
       };
     }
   }
