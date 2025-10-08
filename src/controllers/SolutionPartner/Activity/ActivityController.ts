@@ -473,60 +473,77 @@ export default class ActivityController {
 	async sendForApproval(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: string }
-			// console.log("id", id)
+
 			let activity = await new ActivityModel().findId(id)
-			// console.log("activity", activity)
-			let activityPackages = await new ActivityPackageModel().first({
-				activity_id: id,
-			})
-			// console.log("activityPackages", activityPackages)
-			let activityGalleries = await new ActivityGalleryModel().exists({
-				activity_id: id,
-			})
-			let activityPackageOpportunities = await new ActivityPackageOpportunityModel().exists({
-				activity_package_id: activityPackages?.id,
-			})
-			// console.log("activityPackageOpportunities", activityPackageOpportunities)
-			let activityFeatures = await new ActivityFeatureModel().exists({
-				activity_id: id,
-			})
-			let activityPackagesFeatures = await new ActivityPackageFeatureModel().exists({
-				activity_package_id: activityPackages?.id,
-			})
-			let activityPackagesHours = await new ActivityPackageHourModel().exists({
-				activity_package_id: activityPackages?.id,
-			})
-			let activityPackagesImages = await new ActivityPackageImageModel().exists({
-				activity_package_id: activityPackages?.id,
-			})
+			let activityPackages = await new ActivityPackageModel().where("activity_id", id)
 
-			let activityPackagesPrices = await new ActivityPackagePriceModel().exists({
-				activity_package_id: activityPackages?.id,
-			})
-
-			const data = {
-				activity,
-				activityPackageOpportunities,
-				activityGalleries,
-				activityFeatures,
-				activityPackagesFeatures,
-				activityPackagesHours,
-				activityPackagesImages,
-				activityPackages,
-				activityPackagesPrices,
-			}
-			// console.log(data)
-
-			if (activity && activityPackageOpportunities && activityGalleries && activityFeatures && activityPackagesFeatures && activityPackagesHours && activityPackagesImages && activityPackages && activityPackagesPrices) {
-				// console.log("girdi")
-				await new ActivityModel().update(id, {
-					status: true,
+			if (!activityPackages || activityPackages.length === 0) {
+				return res.status(400).send({
+					success: false,
+					message: "Aktivite paketi bulunamadı",
 				})
 			}
 
-			return res.status(200).send({
-				success: true,
-				message: req.t("ACTIVITY.ACTIVITY_SEND_FOR_APPROVAL_SUCCESS"),
+			// Genel bilgiler (aktivite bazlı)
+			let activityGalleries = await new ActivityGalleryModel().exists({
+				activity_id: id,
+			})
+			let activityFeatures = await new ActivityFeatureModel().exists({
+				activity_id: id,
+			})
+
+			// Tüm paketler için kontrol
+			const packageIds = activityPackages.map(pkg => pkg.id)
+			let allPackagesValid = true
+
+			for (const packageId of packageIds) {
+				const hasOpportunities = await new ActivityPackageOpportunityModel().exists({
+					activity_package_id: packageId,
+				})
+				const hasFeatures = await new ActivityPackageFeatureModel().exists({
+					activity_package_id: packageId,
+				})
+				const hasHours = await new ActivityPackageHourModel().exists({
+					activity_package_id: packageId,
+				})
+				const hasImages = await new ActivityPackageImageModel().exists({
+					activity_package_id: packageId,
+				})
+				const hasPrices = await new ActivityPackagePriceModel().exists({
+					activity_package_id: packageId,
+				})
+
+				if (!hasOpportunities || !hasFeatures || !hasHours || !hasImages || !hasPrices) {
+					allPackagesValid = false
+					break
+				}
+			}
+
+			const data = {
+				activity,
+				activityPackages,
+				activityGalleries,
+				activityFeatures,
+				allPackagesValid,
+			}
+
+			// Tüm kontroller başarılıysa onaya gönder
+			if (activity && activityGalleries && activityFeatures && allPackagesValid) {
+				await new ActivityModel().update(id, {
+					status: true,
+				})
+
+				return res.status(200).send({
+					success: true,
+					message: req.t("ACTIVITY.ACTIVITY_SEND_FOR_APPROVAL_SUCCESS"),
+					data,
+				})
+			}
+
+			// Eksik bilgi varsa
+			return res.status(400).send({
+				success: false,
+				message: "Eksik bilgiler var",
 				data,
 			})
 		} catch (error) {
