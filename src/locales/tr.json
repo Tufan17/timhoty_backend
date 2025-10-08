@@ -413,6 +413,23 @@
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Otel paket fiyatları sayısı hatalı",
     "DATE_RANGE_ERROR": "Tarihler çakışıyor"
   },
+  "HOTEL_GALLERY": {
+    "FETCHED_SUCCESS": "Otel galerisi başarıyla getirildi",
+    "FETCHED_ERROR": "Otel galerisi getirilirken hata oluştu",
+    "NOT_FOUND": "Otel galerisi bulunamadı",
+    "CATEGORY_ALREADY_EXISTS": "Otel galerisinde bu kategori zaten mevcut",
+    "CREATED_SUCCESS": "Otel galerisi başarıyla oluşturuldu",
+    "CREATED_ERROR": "Otel galerisi oluşturulurken hata oluştu",
+    "NO_UPDATE_DATA": "Güncellenecek veri sağlanmadı",
+    "UPDATED_SUCCESS": "Otel galerisi başarıyla güncellendi",
+    "UPDATED_ERROR": "Otel galerisi güncellenirken hata oluştu",
+    "DELETED_SUCCESS": "Otel galerisi başarıyla silindi",
+    "DELETED_ERROR": "Otel galerisi silinirken hata oluştu",
+    "NO_IDS_PROVIDED": "Toplu silme için ID sağlanmadı",
+    "SOME_NOT_FOUND": "Bazı otel galerisi öğeleri bulunamadı",
+    "BULK_DELETED_SUCCESS": "Otel galerisi öğeleri başarıyla silindi",
+    "BULK_DELETED_ERROR": "Otel galerisi toplu silme işlemi başarısız"
+  },
   "FAVORITES": {
     "FAVORITES_FETCHED_SUCCESS": "Favoriler başarıyla getirildi",
     "FAVORITES_FETCHED_ERROR": "Favoriler getirilirken hata oluştu",

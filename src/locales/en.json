@@ -400,6 +400,23 @@
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Hotel room package date range error",
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Hotel room package price count error"
   },
+  "HOTEL_GALLERY": {
+    "FETCHED_SUCCESS": "Hotel gallery fetched successfully",
+    "FETCHED_ERROR": "Hotel gallery fetch failed",
+    "NOT_FOUND": "Hotel gallery not found",
+    "CATEGORY_ALREADY_EXISTS": "Hotel gallery category already exists",
+    "CREATED_SUCCESS": "Hotel gallery created successfully",
+    "CREATED_ERROR": "Hotel gallery create failed",
+    "NO_UPDATE_DATA": "No update data provided",
+    "UPDATED_SUCCESS": "Hotel gallery updated successfully",
+    "UPDATED_ERROR": "Hotel gallery update failed",
+    "DELETED_SUCCESS": "Hotel gallery deleted successfully",
+    "DELETED_ERROR": "Hotel gallery delete failed",
+    "NO_IDS_PROVIDED": "No IDs provided for bulk delete",
+    "SOME_NOT_FOUND": "Some hotel gallery items not found",
+    "BULK_DELETED_SUCCESS": "Hotel gallery items deleted successfully",
+    "BULK_DELETED_ERROR": "Hotel gallery bulk delete failed"
+  },
   "FAVORITES": {
     "FAVORITES_FETCHED_SUCCESS": "Favorites fetched successfully",
     "FAVORITES_FETCHED_ERROR": "Favorites fetch failed",
