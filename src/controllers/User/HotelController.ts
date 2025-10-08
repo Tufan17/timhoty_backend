@@ -120,14 +120,17 @@ export default class HotelController {
         })
         // otel galerisinden sadece 1 fotoğraf getir
         .leftJoin(
-          // Join only the first image per hotel using lateral join
+          // Join only the first image per hotel using lateral join 
           knex.raw(
             `LATERAL (
-              SELECT image_url
-              FROM hotel_galleries
-              WHERE hotel_galleries.hotel_id = hotels.id
-              AND hotel_galleries.deleted_at IS NULL
-              ORDER BY hotel_galleries.created_at ASC
+              SELECT hg.image_url
+              FROM hotel_galleries hg
+              LEFT JOIN hotel_gallery_pivot hgp ON hg.id = hgp.hotel_gallery_id
+              WHERE hg.hotel_id = hotels.id
+              AND hg.deleted_at IS NULL
+              AND hgp.category = 'Kapak Resmi'
+              AND hgp.deleted_at IS NULL
+              ORDER BY hg.created_at ASC
               LIMIT 1
             ) AS hotel_gallery ON true`
           )
