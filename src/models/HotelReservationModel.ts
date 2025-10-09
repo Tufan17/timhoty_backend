@@ -239,7 +239,15 @@ class HotelReservationModel extends BaseModel {
           WHERE hri.hotel_reservation_id = hotel_reservations.id
             AND hri.deleted_at IS NULL
           LIMIT 1
-        ) AS invoice`)
+        ) AS invoice`),
+
+        // Özel istekler
+        knex.raw(`(
+          SELECT COALESCE(json_agg(hrsr.request), '[]'::json)
+          FROM hotel_reservation_special_requests hrsr
+          WHERE hrsr.hotel_reservation_id = hotel_reservations.id
+            AND hrsr.deleted_at IS NULL
+        ) AS special_requests`)
       )
       .where("hotel_reservations.created_by", userId)
       .where("hotel_reservations.status", true)
@@ -324,7 +332,15 @@ class HotelReservationModel extends BaseModel {
           WHERE hri.hotel_reservation_id = hotel_reservations.id
             AND hri.deleted_at IS NULL
           LIMIT 1
-        ) AS invoice`)
+        ) AS invoice`),
+
+        // Özel istekler
+        knex.raw(`(
+          SELECT COALESCE(json_agg(hrsr.request), '[]'::json)
+          FROM hotel_reservation_special_requests hrsr
+          WHERE hrsr.hotel_reservation_id = hotel_reservations.id
+            AND hrsr.deleted_at IS NULL
+        ) AS special_requests`)
       )
       .where("hotel_reservations.id", reservationId)
       .where("hotel_reservations.status", true)

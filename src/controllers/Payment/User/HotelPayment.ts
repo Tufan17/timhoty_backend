@@ -7,6 +7,7 @@ import HotelReservationInvoiceModel from "@/models/HotelReservationInvoiceModel"
 import HotelReservationUserModel from "@/models/HotelReservationUserModel";
 import dotenv from "dotenv";
 import path from "path";
+import HotelReservationSpecialRequestModel from "@/models/HotelReservationSpecialRequestModel";
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -46,6 +47,7 @@ interface CreatePaymentRequest {
   }[];
   different_invoice?: boolean;
   package_id?: string;
+  special_requests?: number[];
 }
 
 interface PaymentStatusRequest {
@@ -80,6 +82,8 @@ class UserHotelPayment {
         users,
         different_invoice,
         package_id,
+        special_requests,
+
       } = req.body;
       const user = (req as any).user;
       // Validate required fields
@@ -192,8 +196,21 @@ class UserHotelPayment {
             await userModel.create(body_user);
           }
         }
+        if(special_requests && special_requests.length > 0){
+
+          for (const request of special_requests) {
+            const body_request = {
+              hotel_reservation_id: reservation.id,
+              request: request,
+            };
+            const requestModel = new HotelReservationSpecialRequestModel();
+            await requestModel.create(body_request);
+          }
+        }
+  
       }
 
+    
       return res.status(200).send({
         success: true,
         message: "Payment intent created successfully",
