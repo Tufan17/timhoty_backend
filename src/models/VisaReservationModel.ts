@@ -251,7 +251,16 @@ class VisaReservationModel extends BaseModel {
             AND c.deleted_at IS NULL
           ORDER BY c.created_at DESC
           LIMIT 1
-        ) AS comment`)
+        ) AS comment`),
+
+        // Fatura bilgileri
+        knex.raw(`(
+          SELECT to_jsonb(vri)
+          FROM visa_reservation_invoices vri
+          WHERE vri.visa_reservation_id = visa_reservations.id
+            AND vri.deleted_at IS NULL
+          LIMIT 1
+        ) AS invoice`)
       )
       .where("visa_reservations.created_by", userId)
       .where("visa_reservations.status", true)
@@ -323,7 +332,16 @@ class VisaReservationModel extends BaseModel {
             AND c.deleted_at IS NULL
           ORDER BY c.created_at DESC
           LIMIT 1
-        ) AS comment`)
+        ) AS comment`),
+
+        // Fatura bilgileri
+        knex.raw(`(
+          SELECT to_jsonb(vri)
+          FROM visa_reservation_invoices vri
+          WHERE vri.visa_reservation_id = visa_reservations.id
+            AND vri.deleted_at IS NULL
+          LIMIT 1
+        ) AS invoice`)
       )
       .where("visa_reservations.id", reservationId)
       .where("visa_reservations.status", true)

@@ -122,6 +122,7 @@ export default class ReservationController {
         data: reservation,
       });
     }catch(error){
+      console.log(error)
       return res.status(500).send({
         success: false,
         message: "Error retrieving reservation",
