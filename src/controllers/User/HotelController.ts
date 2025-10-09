@@ -561,6 +561,7 @@ export default class HotelController {
         .select(
           // Hotel bilgileri
           "hotels.*",
+          "hotels.refund_days",
           "hotel_pivots.name as hotel_name",
           "hotel_pivots.general_info",
           "hotel_pivots.hotel_info",
@@ -572,6 +573,7 @@ export default class HotelController {
 
           // Oda bilgileri
           "hotel_rooms.id as room_id",
+          "hotel_rooms.refund_days as room_refund_days",
           "hotel_room_pivots.name as room_name",
           "hotel_room_pivots.description as room_description",
           "hotel_room_pivots.refund_policy as room_refund_policy",
@@ -635,7 +637,6 @@ export default class HotelController {
         });
       }
 
-      // İlk satırdan hotel bilgilerini al
       const firstRow = results[0];
       const hotel = {
         id: firstRow.id,
@@ -643,6 +644,7 @@ export default class HotelController {
         general_info: firstRow.general_info,
         hotel_info: firstRow.hotel_info,
         refund_policy: firstRow.hotel_refund_policy,
+        refund_days: firstRow.refund_days || 0,
         country_name: firstRow.country_name,
         city_name: firstRow.city_name,
         star_rating: firstRow.star_rating,
@@ -675,6 +677,7 @@ export default class HotelController {
             name: row.room_name,
             description: row.room_description,
             refund_policy: row.room_refund_policy,
+            refund_days: row.room_refund_days,
             images: [],
             package: null,
             opportunities: [],

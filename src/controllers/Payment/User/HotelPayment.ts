@@ -38,7 +38,7 @@ interface CreatePaymentRequest {
     address: string;
     name: string;
     surname: string;
-    birthday: string;
+    birthDay: string;
     email: string;
     phone: string;
     type: string;
@@ -174,7 +174,7 @@ class UserHotelPayment {
         };
 
         const invoiceModel = new HotelReservationInvoiceModel();
-        const invoice = await invoiceModel.create(body_invoice);
+        await invoiceModel.create(body_invoice);
 
         if (users && users.length > 0) {
           for (const user of users) {
@@ -182,7 +182,7 @@ class UserHotelPayment {
               hotel_reservation_id: reservation.id,
               name: user.name,
               surname: user.surname,
-              birthday: user.birthday,
+              birthday: user.birthDay,
               email: user.email,
               phone: user.phone,
               type: user.type,
