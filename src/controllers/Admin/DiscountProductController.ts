@@ -5,19 +5,26 @@ import DiscountCodeModel from "@/models/DiscountCodeModel"
 import DiscountProductModel from "@/models/DiscountProductModel"
 
 export default class DiscountProductController {
-	async findAll(req: FastifyRequest, res: FastifyReply) {
+	async dataTable(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { page = 1, limit = 10, search = "" } = req.query as { page: number; limit: number; search: string }
+			const {
+				page = 1,
+				limit = 10,
+				discount_code_id,
+			} = req.query as {
+				page: number
+				limit: number
+				discount_code_id?: string
+			}
 
-			const language = req.language
+			const query = knex("discount_products").whereNull("discount_products.deleted_at")
 
-			const query = knex("discount_products")
-				.whereNull("discount_products.deleted_at")
-				.where(function () {
-					this.where("discount_products.code", "ilike", `%${search}%`)
-				})
-				.select("discount_products.*")
-				.groupBy("discount_products.id")
+			// Eğer discount_code_id parametresi gönderilmişse, ona göre filtrele
+			if (discount_code_id) {
+				query.where("discount_products.discount_code_id", discount_code_id)
+			}
+
+			query.select("discount_products.*").groupBy("discount_products.id")
 
 			const countResult = await query.clone().count("* as total").first()
 			const total = Number(countResult?.total ?? 0)
@@ -37,6 +44,38 @@ export default class DiscountProductController {
 				totalPages: totalPages,
 				currentPage: Number(page),
 				limit: Number(limit),
+			})
+		} catch (error) {
+			console.log(error)
+			return res.status(500).send({
+				success: false,
+				message: req.t("DISCOUNT_PRODUCT.DISCOUNT_PRODUCT_FETCHED_ERROR"),
+			})
+		}
+	}
+
+	async findAll(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { discount_code_id } = req.query as {
+				discount_code_id?: string
+			}
+
+			const discountProducts = await knex("discount_products")
+				.whereNull("discount_products.deleted_at")
+				.modify(qb => {
+					// Eğer discount_code_id parametresi gönderilmişse, ona göre filtrele
+					if (discount_code_id) {
+						qb.where("discount_products.discount_code_id", discount_code_id)
+					}
+				})
+				.select("discount_products.*")
+				.groupBy("discount_products.id")
+				.orderBy("discount_products.created_at", "asc")
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("DISCOUNT_PRODUCT.DISCOUNT_PRODUCT_FETCHED_SUCCESS"),
+				data: discountProducts,
 			})
 		} catch (error) {
 			console.log(error)

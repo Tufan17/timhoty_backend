@@ -117,18 +117,33 @@ export default class HotelController {
 			const language = req.language
 			const hotels = await knex("hotels")
 				.whereNull("hotels.deleted_at")
+				.innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
+				.innerJoin("cities", "hotels.location_id", "cities.id")
+				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+				.where("hotel_pivots.language_code", language)
+				.where("country_pivots.language_code", language)
+				.where("city_pivots.language_code", language)
+				.whereNull("cities.deleted_at")
+				.whereNull("country_pivots.deleted_at")
+				.whereNull("city_pivots.deleted_at")
+				.whereNull("hotel_pivots.deleted_at")
 				.modify(qb => {
 					if (typeof status !== "undefined") qb.where("hotels.status", status)
 					if (typeof admin_approval !== "undefined") qb.where("hotels.admin_approval", admin_approval)
 				})
-				.select("hotels.*", "hotel_pivots.name as name", "hotel_pivots.general_info", "hotel_pivots.hotel_info", "hotel_pivots.refund_policy")
-				.innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
-				.where("hotel_pivots.language_code", language)
+				.select("hotels.*", "hotel_pivots.name as name", "hotel_pivots.general_info", "hotel_pivots.hotel_info", "hotel_pivots.refund_policy", knex.ref("country_pivots.name").as("country_name"), knex.ref("city_pivots.name").as("city_name"))
+			const newData = hotels.map((item: any) => {
+				return {
+					...item,
+					address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+				}
+			})
 
 			return res.status(200).send({
 				success: true,
 				message: req.t("HOTEL.HOTEL_FETCHED_SUCCESS"),
-				data: hotels as any,
+				data: newData,
 			})
 		} catch (error) {
 			console.log(error)

@@ -131,10 +131,30 @@ export default class VisaController {
 					if (typeof status !== "undefined") qb.where("visas.status", status)
 					if (typeof admin_approval !== "undefined") qb.where("visas.admin_approval", admin_approval)
 				})
+				.innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
+				.innerJoin("cities", "visas.location_id", "cities.id")
+				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+				.where("visa_pivots.language_code", req.language)
+				.where("country_pivots.language_code", req.language)
+				.where("city_pivots.language_code", req.language)
+				.whereNull("visa_pivots.deleted_at")
+				.whereNull("visas.deleted_at")
+				.whereNull("cities.deleted_at")
+				.whereNull("country_pivots.deleted_at")
+				.whereNull("city_pivots.deleted_at")
+				.whereNull("visa_pivots.deleted_at")
+				.select("visas.*", "visa_pivots.title as title", "visa_pivots.general_info", "visa_pivots.visa_info", "visa_pivots.refund_policy", knex.ref("country_pivots.name").as("country_name"), knex.ref("city_pivots.name").as("city_name"))
+			const newData = visas.map((item: any) => {
+				return {
+					...item,
+					address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+				}
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("VISA.VISA_FETCHED_SUCCESS"),
-				data: visas,
+				data: newData,
 			})
 		} catch (error) {
 			console.log(error)

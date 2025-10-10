@@ -41,5 +41,6 @@
 	"car-rental-reservations",
 	"tour-reservations",
 	"stations",
-	"pending-approval-stations"
+	"pending-approval-stations",
+	"discount-codes"
 ]
