@@ -23,7 +23,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preValidation: [validate(changePasswordSchema)],
 		handler: userController.changePassword,
 	})
-	fastify.put("/:id/avatar", {
+	fastify.put("/avatar/:id", {
 		preHandler: [authUserMiddleware],
 		preValidation: [validateFormData(avatarUpdateSchema)],
 		handler: updateAvatarController.updateAvatar,
