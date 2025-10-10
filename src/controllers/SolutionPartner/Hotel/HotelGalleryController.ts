@@ -189,7 +189,7 @@ export default class HotelGalleryController {
         hotel_id
       );
 
-      if (existingHotelGallery) {
+      if (existingHotelGallery&&["Kapak Resmi","الغلاف","Cover"].includes(category)) {
         return res.status(400).send({
           success: false,
           message: req.t("HOTEL_GALLERY.CATEGORY_ALREADY_EXISTS"),

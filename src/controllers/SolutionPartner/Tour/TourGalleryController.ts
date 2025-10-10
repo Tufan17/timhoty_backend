@@ -299,11 +299,10 @@ export default class TourGalleryController {
       }
 
       // Check if trying to update category to "Kapak Resmi" and if one already exists
-      if (category === "Kapak Resmi") {
+      if (typeof category === "string" && (category === "Kapak Resmi" || ["Kapak Resmi", "الغلاف", "Cover"].includes(category))) {
         // Get the current image's tour_id
         const currentImage = await new TourGalleryModel().findId(id);
-        const checkTourId = tour_id || currentImage?.tour_id;
-        
+        const checkTourId = tour_id ?? currentImage?.tour_id;
         if (checkTourId) {
           const existingCoverImage = await new TourGalleryModel().hasCoverImage(checkTourId);
           
