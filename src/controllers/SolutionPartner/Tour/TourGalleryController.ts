@@ -36,7 +36,7 @@ export default class TourGalleryController {
         )
         .where("tour_gallery_pivots.language_code", language)
         .whereNull("tours.deleted_at")
-        .whereNull("tour_gallery_pivot.deleted_at")
+        .whereNull("tour_gallery_pivots.deleted_at")
         .modify((qb) => {
           if (tour_id) {
             qb.where("tour_galleries.tour_id", tour_id);
@@ -187,7 +187,7 @@ export default class TourGalleryController {
         images: string | string[];
       };
 
-      // Validate hotel_id
+      // Validate tour_id
       const existingTour = await new TourModel().exists({
         id: tour_id,
       });
@@ -195,8 +195,20 @@ export default class TourGalleryController {
       if (!existingTour) {
         return res.status(400).send({
           success: false,
-              message: req.t("TOUR.NOT_FOUND"),
+          message: req.t("TOUR.NOT_FOUND"),
         });
+      }
+
+      // Check if cover image already exists for this tour
+      if (category === "Kapak Resmi") {
+        const existingCoverImage = await new TourGalleryModel().hasCoverImage(tour_id);
+        
+        if (existingCoverImage) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("TOUR_GALLERY.CATEGORY_ALREADY_EXISTS"),
+          });
+        }
       }
 
       // Normalize images to array
@@ -272,7 +284,7 @@ export default class TourGalleryController {
         });
       }
 
-      // Validate hotel if hotel_id is provided
+      // Validate tour if tour_id is provided
       if (tour_id) {
         const tour = await new TourModel().exists({
           id: tour_id,
@@ -283,6 +295,25 @@ export default class TourGalleryController {
             success: false,
             message: req.t("TOUR.NOT_FOUND"),
           });
+        }
+      }
+
+      // Check if trying to update category to "Kapak Resmi" and if one already exists
+      if (category === "Kapak Resmi") {
+        // Get the current image's tour_id
+        const currentImage = await new TourGalleryModel().findId(id);
+        const checkTourId = tour_id || currentImage?.tour_id;
+        
+        if (checkTourId) {
+          const existingCoverImage = await new TourGalleryModel().hasCoverImage(checkTourId);
+          
+          // If there's already a cover image and it's not the current image being updated
+          if (existingCoverImage && existingCoverImage.tour_gallery_id !== id) {
+            return res.status(400).send({
+              success: false,
+              message: req.t("TOUR_GALLERY.CATEGORY_ALREADY_EXISTS"),
+            });
+          }
         }
       }
 

@@ -19,11 +19,14 @@ export default class TourController {
 				.leftJoin(
 					knex.raw(
 						`LATERAL (
-									SELECT image_url
-									FROM tour_galleries
-									WHERE tour_galleries.tour_id = tours.id
-									AND tour_galleries.deleted_at IS NULL
-									ORDER BY tour_galleries.created_at ASC
+									SELECT tg.image_url
+									FROM tour_galleries tg
+									LEFT JOIN tour_gallery_pivots tgp ON tg.id = tgp.tour_gallery_id
+									WHERE tg.tour_id = tours.id
+									AND tg.deleted_at IS NULL
+									AND tgp.category = 'Kapak Resmi'
+									AND tgp.deleted_at IS NULL
+									ORDER BY tg.created_at ASC
 									LIMIT 1
 							) AS tour_gallery ON true`
 					)
@@ -74,11 +77,14 @@ export default class TourController {
 				.leftJoin(
 					knex.raw(
 						`LATERAL (
-                SELECT image_url
-                FROM tour_galleries
-                WHERE tour_galleries.tour_id = tours.id
-                AND tour_galleries.deleted_at IS NULL
-                ORDER BY tour_galleries.created_at ASC
+                SELECT tg.image_url
+                FROM tour_galleries tg
+                LEFT JOIN tour_gallery_pivots tgp ON tg.id = tgp.tour_gallery_id
+                WHERE tg.tour_id = tours.id
+                AND tg.deleted_at IS NULL
+                AND tgp.category = 'Kapak Resmi'
+                AND tgp.deleted_at IS NULL
+                ORDER BY tg.created_at ASC
                 LIMIT 1
             ) AS tour_gallery ON true`
 					)

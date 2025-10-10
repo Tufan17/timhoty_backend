@@ -46,6 +46,18 @@ class TourGalleryModel extends BaseModel {
         "tour_gallery_pivots.category"
       ]);
   }
+
+  async hasCoverImage(tour_id: string) {
+    return await knex("tour_gallery_pivots")
+      .join("tour_galleries", "tour_gallery_pivots.tour_gallery_id", "tour_galleries.id")
+      .where({
+        "tour_galleries.tour_id": tour_id,
+        "tour_gallery_pivots.category": "Kapak Resmi",
+      })
+      .whereNull("tour_galleries.deleted_at")
+      .whereNull("tour_gallery_pivots.deleted_at")
+      .first();
+  }
 }
 
 export default TourGalleryModel;

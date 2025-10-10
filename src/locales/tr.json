@@ -430,6 +430,36 @@
     "BULK_DELETED_SUCCESS": "Otel galerisi öğeleri başarıyla silindi",
     "BULK_DELETED_ERROR": "Otel galerisi toplu silme işlemi başarısız"
   },
+  "TOUR": {
+    "TOUR_FETCHED_SUCCESS": "Turlar başarıyla getirildi",
+    "TOUR_FETCHED_ERROR": "Turlar getirilirken hata oluştu",
+    "TOUR_CREATED_SUCCESS": "Tur başarıyla oluşturuldu",
+    "TOUR_CREATED_ERROR": "Tur oluşturulurken hata oluştu",
+    "TOUR_UPDATED_SUCCESS": "Tur başarıyla güncellendi",
+    "TOUR_UPDATED_ERROR": "Tur güncellenirken hata oluştu",
+    "TOUR_DELETED_SUCCESS": "Tur başarıyla silindi",
+    "TOUR_DELETED_ERROR": "Tur silinirken hata oluştu",
+    "NOT_FOUND": "Tur bulunamadı",
+    "TOUR_SEND_FOR_APPROVAL_SUCCESS": "Tur onaya başarıyla gönderildi",
+    "TOUR_SEND_FOR_APPROVAL_ERROR": "Tur onaya gönderilirken hata oluştu"
+  },
+  "TOUR_GALLERY": {
+    "FETCHED_SUCCESS": "Tur galerisi başarıyla getirildi",
+    "FETCHED_ERROR": "Tur galerisi getirilirken hata oluştu",
+    "NOT_FOUND": "Tur galerisi bulunamadı",
+    "CATEGORY_ALREADY_EXISTS": "Tur galerisinde bu kategori zaten mevcut",
+    "CREATED_SUCCESS": "Tur galerisi başarıyla oluşturuldu",
+    "CREATED_ERROR": "Tur galerisi oluşturulurken hata oluştu",
+    "NO_UPDATE_DATA": "Güncellenecek veri sağlanmadı",
+    "UPDATED_SUCCESS": "Tur galerisi başarıyla güncellendi",
+    "UPDATED_ERROR": "Tur galerisi güncellenirken hata oluştu",
+    "DELETED_SUCCESS": "Tur galerisi başarıyla silindi",
+    "DELETED_ERROR": "Tur galerisi silinirken hata oluştu",
+    "NO_IDS_PROVIDED": "Toplu silme için ID sağlanmadı",
+    "SOME_NOT_FOUND": "Bazı tur galerisi öğeleri bulunamadı",
+    "BULK_DELETED_SUCCESS": "Tur galerisi öğeleri başarıyla silindi",
+    "BULK_DELETED_ERROR": "Tur galerisi toplu silme işlemi başarısız"
+  },
   "FAVORITES": {
     "FAVORITES_FETCHED_SUCCESS": "Favoriler başarıyla getirildi",
     "FAVORITES_FETCHED_ERROR": "Favoriler getirilirken hata oluştu",
