@@ -10,6 +10,7 @@ import path from "path";
 import HotelReservationSpecialRequestModel from "@/models/HotelReservationSpecialRequestModel";
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+import DiscountUserModel from "@/models/DiscountUserModel";
 
 interface CreatePaymentRequest {
   amount: number;
@@ -48,6 +49,13 @@ interface CreatePaymentRequest {
   different_invoice?: boolean;
   package_id?: string;
   special_requests?: number[];
+  discount?: {
+    id: string;
+    code: string;
+    service_type: string;
+    amount: string;
+    percentage: string;
+  };
 }
 
 interface PaymentStatusRequest {
@@ -83,7 +91,7 @@ class UserHotelPayment {
         different_invoice,
         package_id,
         special_requests,
-
+        discount
       } = req.body;
       const user = (req as any).user;
       // Validate required fields
@@ -152,6 +160,15 @@ class UserHotelPayment {
       });
 
       if (!existingReservation) {
+        if(discount){
+          const discountUserModel = new DiscountUserModel();
+          await discountUserModel.create({
+            discount_code_id: discount.id,
+            user_id: user.id,
+            status: false,
+            payment_id: paymentIntent.id,
+          });
+        }
         const body_form = {
           payment_id: paymentIntent.id,
           created_by: user.id,
@@ -267,6 +284,14 @@ class UserHotelPayment {
 
       if(charge.status === "CAPTURED"){
         await reservationModel.update(reservation.id, {status:true});
+        const discountUserModel = new DiscountUserModel();
+
+        const existingDiscountUser = await discountUserModel.first({
+          payment_id: charge_id,
+        });
+        if(existingDiscountUser){
+          await discountUserModel.update(existingDiscountUser.id, {status:true});
+        }
       }
 
       return res.status(200).send({

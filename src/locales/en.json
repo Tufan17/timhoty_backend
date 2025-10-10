@@ -457,5 +457,12 @@
     "FAVORITE_TOGGLE_ERROR": "Favorite toggle failed",
     "SERVICE_NOT_FOUND": "Service not found",
     "FAVORITE_NOT_FOUND": "Favorite not found"
+  },
+  "DISCOUNT": {
+    "DISCOUNT_CODE_NOT_FOUND": "Discount code not found",
+    "DISCOUNT_PRODUCT_NOT_FOUND": "Discount product not found",
+    "DISCOUNT_LIMIT_REACHED": "Discount limit reached",
+    "DISCOUNT_ADDED_SUCCESS": "Discount added successfully",
+    "DISCOUNT_ADD_ERROR": "Error adding discount"
   }
 }

@@ -470,5 +470,12 @@
     "FAVORITE_TOGGLE_ERROR": "Favori değiştirilirken hata oluştu",
     "SERVICE_NOT_FOUND": "Servis bulunamadı",
     "FAVORITE_NOT_FOUND": "Favori bulunamadı"
+  },
+  "DISCOUNT": {
+    "DISCOUNT_CODE_NOT_FOUND": "İndirim kodu bulunamadı",
+    "DISCOUNT_PRODUCT_NOT_FOUND": "İndirim ürünü bulunamadı",
+    "DISCOUNT_LIMIT_REACHED": "Kullanılan kodun limiti doldu.",
+    "DISCOUNT_ADDED_SUCCESS": "İndirim başarıyla eklendi",
+    "DISCOUNT_ADD_ERROR": "İndirim eklenirken hata oluştu"
   }
 }
