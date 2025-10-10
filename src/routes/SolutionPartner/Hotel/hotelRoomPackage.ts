@@ -22,13 +22,13 @@ export default async function (fastify: FastifyInstance) {
         handler: controller.dataTable,
       });
     
-      fastify.get("/all", {
+      fastify.get("/all/:hotel_room_id", {
         preHandler: [authSolutionPartnerMiddleware],
         handler: controller.findAll,
       });
         
       fastify.get("/:id", {
-        preHandler: [authSolutionPartnerMiddleware],
+        // preHandler: [authSolutionPartnerMiddleware],
         handler: controller.findOne,
       });
       

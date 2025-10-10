@@ -112,7 +112,7 @@ export class HotelRoomPackageController {
 
   async findAll(req: FastifyRequest, res: FastifyReply) {
     try {
-      const { hotel_room_id } = req.query as { hotel_room_id: string };
+      const { hotel_room_id } = req.params as { hotel_room_id: string };
       const packageModel = await knex
       .select(
         "hotel_room_packages.*",
@@ -149,7 +149,7 @@ export class HotelRoomPackageController {
       const packageModel = await knex
         .select(
           "hotel_room_packages.*",
-          knex.raw("json_agg(hotel_room_package_prices.*) as prices")
+          knex.raw("COALESCE(json_agg(hotel_room_package_prices.*) FILTER (WHERE hotel_room_package_prices.id IS NOT NULL), '[]'::json) as prices")
         )
         .from("hotel_room_packages")
         .leftJoin(
