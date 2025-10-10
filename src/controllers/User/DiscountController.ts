@@ -27,7 +27,6 @@ export default class DiscountController {
         service_type,
         product_id:service_id,
       });
-      
       if (!discountProduct) {
         return res.status(404).send({
           success: false,
