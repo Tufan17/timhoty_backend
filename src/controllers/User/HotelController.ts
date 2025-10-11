@@ -51,7 +51,7 @@ export default class HotelController {
         location_id,
         star_rating,
         page = 1,
-        limit = 1,
+        limit = 10,
         childAge = "",
         start_date,
         guest_rating,
