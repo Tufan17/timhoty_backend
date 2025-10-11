@@ -160,7 +160,7 @@ class UserHotelPayment {
       });
 
       if (!existingReservation) {
-        if(discount){
+        if(discount && discount.id){
           const discountUserModel = new DiscountUserModel();
           await discountUserModel.create({
             discount_code_id: discount.id,

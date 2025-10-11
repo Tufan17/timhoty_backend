@@ -152,7 +152,7 @@ class UserTourPayment {
       });
 
       if (!existingReservation) {
-        if (discount) {
+        if (discount && discount.id) {
           const discountUserModel = new DiscountUserModel();
           await discountUserModel.create({
             discount_code_id: discount.id,
@@ -187,7 +187,6 @@ class UserTourPayment {
 
         const invoiceModel = new TourReservationInvoiceModel();
         const invoice = await invoiceModel.create(body_invoice);
-        console.log("users", users);
         if (users && users.length > 0) {
           for (const user of users) {
             const body_user = {

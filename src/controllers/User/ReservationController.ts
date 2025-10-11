@@ -193,15 +193,14 @@ export default class ReservationController {
               ? "activity"
               : "other",
             start_date:
-              reservation.hotel_start_date ||
-              reservation.tour_start_date ||
+              reservation.start_date ||
+              reservation.package_date ||
               reservation.car_rental_start_date ||
-              reservation.activity_start_date,
+              reservation.activity_start_date||null,
             end_date:
-              reservation.hotel_end_date ||
-              reservation.tour_end_date ||
+              reservation.end_date ||
               reservation.car_rental_end_date ||
-              reservation.activity_end_date,
+              reservation.activity_end_date||null,
             image:
               reservation.hotel_image ||
               reservation.tour_image ||
