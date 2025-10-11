@@ -40,7 +40,7 @@ interface CreatePaymentRequest {
     address: string;
     name: string;
     surname: string;
-    birthDay: string;
+    birthDate: string;
     email: string;
     phone: string;
     type: string;
@@ -203,7 +203,7 @@ class UserHotelPayment {
               hotel_reservation_id: reservation.id,
               name: user.name,
               surname: user.surname,
-              birthday: user.birthDay,
+              birthday: user.birthDate, // Geçerli tarih ya da null kaydı
               email: user.email,
               phone: user.phone,
               type: user.type,

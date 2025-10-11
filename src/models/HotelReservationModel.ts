@@ -218,7 +218,8 @@ class HotelReservationModel extends BaseModel {
             'email', hotel_reservation_users.email,
             'phone', hotel_reservation_users.phone,
             'type', hotel_reservation_users.type,
-            'age', hotel_reservation_users.age
+            'age', hotel_reservation_users.age,
+            'birthday', hotel_reservation_users.birthday
           )) FILTER (WHERE hotel_reservation_users.id IS NOT NULL) AS guests
         `),
 
@@ -323,7 +324,7 @@ class HotelReservationModel extends BaseModel {
           ORDER BY hotel_galleries.created_at ASC
           LIMIT 1
         ) as hotel_image`),
-        knex.raw("json_agg(DISTINCT jsonb_build_object('id', hotel_reservation_users.id, 'name', hotel_reservation_users.name, 'surname', hotel_reservation_users.surname, 'email', hotel_reservation_users.email, 'phone', hotel_reservation_users.phone, 'type', hotel_reservation_users.type,'age', hotel_reservation_users.age)) as guests"),
+        knex.raw("json_agg(DISTINCT jsonb_build_object('id', hotel_reservation_users.id, 'name', hotel_reservation_users.name, 'surname', hotel_reservation_users.surname, 'email', hotel_reservation_users.email, 'phone', hotel_reservation_users.phone, 'type', hotel_reservation_users.type,'age', hotel_reservation_users.age, 'birthday', hotel_reservation_users.birthday)) as guests"),
 
         // Fatura bilgileri
         knex.raw(`(
