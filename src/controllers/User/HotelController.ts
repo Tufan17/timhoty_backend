@@ -51,7 +51,8 @@ export default class HotelController {
         location_id,
         star_rating,
         page = 1,
-        limit = 3,
+        limit = 1,
+        childAge = "",
         start_date,
         guest_rating,
         end_date,
@@ -120,7 +121,7 @@ export default class HotelController {
         })
         // otel galerisinden sadece 1 fotoğraf getir
         .leftJoin(
-          // Join only the first image per hotel using lateral join 
+          // Join only the first image per hotel using lateral join
           knex.raw(
             `LATERAL (
               SELECT hg.image_url
@@ -198,125 +199,151 @@ export default class HotelController {
         .whereNull("hotel_room_package_prices.deleted_at")
         .select("hotel_room_package_prices.*");
 
-      roomPackages.forEach(async (item: any) => {
-        if (start_date && end_date) {
-          // şimdi iki tarih arasında kalan günleri bulalım
-          const startDate = new Date(start_date);
-          const endDate = new Date(end_date);
-          const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          const days = [];
-          for (let i = 0; i < diffDays; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            days.push(date);
-          }
-          // şimdi iki tarih arasında kalan günleri bulalım
-          //  şimdi bu tarihler arasındaki fiyatları bulacağız
+      hotel.forEach((item: any) => {
+        hotelRooms.forEach(async (hotelRoom: any) => {
+          roomPackages.forEach(async (roomPackage: any) => {
+            if (start_date && end_date) {
+              // şimdi iki tarih arasında kalan günleri bulalım
+              const startDate = new Date(start_date);
+              const endDate = new Date(end_date);
+              const diffTime = Math.abs(
+                endDate.getTime() - startDate.getTime()
+              );
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              const days = [];
+              for (let i = 0; i < diffDays; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                days.push(date);
+              }
+              // şimdi iki tarih arasında kalan günleri bulalım
+              //  şimdi bu tarihler arasındaki fiyatları bulacağız
 
-          // kaç gece kalınacak
-          const nights = Math.ceil(
-            (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-          );
+              // kaç gece kalınacak
+              const nights = Math.ceil(
+                (endDate.getTime() - startDate.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
 
-          for (const day of days) {
-            // fiyat sabitse direk al değilse tarih arasındaki fiyatları bulalım
-            const price = item.constant_price
-              ? roomPackagePrices.find(
-                  (room: any) => room.hotel_room_package_id === item.id
-                )
-              : roomPackagePrices.find(
-                  (room: any) =>
-                    room.hotel_room_package_id === item.id &&
-                    room.start_date <= day &&
-                    room.end_date >= day
-                );
-            if (price) {
-              item.price = {
+              for (const day of days) {
+                // fiyat sabitse direk al değilse tarih arasındaki fiyatları bulalım
+                const price = roomPackage.constant_price
+                  ? roomPackagePrices.find(
+                      (room: any) =>
+                        room.hotel_room_package_id === roomPackage.id
+                    )
+                  : roomPackagePrices.find(
+                      (room: any) =>
+                        room.hotel_room_package_id === roomPackage.id &&
+                        room.start_date <= day &&
+                        room.end_date >= day
+                    );
+                if (price) {
+                  roomPackage.price = {
+                    main_price: price.main_price,
+                    child_price: price.child_price,
+                  };
+
+                  let totalPrice = 0;
+                  if (adult) {
+                    totalPrice += price.main_price * adult;
+                  }
+                  if (child) {
+                    const newChild =
+                      childAge.split(",").length !== Number(child)
+                        ? child
+                        : childAge
+                            .split(",")
+                            .filter(
+                              (c: any) => parseInt(c) > item.free_age_limit
+                            );
+                    totalPrice += price.child_price * newChild.length;
+                  }
+
+                  if (!adult && !child) {
+                    totalPrice += price.main_price;
+                  }
+
+                  roomPackage.total_price = totalPrice * nights;
+                  roomPackage.nights = nights;
+                }
+              }
+            } else if (roomPackage.constant_price) {
+              const price = roomPackagePrices.find(
+                (room: any) => room.hotel_room_package_id === roomPackage.id
+              );
+              roomPackage.price = {
                 main_price: price.main_price,
                 child_price: price.child_price,
               };
-
               let totalPrice = 0;
               if (adult) {
                 totalPrice += price.main_price * adult;
               }
               if (child) {
-                totalPrice += price.child_price * child;
+                const newChild =
+                  childAge.split(",").length !== Number(child)
+                    ? child
+                    : childAge
+                        .split(",")
+                        .filter((c: any) => parseInt(c) > item.free_age_limit);
+                totalPrice += price.child_price * newChild.length;
+              }
+              if (!adult && !child) {
+                totalPrice += price.main_price;
+              }
+              roomPackage.total_price = totalPrice;
+              roomPackage.nights = 1;
+            } else {
+              const now = new Date();
+              const price = roomPackagePrices.find(
+                (room: any) =>
+                  room.hotel_room_package_id === roomPackage.id &&
+                  room.start_date <= now &&
+                  room.end_date >= now
+              );
+
+              if (!price) {
+                // Eğer fiyat bulunamazsa, varsayılan değerler kullan
+                roomPackage.price = {
+                  main_price: 0,
+                  child_price: 0,
+                };
+                roomPackage.totalPrice = 0;
+                return;
+              }
+
+              roomPackage.price = {
+                main_price: price.main_price,
+                child_price: price.child_price,
+              };
+              let totalPrice = 0;
+              if (adult) {
+                totalPrice += price.main_price * adult;
+              }
+              if (child) {
+                const newChild =
+                  childAge.split(",").length !== Number(child)
+                    ? child
+                    : childAge
+                        .split(",")
+                        .filter((c: any) => parseInt(c) > item.free_age_limit);
+                totalPrice += price.child_price * newChild.length;
               }
               if (!adult && !child) {
                 totalPrice += price.main_price;
               }
 
-              item.total_price = totalPrice * nights;
-              item.nights = nights;
+              roomPackage.total_price = totalPrice;
+              roomPackage.nights = 1;
             }
-          }
-        } else if (item.constant_price) {
-          const price = roomPackagePrices.find(
-            (room: any) => room.hotel_room_package_id === item.id
+          });
+
+          hotelRoom.roomPackage = roomPackages.find(
+            (room: any) => room.hotel_room_id === hotelRoom.id
           );
-          item.price = {
-            main_price: price.main_price,
-            child_price: price.child_price,
-          };
-          let totalPrice = 0;
-          if (adult) {
-            totalPrice += price.main_price * adult;
-          }
-          if (child) {
-            totalPrice += price.child_price * child;
-          }
-          if (!adult && !child) {
-            totalPrice += price.main_price;
-          }
-          item.total_price = totalPrice;
-          item.nights = 1;
-        } else {
-          const now = new Date();
-          const price = roomPackagePrices.find(
-            (room: any) =>
-              room.hotel_room_package_id === item.id &&
-              room.start_date <= now &&
-              room.end_date >= now
-          );
+        });
 
-          if (!price) {
-            // Eğer fiyat bulunamazsa, varsayılan değerler kullan
-            item.price = {
-              main_price: 0,
-              child_price: 0,
-            };
-            item.totalPrice = 0;
-            return;
-          }
-
-          item.price = {
-            main_price: price.main_price,
-            child_price: price.child_price,
-          };
-          let totalPrice = 0;
-          if (adult) {
-            totalPrice += price.main_price * adult;
-          }
-          if (child) {
-            totalPrice += price.child_price * child;
-          }
-          if (!adult && !child) {
-            totalPrice += price.main_price;
-          }
-          item.total_price = totalPrice;
-          item.nights = 1;
-        }
-      });
-
-      hotelRooms.forEach(async (item: any) => {
-        item.roomPackage = roomPackages.find(
-          (room: any) => room.hotel_room_id === item.id
-        );
-      });
-
-      hotel.forEach((item: any) => {
         // Otele ait odaları bul
         const relatedRooms = hotelRooms.filter(
           (room: any) => room.hotel_id === item.id
@@ -399,7 +426,7 @@ export default class HotelController {
     try {
       const { id } = req.params as any;
       const language = (req as any).language;
-      const { start_date, end_date, adult, child } = req.query as any;
+      const { start_date, end_date, adult, child, childAge = "" } = req.query as any;
 
       // Tek sorguda tüm veriyi çek - LEFT JOIN kullanarak
       const results = await knex("hotels")
@@ -747,10 +774,27 @@ export default class HotelController {
                   end_date: row.end_date,
                   currency_code: row.currency_code,
                   currency_symbol: row.currency_symbol,
-                  total_price:
-                    (row.main_price * (adult ?? 1) +
-                      row.child_price * (child ?? 0)) *
-                    total_days,
+                  total_price: (() => {
+                    let totalPrice = 0;
+                    if (adult) {
+                      totalPrice += row.main_price * adult;
+                    }
+                    if (child) {
+                      const newChild =
+                        childAge.split(",").length !== Number(child)
+                          ? child
+                          : childAge
+                              .split(",")
+                              .filter(
+                                (c: any) => parseInt(c) > firstRow.free_age_limit
+                              );
+                      totalPrice += row.child_price * newChild.length;
+                    }
+                    if (!adult && !child) {
+                      totalPrice += row.main_price;
+                    }
+                    return totalPrice * total_days;
+                  })(),
                 }
               : null;
           } else {
@@ -768,10 +812,27 @@ export default class HotelController {
                   end_date: row.end_date,
                   currency_code: row.currency_code,
                   currency_symbol: row.currency_symbol,
-                  total_price:
-                    (row.main_price * (adult ?? 1) +
-                      row.child_price * (child ?? 0)) *
-                    total_days,
+                  total_price: (() => {
+                    let totalPrice = 0;
+                    if (adult) {
+                      totalPrice += row.main_price * adult;
+                    }
+                    if (child) {
+                      const newChild =
+                        childAge.split(",").length !== Number(child)
+                          ? child
+                          : childAge
+                              .split(",")
+                              .filter(
+                                (c: any) => parseInt(c) > firstRow.free_age_limit
+                              );
+                      totalPrice += row.child_price * newChild.length;
+                    }
+                    if (!adult && !child) {
+                      totalPrice += row.main_price;
+                    }
+                    return totalPrice * total_days;
+                  })(),
                 };
               }
             }
