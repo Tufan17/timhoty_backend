@@ -15,6 +15,7 @@ class TourPackagePriceModel extends BaseModel {
     'start_date',
     'end_date',
     'period',
+    'date',
     'quota',
     'created_at',
     'updated_at',

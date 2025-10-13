@@ -43,6 +43,17 @@ export default class TourController {
 							this.select("tour_id").from("tour_departure_points").where("location_id", departure_point_id).whereNull("deleted_at")
 						})
 					}
+					if (period) {
+						// Sadece belirtilen period'a sahip fiyatları olan turları filtrele
+						queryBuilder.whereIn("tours.id", function () {
+							this.select("tp.tour_id")
+								.from("tour_packages as tp")
+								.innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id")
+								.where("tpp.period", period)
+								.whereNull("tp.deleted_at")
+								.whereNull("tpp.deleted_at")
+						})
+					}
 				})
 				.countDistinct("tours.id as total")
 				.first()
@@ -73,6 +84,17 @@ export default class TourController {
 							this.select("tour_id").from("tour_departure_points").where("location_id", departure_point_id).whereNull("deleted_at")
 						})
 					}
+					if (period) {
+						// Sadece belirtilen period'a sahip fiyatları olan turları filtrele
+						queryBuilder.whereIn("tours.id", function () {
+							this.select("tp.tour_id")
+								.from("tour_packages as tp")
+								.innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id")
+								.where("tpp.period", period)
+								.whereNull("tp.deleted_at")
+								.whereNull("tpp.deleted_at")
+						})
+					}
 				})
 				.leftJoin(
 					knex.raw(
@@ -85,32 +107,10 @@ export default class TourController {
                 AND tgp.category = 'Kapak Resmi'
                 AND tgp.deleted_at IS NULL
                 ORDER BY tg.created_at ASC
-                LIMIT 1
+              LIMIT 1
             ) AS tour_gallery ON true`
 					)
 				)
-
-				.modify(function (queryBuilder) {
-					if (period) {
-						queryBuilder
-							.leftJoin(
-								knex.raw(
-									`LATERAL (
-                            SELECT
-                                CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END as has_period_package
-                            FROM tour_packages tp
-                            INNER JOIN tour_package_prices tpp ON tp.id = tpp.tour_package_id
-                            WHERE tp.tour_id = tours.id
-                            AND tp.deleted_at IS NULL
-                            AND tpp.deleted_at IS NULL
-                            AND tpp.period = ?
-                        ) AS period_check ON true`,
-									[period]
-								)
-							)
-							.orderBy("period_check.has_period_package", "desc")
-					}
-				})
 				.whereNotNull("tour_gallery.image_url")
 				.limit(limit)
 				.offset((page - 1) * limit)
@@ -118,19 +118,19 @@ export default class TourController {
 
 			// Tüm tour'ların başlangıç noktalarını tek sorguda al
 			if (tours.length > 0) {
-				const tourIds = tours.map((tour: any) => tour.id)
+			const tourIds = tours.map((tour: any) => tour.id)
 				const allDeparturePoints = await knex("tour_departure_points")
-					.whereIn("tour_departure_points.tour_id", tourIds)
+				.whereIn("tour_departure_points.tour_id", tourIds)
 					.whereNull("tour_departure_points.deleted_at")
-					.innerJoin("cities", "tour_departure_points.location_id", "cities.id")
+				.innerJoin("cities", "tour_departure_points.location_id", "cities.id")
 					.innerJoin("city_pivots", function () {
 						this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
 					})
-					.whereNull("city_pivots.deleted_at")
+				.whereNull("city_pivots.deleted_at")
 					.innerJoin("country_pivots", function () {
 						this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
 					})
-					.whereNull("country_pivots.deleted_at")
+				.whereNull("country_pivots.deleted_at")
 					.select("tour_departure_points.id", "tour_departure_points.tour_id", "tour_departure_points.location_id as departure_point_id", "city_pivots.name as city_name", "country_pivots.name as country_name", "country_pivots.country_id as country_id")
 				const allLocations = await knex("tour_locations")
 					.whereIn("tour_locations.tour_id", tourIds)
@@ -148,9 +148,9 @@ export default class TourController {
 
 				// Başlangıç noktalarını tour_id'ye göre grupla
 				const departurePointsByTourId = allDeparturePoints.reduce((acc: Record<string, any[]>, point: any) => {
-					if (!acc[point.tour_id]) {
-						acc[point.tour_id] = []
-					}
+				if (!acc[point.tour_id]) {
+					acc[point.tour_id] = []
+				}
 					acc[point.tour_id].push({
 						id: point.id,
 						departure_point_id: point.departure_point_id,
@@ -173,24 +173,24 @@ export default class TourController {
 						country_name: location.country_name,
 						country_id: location.country_id,
 					})
-					return acc
-				}, {} as Record<string, any[]>)
+				return acc
+			}, {} as Record<string, any[]>)
 
 				// Başlangıç noktalarını ve lokasyonları tours'a ekle
-				tours.forEach((tour: any) => {
-					tour.tour_departure_points = departurePointsByTourId[tour.id] || []
+			tours.forEach((tour: any) => {
+				tour.tour_departure_points = departurePointsByTourId[tour.id] || []
 					tour.tour_locations = locationsByTourId[tour.id] || []
-				})
+			})
 
 				// Tüm tour'ların paketlerini ve fiyatlarını tek sorguda al
-				const allTourPackages = await knex("tour_packages")
-					.whereIn("tour_packages.tour_id", tourIds)
-					.whereNull("tour_packages.deleted_at")
+			const allTourPackages = await knex("tour_packages")
+				.whereIn("tour_packages.tour_id", tourIds)
+				.whereNull("tour_packages.deleted_at")
 					.innerJoin("tour_package_pivots", function () {
 						this.on("tour_packages.id", "tour_package_pivots.tour_package_id").andOn("tour_package_pivots.language_code", knex.raw("?", [language]))
 					})
 					.whereNull("tour_package_pivots.deleted_at")
-					.select("tour_packages.id", "tour_packages.tour_id", "tour_packages.constant_price", "tour_packages.date", "tour_package_pivots.name", "tour_packages.discount")
+					.select("tour_packages.id", "tour_packages.tour_id", "tour_packages.constant_price", "tour_package_pivots.name", "tour_packages.discount")
 
 				// Tüm paket fiyatlarını tek sorguda al
 				if (allTourPackages.length > 0) {
@@ -204,12 +204,12 @@ export default class TourController {
 						.leftJoin("currency_pivots", function () {
 							this.on("currencies.id", "currency_pivots.currency_id").andOn("currency_pivots.language_code", knex.raw("?", [language]))
 						})
-						.modify(function (queryBuilder) {
-							if (period) {
-								queryBuilder.where("tour_package_prices.period", period)
-							}
-						})
-						.select("tour_package_prices.id", "tour_package_prices.tour_package_id", "tour_package_prices.main_price", "tour_package_prices.child_price", "tour_package_prices.baby_price", "tour_package_prices.start_date", "tour_package_prices.end_date", "tour_package_prices.period", "currencies.code as currency_code", "currencies.symbol as currency_symbol", "currency_pivots.name as currency_name")
+				.modify(function (queryBuilder) {
+					if (period) {
+						queryBuilder.where("tour_package_prices.period", period)
+					}
+				})
+						.select("tour_package_prices.id", "tour_package_prices.tour_package_id", "tour_package_prices.main_price", "tour_package_prices.child_price", "tour_package_prices.baby_price", "tour_package_prices.date", "tour_package_prices.period", "currencies.code as currency_code", "currencies.symbol as currency_symbol", "currency_pivots.name as currency_name")
 
 					// Her paket için uygun fiyatı bul (constant_price veya tarihe göre)
 					const packagePriceMap: Record<string, any> = {}
@@ -223,13 +223,13 @@ export default class TourController {
 								// Sabit fiyat ise ilk fiyatı al
 								selectedPrice = prices[0]
 							} else {
-								// Tarih aralığına göre uygun fiyatı bul
+								// Tarihe göre uygun fiyatı bul
 								selectedPrice =
 									prices.find((price: any) => {
-										if (price.start_date && price.end_date) {
-											const startDate = new Date(price.start_date)
-											const endDate = new Date(price.end_date)
-											return now >= startDate && now <= endDate
+										if (price.date) {
+											const priceDate = new Date(price.date)
+											// Bugünün tarihinden sonraki en yakın tarihi bul
+											return priceDate >= now
 										}
 										return true
 									}) || prices[0]
@@ -240,7 +240,7 @@ export default class TourController {
 									package_id: pkg.id,
 									package_name: pkg.name,
 									discount: pkg.discount,
-									date: pkg.date,
+									date: selectedPrice.date,
 									main_price: selectedPrice.main_price,
 									child_price: selectedPrice.child_price,
 									baby_price: selectedPrice.baby_price,
@@ -493,15 +493,13 @@ export default class TourController {
 					"tour_packages.discount",
 					"tour_packages.total_tax_amount",
 					"tour_packages.constant_price",
-					"tour_packages.date",
 
 					// Paket fiyatları
 					"tour_package_prices.id as price_id",
 					"tour_package_prices.main_price",
 					"tour_package_prices.child_price",
 					"tour_package_prices.baby_price",
-					"tour_package_prices.start_date",
-					"tour_package_prices.end_date",
+				"tour_package_prices.date as price_date",
 					"tour_package_prices.period",
 					"tour_package_prices.quota",
 					"currency_pivots.name as currency_name",
@@ -577,11 +575,10 @@ export default class TourController {
 						discount: row.discount,
 						total_tax_amount: row.total_tax_amount,
 						constant_price: row.constant_price,
-						date: row.date,
 						images: [],
 						opportunities: [],
 						features: [],
-						selectedPrice: null,
+					prices: [],
 					})
 				}
 
@@ -621,82 +618,76 @@ export default class TourController {
 					}
 				}
 
-				// Paket fiyatları (Hotel mantığı)
-				if (row.price_id && !packageData.selectedPrice) {
-					let selectedPrice = null
-
-					if (row.constant_price) {
-						// Sabit fiyat ise herhangi bir fiyat al
-						selectedPrice = {
+			// Paket fiyatlarını topla
+			if (row.price_id) {
+				const existingPrice = packageData.prices.find((p: any) => p.id === row.price_id)
+				if (!existingPrice) {
+					packageData.prices.push({
 							id: row.price_id,
 							main_price: row.main_price,
 							child_price: row.child_price,
 							baby_price: row.baby_price,
 							period: row.period,
 							quota: row.quota,
-							start_date: row.start_date,
-							end_date: row.end_date,
+						date: row.price_date,
 							currency: {
 								name: row.currency_name,
 								code: row.currency_code,
 								symbol: row.currency_symbol,
 							},
-						}
-					} else {
-						// Sabit fiyat değilse
-						if (row.start_date && row.end_date) {
-							// Tarih aralığı varsa tarih kontrolü yap
-							const startDate = new Date(row.start_date)
-							const endDate = new Date(row.end_date)
-
-							if (now >= startDate && now <= endDate) {
-								selectedPrice = {
-									id: row.price_id,
-									main_price: row.main_price,
-									child_price: row.child_price,
-									baby_price: row.baby_price,
-									period: row.period,
-									quota: row.quota,
-									start_date: row.start_date,
-									end_date: row.end_date,
-									currency: {
-										name: row.currency_name,
-										code: row.currency_code,
-										symbol: row.currency_symbol,
-									},
-								}
-							}
-						} else {
-							// Tarih aralığı yoksa period'a göre veya direkt fiyatı al
-							selectedPrice = {
-								id: row.price_id,
-								main_price: row.main_price,
-								child_price: row.child_price,
-								baby_price: row.baby_price,
-								period: row.period,
-								quota: row.quota,
-								start_date: row.start_date,
-								end_date: row.end_date,
-								currency: {
-									name: row.currency_name,
-									code: row.currency_code,
-									symbol: row.currency_symbol,
-								},
-							}
-						}
-					}
-
-					if (selectedPrice) {
-						packageData.selectedPrice = selectedPrice
-					}
+					})
 				}
-			})
+			}
+		})
 
-			tour.packages = Array.from(packageMap.values()).map((pkg: any) => ({
-				...pkg,
-				price: pkg.selectedPrice,
-				selectedPrice: undefined,
-			})) as any
+		// Her fiyat için ayrı paket oluştur
+		const allPackages: any[] = []
+		packageMap.forEach((pkg: any) => {
+			if (pkg.prices.length === 0) {
+				// Fiyatı olmayan paketleri olduğu gibi ekle
+				allPackages.push({
+					id: pkg.id,
+					name: pkg.name,
+					description: pkg.description,
+					refund_policy: pkg.refund_policy,
+					return_acceptance_period: pkg.return_acceptance_period,
+					discount: pkg.discount,
+					total_tax_amount: pkg.total_tax_amount,
+					constant_price: pkg.constant_price,
+					images: pkg.images,
+					opportunities: pkg.opportunities,
+					features: pkg.features,
+					price: null,
+				})
+			} else {
+				// Her fiyat için paketi duplicate et
+				pkg.prices.forEach((price: any) => {
+					allPackages.push({
+						id: pkg.id,
+						name: pkg.name,
+						description: pkg.description,
+						refund_policy: pkg.refund_policy,
+						return_acceptance_period: pkg.return_acceptance_period,
+						discount: pkg.discount,
+						total_tax_amount: pkg.total_tax_amount,
+						constant_price: pkg.constant_price,
+						images: pkg.images,
+						opportunities: pkg.opportunities,
+						features: pkg.features,
+						price: price,
+					})
+				})
+			}
+		})
+
+		// Paketleri price.date'e göre geçmişten geleceğe sırala
+		allPackages.sort((a: any, b: any) => {
+			const dateA = a.price?.date ? new Date(a.price.date).getTime() : 0
+			const dateB = b.price?.date ? new Date(b.price.date).getTime() : 0
+			return dateA - dateB // Geçmişten geleceğe
+		})
+
+		tour.packages = allPackages as any
 
 			// Gallery verilerini grupla
 			const galleryMap = new Map()

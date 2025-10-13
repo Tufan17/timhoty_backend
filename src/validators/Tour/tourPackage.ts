@@ -21,8 +21,6 @@ export const tourPackageSchema = Joi.object({
     description: Joi.string().required(),
     refund_policy: Joi.string().required(),
     return_acceptance_period: Joi.number().required(),
-    date: Joi.date().iso().required(),
-    prices: Joi.array().items(priceSchemata).min(1).required()
 });
 
 export const tourPackageUpdateSchema = Joi.object({
