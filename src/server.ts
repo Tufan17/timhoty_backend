@@ -24,6 +24,8 @@ const start = async () => {
         "https://testpartner.timhoty.com",
         "https://www.timhoty.com",
         "https://testadmin.timhoty.com",
+        "https://timhoty.com",
+        "https://admin.timhoty.com",
         "https://site.timhoty.com"
       ],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

@@ -58,7 +58,34 @@ class CarRentalModel extends BaseModel {
       const now = new Date();
       const today = now.toISOString().split('T')[0]; // YYYY-MM-DD formatında bugünün tarihi
 
-      const query = knex("car_rentals")
+      // Window function kullanarak her car rental için en ucuz paketi seçiyoruz
+      const subquery = knex
+        .select(
+          "car_rentals.id",
+          "car_rentals.highlight",
+          "car_rentals.average_rating",
+          "car_rentals.user_count",
+          "car_rentals.door_count",
+          "car_rental_pivots.title",
+          "car_rental_galleries.image_url",
+          "car_rental_packages.constant_price",
+          "car_rental_package_prices.main_price",
+          "car_rental_package_prices.child_price",
+          "car_rental_package_prices.currency_id",
+          "currency_pivots.name as currency_name",
+          "currencies.code as currency_code",
+          "currencies.symbol as currency_symbol",
+          "car_rental_package_prices.start_date",
+          "car_rental_package_prices.end_date",
+          "car_rentals.created_at",
+          knex.raw(`
+            ROW_NUMBER() OVER (
+              PARTITION BY car_rentals.id 
+              ORDER BY car_rental_package_prices.main_price ASC, car_rental_galleries.id ASC
+            ) as rn
+          `)
+        )
+        .from("car_rentals")
         .whereNull("car_rentals.deleted_at")
         .where("car_rentals.highlight", isHighlighted)
         .where("car_rentals.status", true)
@@ -66,6 +93,8 @@ class CarRentalModel extends BaseModel {
         .innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
         .where("car_rental_pivots.language_code", language)
         .whereNull("car_rental_pivots.deleted_at")
+        .innerJoin("car_rental_galleries", "car_rentals.id", "car_rental_galleries.car_rental_id")
+        .whereNull("car_rental_galleries.deleted_at")
         .leftJoin('car_rental_packages', 'car_rentals.id', 'car_rental_packages.car_rental_id')
         .whereNull('car_rental_packages.deleted_at')
         .leftJoin('car_rental_package_prices', 'car_rental_packages.id', 'car_rental_package_prices.car_rental_package_id')
@@ -83,69 +112,53 @@ class CarRentalModel extends BaseModel {
                 });
             });
         })
-        .leftJoin("car_rental_galleries", "car_rentals.id", "car_rental_galleries.car_rental_id")
-        .limit(1)
-        .whereNull("car_rental_galleries.deleted_at")
         .leftJoin('currencies', 'car_rental_package_prices.currency_id', 'currencies.id')
         .leftJoin('currency_pivots', function (this: any) {
           this.on('currencies.id', '=', 'currency_pivots.currency_id')
             .andOn('currency_pivots.language_code', '=', knex.raw('?', [language]));
-        })
+        });
+
+      const query = knex
         .select(
-          "car_rentals.id",
-          "car_rentals.highlight",
-          "car_rentals.average_rating",
-          "car_rentals.user_count",
-          "car_rentals.door_count",
-          "car_rental_pivots.title",
-          "car_rental_galleries.image_url",
+          "id",
+          "highlight",
+          "average_rating",
+          "user_count",
+          "door_count",
+          "title",
+          "image_url",
           knex.raw(`
             CASE 
-              WHEN car_rental_packages.constant_price = true THEN 
+              WHEN constant_price = true THEN 
                 json_build_object(
-                  'main_price', car_rental_package_prices.main_price,
-                  'child_price', car_rental_package_prices.child_price,
-                  'currency_id', car_rental_package_prices.currency_id,
-                  'currency_name', currency_pivots.name,
-                  'currency_code', currencies.code,
-                  'currency_symbol', currencies.symbol,
+                  'main_price', main_price,
+                  'child_price', child_price,
+                  'currency_id', currency_id,
+                  'currency_name', currency_name,
+                  'currency_code', currency_code,
+                  'currency_symbol', currency_symbol,
                   'is_constant', true
                 )
-              WHEN car_rental_packages.constant_price = false THEN 
+              WHEN constant_price = false THEN 
                 json_build_object(
-                  'main_price', car_rental_package_prices.main_price,
-                  'child_price', car_rental_package_prices.child_price,
-                  'currency_id', car_rental_package_prices.currency_id,
-                  'currency_name', currency_pivots.name,
-                  'currency_code', currencies.code,
-                  'currency_symbol', currencies.symbol,
+                  'main_price', main_price,
+                  'child_price', child_price,
+                  'currency_id', currency_id,
+                  'currency_name', currency_name,
+                  'currency_code', currency_code,
+                  'currency_symbol', currency_symbol,
                   'is_constant', false,
-                  'start_date', car_rental_package_prices.start_date,
-                  'end_date', car_rental_package_prices.end_date
+                  'start_date', start_date,
+                  'end_date', end_date
                 )
               ELSE NULL
             END as package_price
-          `)
+          `),
+          "created_at"
         )
-        .groupBy(
-          "car_rentals.id",
-          "car_rentals.highlight",
-          "car_rentals.average_rating",
-          "car_rentals.user_count",
-          "car_rentals.door_count",
-          "car_rental_pivots.title",
-          "car_rental_packages.constant_price",
-          "car_rental_package_prices.main_price",
-          "car_rental_package_prices.child_price",
-          "car_rental_package_prices.currency_id",
-          "currency_pivots.name",
-          "currencies.code",
-          "currencies.symbol",
-          "car_rental_package_prices.start_date",
-          "car_rental_package_prices.end_date",
-          "car_rental_galleries.image_url"
-        )
-        .orderBy("car_rentals.created_at", "desc");
+        .from(knex.raw(`(${subquery.toString()}) as ranked_car_rentals`))
+        .where('rn', 1)
+        .orderBy("created_at", "desc");
 
       const result = limit ? await query.limit(limit) : await query;
 

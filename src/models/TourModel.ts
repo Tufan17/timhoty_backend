@@ -31,7 +31,35 @@ class TourModel extends BaseModel {
 			const now = new Date()
 			const today = now.toISOString().split("T")[0] // YYYY-MM-DD formatında bugünün tarihi
 
-			const query = knex("tours")
+			// Window function kullanarak her tur için en ucuz paketi seçiyoruz
+			const subquery = knex
+				.select(
+					"tours.id",
+					"tours.average_rating",
+					"tours.highlight",
+					"tours.night_count",
+					"tours.day_count",
+					"tour_pivots.title",
+					"tour_galleries.image_url as photo",
+					"tour_packages.constant_price",
+					"tour_package_prices.main_price",
+					"tour_package_prices.child_price",
+					"tour_package_prices.baby_price",
+					"tour_package_prices.currency_id",
+					"currency_pivots.name as currency_name",
+					"currencies.code as currency_code",
+					"currencies.symbol as currency_symbol",
+					"tour_package_prices.start_date",
+					"tour_package_prices.end_date",
+					"tours.created_at",
+					knex.raw(`
+						ROW_NUMBER() OVER (
+							PARTITION BY tours.id 
+							ORDER BY tour_package_prices.main_price ASC, tour_galleries.id ASC
+						) as rn
+					`)
+				)
+				.from("tours")
 				.whereNull("tours.deleted_at")
 				.where("tours.highlight", isHighlighted)
 				.where("tours.status", true)
@@ -39,8 +67,8 @@ class TourModel extends BaseModel {
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
 				.where("tour_pivots.language_code", language)
 				.whereNull("tour_pivots.deleted_at")
-				// Galeri için subquery - sadece ilk galeriyi al
-				.leftJoin(knex("tour_galleries").select("tour_id", knex.raw("MIN(image_url) as image_url")).whereNull("deleted_at").groupBy("tour_id").as("first_gallery"), "tours.id", "first_gallery.tour_id")
+				.innerJoin("tour_galleries", "tours.id", "tour_galleries.tour_id")
+				.whereNull("tour_galleries.deleted_at")
 				.leftJoin("tour_packages", "tours.id", "tour_packages.tour_id")
 				.whereNull("tour_packages.deleted_at")
 				.leftJoin("tour_package_prices", "tour_packages.id", "tour_package_prices.tour_package_id")
@@ -58,49 +86,50 @@ class TourModel extends BaseModel {
 				.leftJoin("currency_pivots", function (this: any) {
 					this.on("currencies.id", "=", "currency_pivots.currency_id").andOn("currency_pivots.language_code", "=", knex.raw("?", [language]))
 				})
+
+			const query = knex
 				.select(
-					"tours.id",
-					"tours.average_rating",
-					"tours.highlight",
-					"tours.night_count",
-					"tours.day_count",
-					"tour_pivots.title",
-					"first_gallery.image_url as photo",
-					knex.raw("MIN(to_char(tour_packages.date, 'YYYY-MM-DD')) as package_date"),
+					"id",
+					"average_rating",
+					"highlight",
+					"night_count",
+					"day_count",
+					"title",
+					"photo",
 					knex.raw(`
-            CASE
-              WHEN bool_or(tour_packages.constant_price) = true THEN
-                json_build_object(
-                  'main_price', MIN(tour_package_prices.main_price),
-                  'child_price', MIN(tour_package_prices.child_price),
-                  'baby_price', MIN(tour_package_prices.baby_price),
-                  'discount', MIN(tour_packages.discount),
-                  'currency_id', (array_agg(tour_package_prices.currency_id))[1],
-                  'currency_name', MIN(currency_pivots.name),
-                  'currency_code', MIN(currencies.code),
-                  'currency_symbol', MIN(currencies.symbol),
-                  'is_constant', true
-                )
-              WHEN bool_or(tour_packages.constant_price) = false THEN
-                json_build_object(
-                  'main_price', MIN(tour_package_prices.main_price),
-                  'child_price', MIN(tour_package_prices.child_price),
-                  'baby_price', MIN(tour_package_prices.baby_price),
-                  'discount', MIN(tour_packages.discount),
-                  'currency_id', (array_agg(tour_package_prices.currency_id))[1],
-                  'currency_name', MIN(currency_pivots.name),
-                  'currency_code', MIN(currencies.code),
-                  'currency_symbol', MIN(currencies.symbol),
-                  'is_constant', false,
-                  'start_date', MIN(tour_package_prices.start_date),
-                  'end_date', MIN(tour_package_prices.end_date)
-                )
-              ELSE NULL
-            END as package_price
-          `)
+						CASE 
+							WHEN constant_price = true THEN 
+								json_build_object(
+									'main_price', main_price,
+									'child_price', child_price,
+									'baby_price', baby_price,
+									'currency_id', currency_id,
+									'currency_name', currency_name,
+									'currency_code', currency_code, 
+									'currency_symbol', currency_symbol,
+									'is_constant', true
+								)
+							WHEN constant_price = false THEN 
+								json_build_object(
+									'main_price', main_price,
+									'child_price', child_price,
+									'baby_price', baby_price,
+									'currency_id', currency_id,
+									'currency_name', currency_name,
+									'currency_code', currency_code,
+									'currency_symbol', currency_symbol,
+									'is_constant', false,
+									'start_date', start_date,
+									'end_date', end_date
+								)
+							ELSE NULL
+						END as package_price
+					`),
+					"created_at"
 				)
-				.groupBy("tours.id", "tours.average_rating", "tours.highlight", "tours.night_count", "tours.day_count", "tours.created_at", "tour_pivots.title", "first_gallery.image_url")
-				.orderBy("tours.created_at", "desc")
+				.from(knex.raw(`(${subquery.toString()}) as ranked_tours`))
+				.where("rn", 1)
+				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
 
