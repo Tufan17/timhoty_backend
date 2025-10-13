@@ -102,6 +102,10 @@ export default class HotelController {
       const data = await base
         .clone()
         .distinct("hotels.id") // aynı otel birden fazla pivot kaydına düşmesin
+        .whereNull("hotels.deleted_at")
+        .modify((qb) => {
+          if (spFromUser) qb.where("hotels.solution_partner_id", spFromUser);
+        })
         .select(
           "hotels.*",
           knex.ref("hotel_pivots.name").as("name"),
@@ -114,7 +118,6 @@ export default class HotelController {
         .orderBy("hotels.created_at", "desc")
         .limit(Number(limit))
         .offset((Number(page) - 1) * Number(limit));
-
       const newData = data.map((item: any) => {
         return {
           ...item,

@@ -43,7 +43,19 @@ export default class UserController {
 				.select("users.*", "currency_pivots.name as currency", "currencies.code as code", "currencies.symbol as symbol", "currencies.is_active as is_active")
 				.groupBy("users.id", "currency_pivots.name", "currencies.code", "currencies.symbol", "currencies.is_active")
 
-			const countResult = await query.clone().count("* as total").first()
+			const countResult = await knex("users")
+				.whereNull("users.deleted_at")
+				.leftJoin("currencies", "users.currency_id", "currencies.id")
+				.where(function () {
+					this.whereNull("users.currency_id").orWhere("currencies.is_active", true)
+				})
+				.where(function () {
+					this.where("name_surname", "ilike", `%${search}%`).orWhere("email", "ilike", `%${search}%`).orWhere("phone", "ilike", `%${search}%`)
+					// ... diğer search koşulları
+				})
+				.count("users.id as total")
+				.first()
+
 			const total = Number(countResult?.total ?? 0)
 			const totalPages = Math.ceil(total / Number(limit))
 			const data = await query

@@ -39,5 +39,8 @@
 	"hotel-reservations",
 	"activity-reservations",
 	"car-rental-reservations",
-	"tour-reservations"
+	"tour-reservations",
+	"stations",
+	"pending-approval-stations",
+	"discount-codes"
 ]

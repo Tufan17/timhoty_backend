@@ -10,6 +10,7 @@ import FaqModel from "@/models/FaqModel";
 import ActivityModel from "@/models/ActivityModel";
 import EmailSubscriptionModel from "@/models/EmailSubscriptionModel";
 import sendMail from "@/utils/mailer";
+import StationModel from "@/models/StationModel";
 
 export default class DashboardController {
   async index(req: FastifyRequest, res: FastifyReply) {
@@ -275,6 +276,36 @@ export default class DashboardController {
       return res.status(500).send({
         success: false,
         message: "Hotels fetch failed",
+      });
+    }
+  }
+
+  async stations(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const language = (req as any).language;
+      const {location_id} = req.query as {location_id: string};
+      
+      // UUID validation
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (location_id && !uuidRegex.test(location_id)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid location_id format. Must be a valid UUID.",
+        });
+      }
+      
+      const stationModel = new StationModel();
+      const stations = await stationModel.getStations(language, location_id);
+      return res.status(200).send({
+        success: true,
+        message: "Stations fetched successfully",
+        data: stations,
+      });
+    } catch (error) {
+      console.error("Stations error:", error);
+      return res.status(500).send({
+        success: false,
+        message: "Stations fetch failed",
       });
     }
   }

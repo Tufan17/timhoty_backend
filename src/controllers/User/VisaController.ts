@@ -94,9 +94,9 @@ export default class VisaController {
 			// visa packages içinde visa_package_prices'ı bul ve ata
 			allvisaPackages.forEach((item: any) => {
 				let visa_package_price = allvisaPackagePrices.filter((price: any) => price.visa_package_id === item.id)
-				if(item.constant_price){
-					item.visa_package_price =visa_package_price.length > 0 ? visa_package_price[0] : null;
-				}else if (date) {
+				if (item.constant_price) {
+					item.visa_package_price = visa_package_price.length > 0 ? visa_package_price[0] : null
+				} else if (date) {
 					item.visa_package_price = visa_package_price.find((price: any) => price.date <= new Date(date) && price.date >= new Date(date))
 				} else {
 					// en düşük fiyatlı olanı ata
@@ -216,20 +216,22 @@ export default class VisaController {
 				.whereNull("city_pivots.deleted_at")
 
 				// Gallery bilgileri
-				.leftJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
+				.leftJoin("visa_galleries", function () {
+					this.on("visas.id", "visa_galleries.visa_id").andOnNull("visa_galleries.deleted_at")
+				})
 				.leftJoin("visa_gallery_pivot", function () {
 					this.on("visa_galleries.id", "visa_gallery_pivot.visa_gallery_id")
 						.andOn("visa_gallery_pivot.language_code", knex.raw("?", [language]))
-						.andOnNull("visa_galleries.deleted_at")
 						.andOnNull("visa_gallery_pivot.deleted_at")
 				})
 
 				// Visa özellikleri
-				.leftJoin("visa_features", "visas.id", "visa_features.visa_id")
+				.leftJoin("visa_features", function () {
+					this.on("visas.id", "visa_features.visa_id").andOnNull("visa_features.deleted_at")
+				})
 				.leftJoin("visa_feature_pivots", function () {
 					this.on("visa_features.id", "visa_feature_pivots.visa_feature_id")
 						.andOn("visa_feature_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("visa_features.deleted_at")
 						.andOnNull("visa_feature_pivots.deleted_at")
 				})
 
@@ -243,11 +245,12 @@ export default class VisaController {
 				// })
 
 				// Paket bilgileri
-				.leftJoin("visa_packages", "visas.id", "visa_packages.visa_id")
+				.leftJoin("visa_packages", function () {
+					this.on("visas.id", "visa_packages.visa_id").andOnNull("visa_packages.deleted_at")
+				})
 				.leftJoin("visa_package_pivots", function () {
 					this.on("visa_packages.id", "visa_package_pivots.visa_package_id")
 						.andOn("visa_package_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("visa_packages.deleted_at")
 						.andOnNull("visa_package_pivots.deleted_at")
 				})
 
@@ -268,11 +271,12 @@ export default class VisaController {
 				})
 
 				// Paket özellikleri
-				.leftJoin("visa_package_features", "visa_packages.id", "visa_package_features.visa_package_id")
+				.leftJoin("visa_package_features", function () {
+					this.on("visa_packages.id", "visa_package_features.visa_package_id").andOnNull("visa_package_features.deleted_at")
+				})
 				.leftJoin("visa_package_feature_pivots", function () {
 					this.on("visa_package_features.id", "visa_package_feature_pivots.visa_package_feature_id")
 						.andOn("visa_package_feature_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("visa_package_features.deleted_at")
 						.andOnNull("visa_package_feature_pivots.deleted_at")
 				})
 

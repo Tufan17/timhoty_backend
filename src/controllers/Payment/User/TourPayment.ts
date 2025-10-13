@@ -4,6 +4,7 @@ import { tapPaymentsService } from "@/services/Payment";
 import TourReservationModel from "@/models/TourReservationModel";
 import TourReservationInvoiceModel from "@/models/TourReservationInvoiceModel";
 import TourReservationUserModel from "@/models/TourReservationUserModel";
+import DiscountUserModel from "@/models/DiscountUserModel";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -34,7 +35,7 @@ interface CreatePaymentRequest {
     address: string;
     name: string;
     surname: string;
-    birthday: string;
+    birthDate: string;
     email: string;
     phone: string;
     type: string;
@@ -42,6 +43,13 @@ interface CreatePaymentRequest {
   }[];
   different_invoice?: boolean;
   package_id?: string;
+  discount?: {
+    id: string;
+    code: string;
+    service_type: string;
+    amount: string;
+    percentage: string;
+  };
 }
 
 interface PaymentStatusRequest {
@@ -75,6 +83,7 @@ class UserTourPayment {
         users,
         different_invoice,
         package_id,
+        discount,
       } = req.body;
       const user = (req as any).user;
       // Validate required fields
@@ -143,6 +152,15 @@ class UserTourPayment {
       });
 
       if (!existingReservation) {
+        if (discount && discount.id) {
+          const discountUserModel = new DiscountUserModel();
+          await discountUserModel.create({
+            discount_code_id: discount.id,
+            user_id: user.id,
+            status: false,
+            payment_id: paymentIntent.id,
+          });
+        }
         const body_form = {
           payment_id: paymentIntent.id,
           created_by: user.id,
@@ -151,7 +169,7 @@ class UserTourPayment {
           package_id: package_id,
           status: false,
           progress_id: booking_id,
-          period: period || new Date().toISOString().split('T')[0], // Use current date if not provided
+          period: period || new Date().toISOString().split("T")[0], // Use current date if not provided
           price: Number(amount) * 100,
           currency_code: currency,
         };
@@ -169,14 +187,13 @@ class UserTourPayment {
 
         const invoiceModel = new TourReservationInvoiceModel();
         const invoice = await invoiceModel.create(body_invoice);
-
         if (users && users.length > 0) {
           for (const user of users) {
             const body_user = {
               tour_reservation_id: reservation.id,
               name: user.name,
               surname: user.surname,
-              birthday: user.birthday,
+              birthday: user.birthDate,
               email: user.email,
               phone: user.phone,
               type: user.type,
@@ -216,7 +233,10 @@ class UserTourPayment {
   /**
    * Get payment status
    */
-  async getPaymentStatus(req: FastifyRequest<{ Params: PaymentStatusRequest }>, res: FastifyReply) {
+  async getPaymentStatus(
+    req: FastifyRequest<{ Params: PaymentStatusRequest }>,
+    res: FastifyReply
+  ) {
     try {
       const { charge_id } = req.params;
 
@@ -239,8 +259,17 @@ class UserTourPayment {
         });
       }
 
-      if(charge.status === "CAPTURED"){
-        await reservationModel.update(reservation.id, {status:true});
+      if (charge.status === "CAPTURED") {
+        await reservationModel.update(reservation.id, { status: true });
+        const discountUserModel = new DiscountUserModel();
+        const existingDiscountUser = await discountUserModel.first({
+          payment_id: charge_id,
+        });
+        if (existingDiscountUser) {
+          await discountUserModel.update(existingDiscountUser.id, {
+            status: true,
+          });
+        }
       }
       return res.status(200).send({
         success: true,
@@ -251,17 +280,18 @@ class UserTourPayment {
           amount: charge.amount / 100,
           currency: charge.currency,
           customer: charge.customer,
-          created_at: charge.created ? new Date(charge.created * 1000).toISOString() : new Date().toISOString(),
-          url: charge.url
-        }
+          created_at: charge.created
+            ? new Date(charge.created * 1000).toISOString()
+            : new Date().toISOString(),
+          url: charge.url,
+        },
       });
-
     } catch (error: any) {
-      console.error('Payment Status Error:', error);
+      console.error("Payment Status Error:", error);
       return res.status(500).send({
         success: false,
         message: "Failed to retrieve payment status",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -269,7 +299,10 @@ class UserTourPayment {
   /**
    * Create a refund
    */
-  async createRefund(req: FastifyRequest<{ Body: RefundRequest }>, res: FastifyReply) {
+  async createRefund(
+    req: FastifyRequest<{ Body: RefundRequest }>,
+    res: FastifyReply
+  ) {
     try {
       const { charge_id, amount, reason, description } = req.body;
 
@@ -283,12 +316,12 @@ class UserTourPayment {
       const refundRequest = {
         charge_id,
         amount: amount ? Math.round(amount * 100) : undefined, // Convert to smallest currency unit
-        reason: reason || 'requested_by_customer',
-        description: description || 'Tour booking refund',
+        reason: reason || "requested_by_customer",
+        description: description || "Tour booking refund",
         metadata: {
-          refund_type: 'tour_booking',
-          created_at: new Date().toISOString()
-        }
+          refund_type: "tour_booking",
+          created_at: new Date().toISOString(),
+        },
       };
 
       const refund = await tapPaymentsService.createRefund(refundRequest);
@@ -302,16 +335,17 @@ class UserTourPayment {
           amount: refund.amount / 100,
           currency: refund.currency,
           charge_id: refund.charge_id,
-          created_at: refund.created ? new Date(refund.created * 1000).toISOString() : new Date().toISOString()
-        }
+          created_at: refund.created
+            ? new Date(refund.created * 1000).toISOString()
+            : new Date().toISOString(),
+        },
       });
-
     } catch (error: any) {
-      console.error('Refund Error:', error);
+      console.error("Refund Error:", error);
       return res.status(500).send({
         success: false,
         message: "Refund creation failed",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -319,7 +353,10 @@ class UserTourPayment {
   /**
    * Get refund status
    */
-  async getRefundStatus(req: FastifyRequest<{ Params: { refund_id: string } }>, res: FastifyReply) {
+  async getRefundStatus(
+    req: FastifyRequest<{ Params: { refund_id: string } }>,
+    res: FastifyReply
+  ) {
     try {
       const { refund_id } = req.params;
 
@@ -341,16 +378,17 @@ class UserTourPayment {
           amount: refund.amount / 100,
           currency: refund.currency,
           charge_id: refund.charge_id,
-          created_at: refund.created ? new Date(refund.created * 1000).toISOString() : new Date().toISOString()
-        }
+          created_at: refund.created
+            ? new Date(refund.created * 1000).toISOString()
+            : new Date().toISOString(),
+        },
       });
-
     } catch (error: any) {
-      console.error('Refund Status Error:', error);
+      console.error("Refund Status Error:", error);
       return res.status(500).send({
         success: false,
         message: "Failed to retrieve refund status",
-        error: error.message
+        error: error.message,
       });
     }
   }

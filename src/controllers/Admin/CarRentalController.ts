@@ -130,10 +130,32 @@ export default class CarRentalController {
 					if (typeof status !== "undefined") qb.where("car_rentals.status", status)
 					if (typeof admin_approval !== "undefined") qb.where("car_rentals.admin_approval", admin_approval)
 				})
+				.innerJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
+				.innerJoin("cities", "car_rentals.location_id", "cities.id")
+				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+				.where("car_rental_pivots.language_code", req.language)
+				.where("country_pivots.language_code", req.language)
+				.where("city_pivots.language_code", req.language)
+				.whereNull("car_rental_pivots.deleted_at")
+				.whereNull("car_rentals.deleted_at")
+				.whereNull("car_rentals.deleted_at")
+				.whereNull("cities.deleted_at")
+				.whereNull("country_pivots.deleted_at")
+				.whereNull("city_pivots.deleted_at")
+
+				.whereNull("car_rental_pivots.deleted_at")
+				.select("car_rentals.*", "car_rental_pivots.title as title", "car_rental_pivots.general_info", "car_rental_pivots.car_info", "car_rental_pivots.refund_policy", knex.ref("country_pivots.name").as("country_name"), knex.ref("city_pivots.name").as("city_name"))
+			const newData = carRentals.map((item: any) => {
+				return {
+					...item,
+					address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+				}
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("CAR_RENTAL.CAR_RENTAL_FETCHED_SUCCESS"),
-				data: carRentals,
+				data: newData,
 			})
 		} catch (error) {
 			console.log(error)

@@ -130,18 +130,33 @@ export default class ActivityController {
 			}
 			const activities = await knex("activities")
 				.whereNull("activities.deleted_at")
-				.select("activities.*", "activity_pivots.title as title", "activity_pivots.general_info", "activity_pivots.activity_info", "activity_pivots.refund_policy", "activity_pivots.language_code")
+				.select("activities.*", "activity_pivots.title as title", "activity_pivots.general_info", "activity_pivots.activity_info", "activity_pivots.refund_policy", "activity_pivots.language_code", knex.ref("country_pivots.name").as("country_name"), knex.ref("city_pivots.name").as("city_name"))
 				.modify(qb => {
 					if (typeof status !== "undefined") qb.where("activities.status", status)
 					if (typeof admin_approval !== "undefined") qb.where("activities.admin_approval", admin_approval)
 				})
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
+				.innerJoin("cities", "activities.location_id", "cities.id")
+				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
+				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
 				.where("activity_pivots.language_code", language)
+				.where("country_pivots.language_code", language)
+				.where("city_pivots.language_code", language)
+				.whereNull("cities.deleted_at")
+				.whereNull("country_pivots.deleted_at")
+				.whereNull("city_pivots.deleted_at")
+				.whereNull("activity_pivots.deleted_at")
 
+			const newData = activities.map((item: any) => {
+				return {
+					...item,
+					address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+				}
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY.ACTIVITY_FETCHED_SUCCESS"),
-				data: activities as any,
+				data: newData,
 			})
 		} catch (error) {
 			console.log(error)

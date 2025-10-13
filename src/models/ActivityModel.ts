@@ -83,7 +83,7 @@ class ActivityModel extends BaseModel {
 				.leftJoin("currencies", "activity_package_prices.currency_id", "currencies.id")
 				.leftJoin("currency_pivots", function (this: any) {
 					this.on("currencies.id", "=", "currency_pivots.currency_id").andOn("currency_pivots.language_code", "=", knex.raw("?", [language]))
-				});
+				})
 
 			const query = knex
 				.select(
@@ -129,6 +129,40 @@ class ActivityModel extends BaseModel {
 				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
+
+			// Get cover images (Kapak Resmi) for all activities
+			const activityIds = result.map((activity: any) => activity.id)
+			if (activityIds.length > 0) {
+				const mainImages = await knex.raw(`
+					SELECT DISTINCT ON (activities.id) 
+						activities.id as activity_id,
+						COALESCE(
+							(SELECT ag.image_url 
+							 FROM activity_galleries ag 
+							 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id 
+							 WHERE ag.activity_id = activities.id 
+							 AND agp.category = 'Kapak Resmi' 
+							 AND agp.language_code = ? 
+							 AND ag.deleted_at IS NULL 
+							 AND agp.deleted_at IS NULL 
+							 LIMIT 1),
+							(SELECT ag.image_url 
+							 FROM activity_galleries ag 
+							 WHERE ag.activity_id = activities.id 
+							 AND ag.deleted_at IS NULL 
+							 ORDER BY ag.id 
+							 LIMIT 1)
+						) as image_url
+					FROM activities 
+					WHERE activities.id = ANY(?)
+				`, [language, activityIds])
+				
+				// Add image_url to each activity
+				result.forEach((activity: any) => {
+					const image_url = mainImages.rows.find((img: any) => img.activity_id === activity.id)
+					activity.image_url = image_url ? image_url.image_url : null
+				})
+			}
 
 			// Her aktivite için saatleri ayrı olarak al
 			const activitiesWithHours = await Promise.all(

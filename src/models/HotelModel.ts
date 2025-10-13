@@ -66,15 +66,6 @@ class HotelModel extends BaseModel {
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
         .where("hotel_pivots.language_code", language)
         .whereNull("hotel_pivots.deleted_at")
-        .leftJoin(
-          knex('hotel_galleries')
-            .select('hotel_id', knex.raw('MIN(image_url) as image_url'))
-            .whereNull('deleted_at')
-            .groupBy('hotel_id')
-            .as('first_gallery'),
-          'hotels.id',
-          'first_gallery.hotel_id'
-        )
         .leftJoin('hotel_rooms', function() {
           this.on('hotels.id', '=', 'hotel_rooms.hotel_id')
             .andOnNull('hotel_rooms.deleted_at');
@@ -109,7 +100,25 @@ class HotelModel extends BaseModel {
           "hotels.id",
           "hotels.highlight",
           "hotel_pivots.name",
-          "first_gallery.image_url as photo",
+          knex.raw(`
+            COALESCE(
+              (SELECT hg.image_url 
+               FROM hotel_galleries hg 
+               INNER JOIN hotel_gallery_pivot hgp ON hg.id = hgp.hotel_gallery_id 
+               WHERE hg.hotel_id = hotels.id 
+               AND hgp.category = 'Kapak Resmi' 
+               AND hgp.language_code = ? 
+               AND hg.deleted_at IS NULL 
+               AND hgp.deleted_at IS NULL 
+               LIMIT 1),
+              (SELECT hg.image_url 
+               FROM hotel_galleries hg 
+               WHERE hg.hotel_id = hotels.id 
+               AND hg.deleted_at IS NULL 
+               ORDER BY hg.id 
+               LIMIT 1)
+            ) as photo
+          `, [language]),
           knex.raw(`
             json_build_object(
               'main_price', MIN(hotel_room_package_prices.main_price),
@@ -120,11 +129,12 @@ class HotelModel extends BaseModel {
               'currency_symbol', MIN(currencies.symbol),
               'is_constant', bool_or(hotel_room_packages.constant_price),
               'start_date', MIN(hotel_room_package_prices.start_date),
-              'end_date', MIN(hotel_room_package_prices.end_date)
+              'end_date', MIN(hotel_room_package_prices.end_date),
+              'discount', MIN(hotel_room_packages.discount)
             ) as package_price
           `)
         )
-        .groupBy("hotels.id", "hotels.highlight", "hotels.created_at", "hotel_pivots.name", "first_gallery.image_url")
+        .groupBy("hotels.id", "hotels.highlight", "hotels.created_at", "hotel_pivots.name")
         .orderBy("hotels.created_at", "desc");
 
       const result = limit ? await query.limit(limit) : await query;

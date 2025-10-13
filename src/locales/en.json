@@ -400,6 +400,53 @@
     "HOTEL_ROOM_PACKAGE_DATE_RANGE_ERROR": "Hotel room package date range error",
     "HOTEL_ROOM_PACKAGE_PRICE_COUNT_ERROR": "Hotel room package price count error"
   },
+  "HOTEL_GALLERY": {
+    "FETCHED_SUCCESS": "Hotel gallery fetched successfully",
+    "FETCHED_ERROR": "Hotel gallery fetch failed",
+    "NOT_FOUND": "Hotel gallery not found",
+    "CATEGORY_ALREADY_EXISTS": "Hotel gallery category already exists",
+    "CREATED_SUCCESS": "Hotel gallery created successfully",
+    "CREATED_ERROR": "Hotel gallery create failed",
+    "NO_UPDATE_DATA": "No update data provided",
+    "UPDATED_SUCCESS": "Hotel gallery updated successfully",
+    "UPDATED_ERROR": "Hotel gallery update failed",
+    "DELETED_SUCCESS": "Hotel gallery deleted successfully",
+    "DELETED_ERROR": "Hotel gallery delete failed",
+    "NO_IDS_PROVIDED": "No IDs provided for bulk delete",
+    "SOME_NOT_FOUND": "Some hotel gallery items not found",
+    "BULK_DELETED_SUCCESS": "Hotel gallery items deleted successfully",
+    "BULK_DELETED_ERROR": "Hotel gallery bulk delete failed"
+  },
+  "TOUR": {
+    "TOUR_FETCHED_SUCCESS": "Tours fetched successfully",
+    "TOUR_FETCHED_ERROR": "Tours fetch failed",
+    "TOUR_CREATED_SUCCESS": "Tour created successfully",
+    "TOUR_CREATED_ERROR": "Tour create failed",
+    "TOUR_UPDATED_SUCCESS": "Tour updated successfully",
+    "TOUR_UPDATED_ERROR": "Tour update failed",
+    "TOUR_DELETED_SUCCESS": "Tour deleted successfully",
+    "TOUR_DELETED_ERROR": "Tour delete failed",
+    "NOT_FOUND": "Tour not found",
+    "TOUR_SEND_FOR_APPROVAL_SUCCESS": "Tour sent for approval successfully",
+    "TOUR_SEND_FOR_APPROVAL_ERROR": "Tour send for approval failed"
+  },
+  "TOUR_GALLERY": {
+    "FETCHED_SUCCESS": "Tour gallery fetched successfully",
+    "FETCHED_ERROR": "Tour gallery fetch failed",
+    "NOT_FOUND": "Tour gallery not found",
+    "CATEGORY_ALREADY_EXISTS": "Tour gallery category already exists",
+    "CREATED_SUCCESS": "Tour gallery created successfully",
+    "CREATED_ERROR": "Tour gallery create failed",
+    "NO_UPDATE_DATA": "No update data provided",
+    "UPDATED_SUCCESS": "Tour gallery updated successfully",
+    "UPDATED_ERROR": "Tour gallery update failed",
+    "DELETED_SUCCESS": "Tour gallery deleted successfully",
+    "DELETED_ERROR": "Tour gallery delete failed",
+    "NO_IDS_PROVIDED": "No IDs provided for bulk delete",
+    "SOME_NOT_FOUND": "Some tour gallery items not found",
+    "BULK_DELETED_SUCCESS": "Tour gallery items deleted successfully",
+    "BULK_DELETED_ERROR": "Tour gallery bulk delete failed"
+  },
   "FAVORITES": {
     "FAVORITES_FETCHED_SUCCESS": "Favorites fetched successfully",
     "FAVORITES_FETCHED_ERROR": "Favorites fetch failed",
@@ -410,5 +457,12 @@
     "FAVORITE_TOGGLE_ERROR": "Favorite toggle failed",
     "SERVICE_NOT_FOUND": "Service not found",
     "FAVORITE_NOT_FOUND": "Favorite not found"
+  },
+  "DISCOUNT": {
+    "DISCOUNT_CODE_NOT_FOUND": "Discount code not found",
+    "DISCOUNT_PRODUCT_NOT_FOUND": "Discount product not found",
+    "DISCOUNT_LIMIT_REACHED": "Discount limit reached",
+    "DISCOUNT_ADDED_SUCCESS": "Discount added successfully",
+    "DISCOUNT_ADD_ERROR": "Error adding discount"
   }
 }
