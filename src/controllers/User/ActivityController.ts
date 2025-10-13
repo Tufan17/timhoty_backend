@@ -78,17 +78,34 @@ export default class ActivityController {
 					"activities.approval_period"
 				)
 
-			// Get all car_rental packages for all activity in one query
+			// Get cover images (Kapak Resmi) for all activities
 			const activityIds = activities.map((activity: any) => activity.id)
-			const mainImages = await knex("activity_galleries").select("activity_id", "image_url").whereIn("activity_id", activityIds).whereNull("deleted_at").whereRaw(`id IN (
-        SELECT id FROM activity_galleries ag
-        WHERE ag.activity_id = activity_galleries.activity_id
-        AND ag.deleted_at IS NULL
-        ORDER BY created_at ASC
-        LIMIT 1
-    )`)
+			const mainImages = await knex.raw(`
+				SELECT DISTINCT ON (activities.id) 
+					activities.id as activity_id,
+					COALESCE(
+						(SELECT ag.image_url 
+						 FROM activity_galleries ag 
+						 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id 
+						 WHERE ag.activity_id = activities.id 
+						 AND agp.category = 'Kapak Resmi' 
+						 AND agp.language_code = ? 
+						 AND ag.deleted_at IS NULL 
+						 AND agp.deleted_at IS NULL 
+						 LIMIT 1),
+						(SELECT ag.image_url 
+						 FROM activity_galleries ag 
+						 WHERE ag.activity_id = activities.id 
+						 AND ag.deleted_at IS NULL 
+						 ORDER BY ag.id 
+						 LIMIT 1)
+					) as image_url
+				FROM activities 
+				WHERE activities.id = ANY(?)
+			`, [language, activityIds])
+			
 			activities.forEach((activity: any) => {
-				const image_url = mainImages.find((img: any) => img.activity_id === activity.id)
+				const image_url = mainImages.rows.find((img: any) => img.activity_id === activity.id)
 				activity.image_url = image_url ? image_url.image_url : null
 			})
 

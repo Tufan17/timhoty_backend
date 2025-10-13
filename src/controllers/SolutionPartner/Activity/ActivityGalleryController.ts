@@ -156,6 +156,19 @@ export default class ActivityGalleryController {
 			const imageUrls = Array.isArray(images) ? images : [images]
 			const createdImages = []
 
+			const existingActivityGallery = await new ActivityGalleryModel().hasCoverImage(
+				activity_id
+			  );
+		
+			  if (existingActivityGallery&&["Kapak Resmi","الغلاف","Cover"].includes(category)) {
+				return res.status(400).send({
+				  success: false,
+				  message: req.t("ACTIVITY_GALLERY.CATEGORY_ALREADY_EXISTS"),
+				});
+			  }
+
+
+
 			// Create activity images
 			for (const imageUrl of imageUrls) {
 				let image_type = ""
@@ -184,6 +197,7 @@ export default class ActivityGalleryController {
 				})
 				createdImages.push(image)
 			}
+
 
 			return res.status(200).send({
 				success: true,

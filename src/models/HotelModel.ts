@@ -129,7 +129,8 @@ class HotelModel extends BaseModel {
               'currency_symbol', MIN(currencies.symbol),
               'is_constant', bool_or(hotel_room_packages.constant_price),
               'start_date', MIN(hotel_room_package_prices.start_date),
-              'end_date', MIN(hotel_room_package_prices.end_date)
+              'end_date', MIN(hotel_room_package_prices.end_date),
+              'discount', MIN(hotel_room_packages.discount)
             ) as package_price
           `)
         )
