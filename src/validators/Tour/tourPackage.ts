@@ -14,9 +14,6 @@ const priceSchemata = Joi.object({
 
 export const tourPackageSchema = Joi.object({
     tour_id: Joi.string().uuid().required(),
-    discount: Joi.number().min(0).max(100).optional(),
-    total_tax_amount: Joi.number().min(0).optional(),
-    constant_price: Joi.boolean().required(),
     name: Joi.string().required(),
     description: Joi.string().required(),
     refund_policy: Joi.string().required(),

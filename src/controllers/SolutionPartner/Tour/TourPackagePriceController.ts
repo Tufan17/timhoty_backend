@@ -63,22 +63,22 @@ export default class TourPackagePriceController {
         child_price,
         baby_price,
         currency_id,
-        start_date,
-        end_date,
         period,
         date,
         quota,
+        discount,
+        total_tax_amount,
       } = req.body as {
         tour_package_id: string;
         main_price: number;
         child_price?: number;
         baby_price?: number;
         currency_id: string;
-        start_date?: string;
-        end_date?: string;
         period?: string;
         date?: string;
         quota?: number;
+        discount?: number;
+        total_tax_amount?: number;
       };
 
       // Validate tour package exists
@@ -116,11 +116,11 @@ export default class TourPackagePriceController {
         child_price,
         baby_price,
         currency_id,
-        start_date,
-        end_date,
         period,
         date,
         quota,
+        discount,
+        total_tax_amount,
       });
 
       return res.status(200).send({
@@ -145,21 +145,21 @@ export default class TourPackagePriceController {
         child_price,
         baby_price,
         currency_id,
-        start_date,
-        end_date,
         period,
         date,
         quota,
+        discount,
+        total_tax_amount,
       } = req.body as {
         main_price?: number;
         child_price?: number;
         baby_price?: number;
         currency_id?: string;
-        start_date?: string;
-        end_date?: string;
         period?: string;
         date?: string;
         quota?: number;
+        discount?: number;
+        total_tax_amount?: number;
       };
 
       const existingPrice = await new TourPackagePriceModel().findId(id);
@@ -192,8 +192,8 @@ export default class TourPackagePriceController {
         child_price,
         baby_price,
         currency_id,
-        start_date,
-        end_date,
+        discount,
+        total_tax_amount,
         period,
         date,
         quota,

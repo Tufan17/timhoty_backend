@@ -191,7 +191,7 @@ export class TourPackageController {
       const packageModel = await knex
         .select(
           "tour_packages.*",
-          "tour_packages.date",
+          "tour_packages.return_acceptance_period",
           knex.raw(`
             COALESCE(
               json_agg(
@@ -206,8 +206,8 @@ export class TourPackageController {
                   'currency_id', tour_package_prices.currency_id,
                   'currency_name', currency_pivots.name,
                   'code', currencies.code,
-                  'start_date', tour_package_prices.start_date,
-                  'end_date', tour_package_prices.end_date,
+                  'discount', tour_package_prices.discount,
+                  'total_tax_amount', tour_package_prices.total_tax_amount,
                   'date', tour_package_prices.date,
                   'created_at', tour_package_prices.created_at,
                   'updated_at', tour_package_prices.updated_at,
@@ -322,12 +322,10 @@ export class TourPackageController {
     try {
       const {
         tour_id,
-        discount,
-        total_tax_amount,
-        constant_price,
         name,
         description,
         refund_policy,
+        return_acceptance_period
       } = req.body as CreatePackageBody;
 
       const existingTour = await new TourModel().exists({
@@ -343,9 +341,7 @@ export class TourPackageController {
 
       const packageModel = await new TourPackageModel().create({
         tour_id,
-        discount,
-        total_tax_amount,
-        constant_price,
+        return_acceptance_period,
       });
 
       await translateCreate({
