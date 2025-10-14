@@ -115,7 +115,7 @@ class TourReservationModel extends BaseModel {
 				"tour_pivots.title as tour_title",
 				"city_pivots.name as tour_city",
 				"country_pivots.name as tour_country",
-				"tour_packages.date as package_date",
+				"tour_package_prices.date as package_date",
 				"tour_packages.discount as package_discount",
 				"tour_packages.return_acceptance_period as package_return_acceptance_period",
 				"tour_packages.constant_price as package_constant_price",
@@ -194,7 +194,11 @@ class TourReservationModel extends BaseModel {
 			})
 			.leftJoin("tour_reservation_users", "tour_reservations.id", "tour_reservation_users.tour_reservation_id")
 			.whereNull("tour_reservation_users.deleted_at")
-			.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_packages.date", "tour_packages.discount", "tour_packages.return_acceptance_period", "tour_packages.constant_price", "tour_package_pivots.name", "tour_package_pivots.description", "tour_package_pivots.refund_policy")
+			.leftJoin("tour_package_prices", function () {
+				this.on("tour_reservations.tour_package_price_id", "=", "tour_package_prices.id").andOnNull("tour_package_prices.deleted_at")
+			})
+
+			.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_packages.discount", "tour_packages.return_acceptance_period", "tour_packages.constant_price", "tour_package_pivots.name", "tour_package_pivots.description", "tour_package_pivots.refund_policy", "tour_package_prices.date")
 			.orderBy("tour_reservations.created_at", "desc")
 	}
 
@@ -294,7 +298,7 @@ class TourReservationModel extends BaseModel {
 				"tour_pivots.title as tour_title",
 				"city_pivots.name as tour_city",
 				"country_pivots.name as tour_country",
-				"tour_packages.date as package_date",
+				"tour_package_prices.date as package_date",
 				"tour_packages.discount as package_discount",
 				"tour_packages.return_acceptance_period as package_return_acceptance_period",
 				"tour_packages.constant_price as package_constant_price",
@@ -382,6 +386,9 @@ class TourReservationModel extends BaseModel {
 				this.on("tour_packages.id", "=", "tour_package_pivots.tour_package_id")
 					.andOn("tour_package_pivots.language_code", "=", knex.raw("?", [language]))
 					.andOnNull("tour_package_pivots.deleted_at")
+			})
+			.leftJoin("tour_package_prices", function () {
+				this.on("tour_reservations.tour_package_price_id", "=", "tour_package_prices.id").andOnNull("tour_package_prices.deleted_at")
 			})
 			.first()
 
