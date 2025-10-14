@@ -190,7 +190,7 @@ export default class TourController {
 						this.on("tour_packages.id", "tour_package_pivots.tour_package_id").andOn("tour_package_pivots.language_code", knex.raw("?", [language]))
 					})
 					.whereNull("tour_package_pivots.deleted_at")
-					.select("tour_packages.id", "tour_packages.tour_id", "tour_packages.constant_price", "tour_package_pivots.name", "tour_packages.discount")
+					.select("tour_packages.id", "tour_packages.tour_id", "tour_packages.constant_price", "tour_package_pivots.name")
 
 				// Tüm paket fiyatlarını tek sorguda al
 				if (allTourPackages.length > 0) {
@@ -209,7 +209,7 @@ export default class TourController {
 						queryBuilder.where("tour_package_prices.period", period)
 					}
 				})
-						.select("tour_package_prices.id", "tour_package_prices.tour_package_id", "tour_package_prices.main_price", "tour_package_prices.child_price", "tour_package_prices.baby_price", "tour_package_prices.date", "tour_package_prices.period", "currencies.code as currency_code", "currencies.symbol as currency_symbol", "currency_pivots.name as currency_name")
+						.select("tour_package_prices.id", "tour_package_prices.tour_package_id", "tour_package_prices.main_price", "tour_package_prices.child_price", "tour_package_prices.baby_price", "tour_package_prices.date", "tour_package_prices.period", "tour_package_prices.discount", "currencies.code as currency_code", "currencies.symbol as currency_symbol", "currency_pivots.name as currency_name")
 
 					// Her paket için uygun fiyatı bul (constant_price veya tarihe göre)
 					const packagePriceMap: Record<string, any> = {}
@@ -239,7 +239,7 @@ export default class TourController {
 								packagePriceMap[pkg.id] = {
 									package_id: pkg.id,
 									package_name: pkg.name,
-									discount: pkg.discount,
+									discount: selectedPrice.discount,
 									date: selectedPrice.date,
 									main_price: selectedPrice.main_price,
 									child_price: selectedPrice.child_price,
@@ -484,24 +484,24 @@ export default class TourController {
 					"tour_features.status as feature_status",
 					"tour_feature_pivots.name as feature_name",
 
-					// Paket bilgileri
-					"tour_packages.id as package_id",
-					"tour_package_pivots.name as package_name",
-					"tour_package_pivots.description as package_description",
-					"tour_package_pivots.refund_policy as package_refund_policy",
-					"tour_packages.return_acceptance_period",
-					"tour_packages.discount",
-					"tour_packages.total_tax_amount",
-					"tour_packages.constant_price",
+			// Paket bilgileri
+			"tour_packages.id as package_id",
+			"tour_package_pivots.name as package_name",
+			"tour_package_pivots.description as package_description",
+			"tour_package_pivots.refund_policy as package_refund_policy",
+			"tour_packages.return_acceptance_period",
+			"tour_packages.constant_price",
 
-					// Paket fiyatları
-					"tour_package_prices.id as price_id",
-					"tour_package_prices.main_price",
-					"tour_package_prices.child_price",
-					"tour_package_prices.baby_price",
-				"tour_package_prices.date as price_date",
-					"tour_package_prices.period",
-					"tour_package_prices.quota",
+			// Paket fiyatları
+			"tour_package_prices.id as price_id",
+			"tour_package_prices.main_price",
+			"tour_package_prices.child_price",
+			"tour_package_prices.baby_price",
+		"tour_package_prices.date as price_date",
+			"tour_package_prices.period",
+			"tour_package_prices.quota",
+			"tour_package_prices.discount",
+			"tour_package_prices.total_tax_amount",
 					"currency_pivots.name as currency_name",
 					"currencies.code as currency_code",
 					"currencies.symbol as currency_symbol",
@@ -565,22 +565,20 @@ export default class TourController {
 			results.forEach((row: any) => {
 				if (!row.package_id) return
 
-				if (!packageMap.has(row.package_id)) {
-					packageMap.set(row.package_id, {
-						id: row.package_id,
-						name: row.package_name,
-						description: row.package_description,
-						refund_policy: row.package_refund_policy,
-						return_acceptance_period: row.return_acceptance_period,
-						discount: row.discount,
-						total_tax_amount: row.total_tax_amount,
-						constant_price: row.constant_price,
-						images: [],
-						opportunities: [],
-						features: [],
-					prices: [],
-					})
-				}
+		if (!packageMap.has(row.package_id)) {
+			packageMap.set(row.package_id, {
+				id: row.package_id,
+				name: row.package_name,
+				description: row.package_description,
+				refund_policy: row.package_refund_policy,
+				return_acceptance_period: row.return_acceptance_period,
+				constant_price: row.constant_price,
+				images: [],
+				opportunities: [],
+				features: [],
+			prices: [],
+			})
+		}
 
 				const packageData = packageMap.get(row.package_id)
 
@@ -618,67 +616,65 @@ export default class TourController {
 					}
 				}
 
-			// Paket fiyatlarını topla
-			if (row.price_id) {
-				const existingPrice = packageData.prices.find((p: any) => p.id === row.price_id)
-				if (!existingPrice) {
-					packageData.prices.push({
-							id: row.price_id,
-							main_price: row.main_price,
-							child_price: row.child_price,
-							baby_price: row.baby_price,
-							period: row.period,
-							quota: row.quota,
-						date: row.price_date,
-							currency: {
-								name: row.currency_name,
-								code: row.currency_code,
-								symbol: row.currency_symbol,
-							},
-					})
-				}
+		// Paket fiyatlarını topla
+		if (row.price_id) {
+			const existingPrice = packageData.prices.find((p: any) => p.id === row.price_id)
+			if (!existingPrice) {
+				packageData.prices.push({
+					id: row.price_id,
+					main_price: row.main_price,
+					child_price: row.child_price,
+					baby_price: row.baby_price,
+					period: row.period,
+					quota: row.quota,
+				date: row.price_date,
+					discount: row.discount,
+					total_tax_amount: row.total_tax_amount,
+					currency: {
+						name: row.currency_name,
+						code: row.currency_code,
+						symbol: row.currency_symbol,
+					},
+			})
 			}
+		}
 		})
 
-		// Her fiyat için ayrı paket oluştur
-		const allPackages: any[] = []
-		packageMap.forEach((pkg: any) => {
-			if (pkg.prices.length === 0) {
-				// Fiyatı olmayan paketleri olduğu gibi ekle
+	// Her fiyat için ayrı paket oluştur
+	const allPackages: any[] = []
+	packageMap.forEach((pkg: any) => {
+		if (pkg.prices.length === 0) {
+			// Fiyatı olmayan paketleri olduğu gibi ekle
+			allPackages.push({
+				id: pkg.id,
+				name: pkg.name,
+				description: pkg.description,
+				refund_policy: pkg.refund_policy,
+				return_acceptance_period: pkg.return_acceptance_period,
+				constant_price: pkg.constant_price,
+				images: pkg.images,
+				opportunities: pkg.opportunities,
+				features: pkg.features,
+				price: null,
+			})
+		} else {
+			// Her fiyat için paketi duplicate et
+			pkg.prices.forEach((price: any) => {
 				allPackages.push({
 					id: pkg.id,
 					name: pkg.name,
 					description: pkg.description,
 					refund_policy: pkg.refund_policy,
 					return_acceptance_period: pkg.return_acceptance_period,
-					discount: pkg.discount,
-					total_tax_amount: pkg.total_tax_amount,
 					constant_price: pkg.constant_price,
 					images: pkg.images,
 					opportunities: pkg.opportunities,
 					features: pkg.features,
-					price: null,
+					price: price,
 				})
-			} else {
-				// Her fiyat için paketi duplicate et
-				pkg.prices.forEach((price: any) => {
-					allPackages.push({
-						id: pkg.id,
-						name: pkg.name,
-						description: pkg.description,
-						refund_policy: pkg.refund_policy,
-						return_acceptance_period: pkg.return_acceptance_period,
-						discount: pkg.discount,
-						total_tax_amount: pkg.total_tax_amount,
-						constant_price: pkg.constant_price,
-						images: pkg.images,
-						opportunities: pkg.opportunities,
-						features: pkg.features,
-						price: price,
-					})
-				})
-			}
-		})
+			})
+		}
+	})
 
 		// Paketleri price.date'e göre geçmişten geleceğe sırala
 		allPackages.sort((a: any, b: any) => {
