@@ -7,8 +7,6 @@ import TourPackagePriceModel from "@/models/TourPackagePriceModel";
 
 interface CreatePackageBody {
   tour_id: string;
-  discount?: number;
-  total_tax_amount?: number;
   constant_price: boolean;
   name: string;
   description: string;
@@ -24,12 +22,12 @@ interface CreatePackageBody {
     period?: string;
     quota?: number;
     baby_price?: number;
+    discount?: number;
+    total_tax_amount?: number;
   }>;
 }
 
 interface UpdatePackageBody {
-  discount?: number;
-  total_tax_amount?: number;
   constant_price?: boolean;
   return_acceptance_period?: number;
   name?: string;
@@ -45,6 +43,8 @@ interface UpdatePackageBody {
     period?: string;
     quota?: number;
     baby_price?: number;
+    discount?: number;
+    total_tax_amount?: number;
   }>;
 }
 
@@ -64,7 +64,7 @@ export class TourPackageController {
       };
 
       const query = knex("tour_packages")
-          .whereNull("tour_packages.deleted_at")
+        .whereNull("tour_packages.deleted_at")
         .where("tour_packages.tour_id", tour_id)
         .leftJoin(
           "tour_package_prices",
@@ -76,8 +76,8 @@ export class TourPackageController {
           if (search) {
             const like = `%${search}%`;
             this.where(function () {
-              this.where("tour_packages.discount", "ilike", like).orWhere(
-                "tour_packages.total_tax_amount",
+              this.where("tour_package_prices.discount", "ilike", like).orWhere(
+                "tour_package_prices.total_tax_amount",
                 "ilike",
                 like
               );
@@ -160,7 +160,7 @@ export class TourPackageController {
           "tour_packages.id",
           "tour_package_pivots.tour_package_id"
         )
-          .where("tour_package_pivots.language_code", req.language)
+        .where("tour_package_pivots.language_code", req.language)
         .leftJoin(
           "tour_package_prices",
           "tour_packages.id",
@@ -168,7 +168,12 @@ export class TourPackageController {
         )
         .where("tour_packages.tour_id", tour_id)
         .whereNull("tour_packages.deleted_at")
-        .groupBy("tour_packages.id", "tour_package_pivots.name", "tour_package_pivots.description", "tour_package_pivots.refund_policy");
+        .groupBy(
+          "tour_packages.id",
+          "tour_package_pivots.name",
+          "tour_package_pivots.description",
+          "tour_package_pivots.refund_policy"
+        );
 
       return res.send(packages);
     } catch (error) {
@@ -183,32 +188,34 @@ export class TourPackageController {
     try {
       const { id } = req.params as { id: string };
 
-      // The previous query failed because of referencing "tour_package.date" in the JSON aggregation,
-      // but there is no such table alias. We'll fix this by removing the invalid reference and only using available columns.
-
       const packageModel = await knex
         .select(
           "tour_packages.*",
-          "tour_packages.date",
+          "tour_packages.return_acceptance_period",
           knex.raw(`
-            json_agg(
-              json_build_object(
-                'id', tour_package_prices.id,
-                'tour_package_id', tour_package_prices.tour_package_id,
-                'main_price', tour_package_prices.main_price,
-                'child_price', tour_package_prices.child_price,
-                'baby_price', tour_package_prices.baby_price,
-                'period', tour_package_prices.period,
-                'quota', tour_package_prices.quota,
-                'currency_id', tour_package_prices.currency_id,
-                'currency_name', currency_pivots.name,
-                'code', currencies.code,
-                'start_date', tour_package_prices.start_date,
-                'end_date', tour_package_prices.end_date,
-                'created_at', tour_package_prices.created_at,
-                'updated_at', tour_package_prices.updated_at,
-                'deleted_at', tour_package_prices.deleted_at
-              )
+            COALESCE(
+              json_agg(
+                json_build_object(
+                  'id', tour_package_prices.id,
+                  'tour_package_id', tour_package_prices.tour_package_id,
+                  'main_price', tour_package_prices.main_price,
+                  'child_price', tour_package_prices.child_price,
+                  'baby_price', tour_package_prices.baby_price,
+                  'period', tour_package_prices.period,
+                  'quota', tour_package_prices.quota,
+                  'currency_id', tour_package_prices.currency_id,
+                  'currency_name', currency_pivots.name,
+                  'code', currencies.code,
+                  'discount', tour_package_prices.discount,
+                  'total_tax_amount', tour_package_prices.total_tax_amount,
+                  'single', tour_package_prices.single,
+                  'date', tour_package_prices.date,
+                  'created_at', tour_package_prices.created_at,
+                  'updated_at', tour_package_prices.updated_at,
+                  'deleted_at', tour_package_prices.deleted_at
+                )
+              ) FILTER (WHERE tour_package_prices.id IS NOT NULL),
+              '[]'::json
             ) as prices
           `),
           "tour_package_pivots.name",
@@ -222,32 +229,32 @@ export class TourPackageController {
           "tour_package_pivots.tour_package_id"
         )
         .where("tour_package_pivots.language_code", req.language)
-        .innerJoin(
+        .leftJoin(
           "tour_package_prices",
-          "tour_packages.id",
-          "tour_package_prices.tour_package_id"
+          function() {
+            this.on("tour_packages.id", "tour_package_prices.tour_package_id")
+              .andOnNull("tour_package_prices.deleted_at")
+          }
         )
-        .where("tour_packages.id", id)
-        .whereNull("tour_package_prices.deleted_at")
-        .whereNull("tour_packages.deleted_at")
-        .innerJoin(
+        .leftJoin(
           "currency_pivots",
-          "tour_package_prices.currency_id",
-          "currency_pivots.currency_id"
+          function() {
+            this.on("tour_package_prices.currency_id", "currency_pivots.currency_id")
+              .andOn("currency_pivots.language_code", knex.raw("?", [req.language]))
+          }
         )
-        .where("currency_pivots.language_code", req.language)
-        .innerJoin(
+        .leftJoin(
           "currencies",
           "tour_package_prices.currency_id",
           "currencies.id"
         )
+        .where("tour_packages.id", id)
+        .whereNull("tour_packages.deleted_at")
         .groupBy(
           "tour_packages.id",
-          "tour_packages.date",
           "tour_package_pivots.name",
           "tour_package_pivots.description",
-          "tour_package_pivots.refund_policy",
-          "currencies.code"
+          "tour_package_pivots.refund_policy"
         )
         .first();
 
@@ -260,7 +267,6 @@ export class TourPackageController {
         });
       }
 
-
       const tourPackageFeatures = await knex("tour_package_features")
         .where("tour_package_features.tour_package_id", id)
         .whereNull("tour_package_features.deleted_at")
@@ -269,11 +275,12 @@ export class TourPackageController {
           "tour_package_features.id",
           "tour_package_feature_pivots.tour_package_feature_id"
         )
-        .where("tour_package_feature_pivots.language_code", (req as any).language)
+        .where(
+          "tour_package_feature_pivots.language_code",
+          (req as any).language
+        )
         .select("tour_package_features.*", "tour_package_feature_pivots.name");
       packageModel.tour_package_features = tourPackageFeatures;
-
-
 
       const tourPackageImages = await knex("tour_package_images")
         .where("tour_package_images.tour_package_id", id)
@@ -284,12 +291,21 @@ export class TourPackageController {
       const tourPackageOpportunities = await knex("tour_package_opportunities")
         .where("tour_package_opportunities.tour_package_id", id)
         .whereNull("tour_package_opportunities.deleted_at")
-        .innerJoin("tour_package_opportunity_pivots", "tour_package_opportunities.id", "tour_package_opportunity_pivots.tour_package_opportunity_id")
-        .where("tour_package_opportunity_pivots.language_code", (req as any).language)
+        .innerJoin(
+          "tour_package_opportunity_pivots",
+          "tour_package_opportunities.id",
+          "tour_package_opportunity_pivots.tour_package_opportunity_id"
+        )
+        .where(
+          "tour_package_opportunity_pivots.language_code",
+          (req as any).language
+        )
         .whereNull("tour_package_opportunity_pivots.deleted_at")
-        .select("tour_package_opportunities.*", "tour_package_opportunity_pivots.name");
+        .select(
+          "tour_package_opportunities.*",
+          "tour_package_opportunity_pivots.name"
+        );
       packageModel.tour_package_opportunities = tourPackageOpportunities;
-
 
       return res.status(200).send({
         success: true,
@@ -307,15 +323,10 @@ export class TourPackageController {
     try {
       const {
         tour_id,
-        discount,
-        total_tax_amount,
-        constant_price,
         name,
         description,
         refund_policy,
-        return_acceptance_period,
-        prices,
-        date,
+        return_acceptance_period
       } = req.body as CreatePackageBody;
 
       const existingTour = await new TourModel().exists({
@@ -329,56 +340,12 @@ export class TourPackageController {
         });
       }
 
-      // tarihlerler kendli içinde çakışıyor mu ve constant_price true ise prices sadece 1 tane olmalı
-      if (constant_price) {
-        if (prices.length > 1) {
-          return res.status(400).send({
-            success: false,
-            message: req.t("TOUR_PACKAGE.PRICE_COUNT_ERROR"),
-          });
-        }
-      }
-
-      // tarihlerler kendli içinde çakışıyor mu
-      let conflict = false;
-      if (prices.length > 1) {
-        for (const price of prices) {
-          for (const price2 of prices) {
-            if (
-              price.start_date &&
-              price2.start_date &&
-              price.end_date &&
-              price2.end_date
-            ) {
-              if (
-                price !== price2 &&
-                new Date(price.start_date) >= new Date(price2.start_date) &&
-                new Date(price.start_date) <= new Date(price2.end_date)
-              ) {
-                conflict = true;
-              }
-            }
-          }
-        }
-      }
-      if (conflict) {
-        return res.status(400).send({
-          success: false,
-          message: req.t("TOUR_PACKAGE.DATE_RANGE_ERROR"),
-        });
-      }
       const packageModel = await new TourPackageModel().create({
         tour_id,
-        discount,
-        total_tax_amount,
-        constant_price,
         return_acceptance_period,
-      date,
       });
 
-
-
-     await translateCreate({
+      await translateCreate({
         target: "tour_package_pivots",
         target_id_key: "tour_package_id",
         target_id: packageModel.id,
@@ -389,24 +356,6 @@ export class TourPackageController {
           refund_policy,
         },
       });
-
-      let pricesModel = [];
-      for (const price of prices || []) {
-        const priceModel = await new TourPackagePriceModel().create({
-          tour_package_id: packageModel.id,
-          main_price: price.main_price,
-          child_price: price.child_price,
-          baby_price: price.baby_price,
-          period: price.period,
-          quota: price.quota,
-          currency_id: price.currency_id,
-          start_date: price.start_date,
-          end_date: price.end_date,
-        });
-        pricesModel.push(priceModel);
-      }
-
-      packageModel.prices = pricesModel;
       return res.status(200).send({
         success: true,
         message: req.t("TOUR_PACKAGE.CREATED_SUCCESS"),
@@ -425,15 +374,10 @@ export class TourPackageController {
     try {
       const { id } = req.params as { id: number };
       const {
-        discount,
-        total_tax_amount,
-        constant_price,
         return_acceptance_period,
         refund_policy,
         name,
         description,
-        prices,
-        date,
       } = req.body as UpdatePackageBody;
 
       const packageModel = await knex
@@ -460,46 +404,10 @@ export class TourPackageController {
         });
       }
 
-      // constant_price true ise prices sadece 1 tane olmalı
-      if (constant_price) {
-        if (prices && prices.length > 1) {
-          return res.status(400).send({
-            success: false,
-            message: req.t("TOUR_PACKAGE.PRICE_COUNT_ERROR"),
-          });
-        }
-      }
+      
 
-      // tarihlerler kendli içinde çakışıyor mu
-      let conflict = false;
-      if (prices && prices.length > 1) {
-        for (const price of prices) {
-          for (const price2 of prices) {
-            if (
-              price.start_date &&
-              price2.start_date &&
-              price.end_date &&
-              price2.end_date
-            ) {
-              if (
-                price !== price2 &&
-                new Date(price.start_date) >= new Date(price2.start_date) &&
-                new Date(price.start_date) <= new Date(price2.end_date)
-              ) {
-                conflict = true;
-              }
-            }
-          }
-        }
-      }
-      if (conflict) {
-        return res.status(400).send({
-          success: false,
-          message: req.t("TOUR_PACKAGE.DATE_RANGE_ERROR"),
-        });
-      }
-
-
+    
+    
       await translateUpdate({
         target: "tour_package_pivots",
         target_id: id.toString(),
@@ -510,44 +418,7 @@ export class TourPackageController {
           description,
           refund_policy,
         },
-      }); 
-
-
-
-      // Update package
-      await knex("tour_packages")
-        .update({
-          discount,
-          total_tax_amount,
-          constant_price,
-          return_acceptance_period,
-          date,
-        })
-        .where("id", id)
-        .whereNull("deleted_at");
-
-      // Delete old prices
-      await knex("tour_package_prices")
-        .del()
-        .where("tour_package_id", id)
-        .whereNull("deleted_at");
-
-      // Create new prices
-      let pricesModel = [];
-      for (const price of prices || [] as any) {
-        const priceModel = await new TourPackagePriceModel().create({
-          tour_package_id: id,
-          main_price: price.main_price,
-          child_price: price.child_price,
-          baby_price: price.baby_price,
-          period: price.period,
-          quota: price.quota,
-          currency_id: price.currency_id,
-          start_date: price.start_date,
-          end_date: price.end_date,
-        });
-        pricesModel.push(priceModel);
-      }
+      });
 
       // Get updated package with prices
       const updatedPackage = await knex

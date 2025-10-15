@@ -38,6 +38,7 @@ import tourPackageRoutes from "./SolutionPartner/Tour/tourPackage"
 import tourPackageFeatureRoutes from "./SolutionPartner/Tour/tourPackageFeature"
 import tourPackageImageRoutes from "./SolutionPartner/Tour/tourPackageImage"
 import tourPackageOpportunityRoutes from "./SolutionPartner/Tour/tourPackageOpportunity"
+import tourPackagePriceRoutes from "./SolutionPartner/Tour/tourPackagePrice"
 import activityRoutes from "./SolutionPartner/Activity/activity"
 import activityTypesRoutes from "./SolutionPartner/Activity/activityTypes"
 import activityFeatureRoutes from "./SolutionPartner/Activity/activityFeature"
@@ -119,6 +120,7 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(tourPackageFeatureRoutes, { prefix: "/tour-package-features" })
 	fastify.register(tourPackageImageRoutes, { prefix: "/tour-package-images" })
 	fastify.register(tourPackageOpportunityRoutes, { prefix: "/tour-package-opportunities" })
+	fastify.register(tourPackagePriceRoutes, { prefix: "/tour-package-prices" })
 
 	// ===========================================
 	// ACTIVITY ROUTES

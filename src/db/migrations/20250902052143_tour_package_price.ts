@@ -9,10 +9,11 @@ export async function up(knex: Knex): Promise<void> {
         table.double("child_price").nullable();
         table.double("baby_price").nullable();
         table.uuid("currency_id").references("id").inTable("currencies").onDelete("CASCADE");
-        table.timestamp("start_date").nullable();
-        table.timestamp("end_date").nullable();
+        table.double("discount").nullable();
+        table.double("total_tax_amount").nullable();
         table.string("period").nullable();
         table.integer("quota").nullable();
+        table.double("single").nullable();
         table.timestamp('created_at').defaultTo(knex.fn.now());
         table.timestamp('updated_at').defaultTo(knex.fn.now());
         table.timestamp('deleted_at').nullable();

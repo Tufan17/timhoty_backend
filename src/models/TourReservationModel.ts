@@ -109,93 +109,104 @@ class TourReservationModel extends BaseModel {
 
 	// Kullanıcıya ait tour rezervasyonlarını, tour adı, şehir, ülke ve kişi bilgileriyle birlikte getirir
 	async getUserReservation(userId: string, language: string) {
-		return await knex("tour_reservations")
-			.select(
-				"tour_reservations.*",
-				"tour_pivots.title as tour_title",
-				"city_pivots.name as tour_city",
-				"country_pivots.name as tour_country",
-				"tour_packages.date as package_date",
-				"tour_packages.discount as package_discount",
-				"tour_packages.return_acceptance_period as package_return_acceptance_period",
-				"tour_packages.constant_price as package_constant_price",
-				"tour_package_pivots.name as package_name",
-				"tour_package_pivots.description as package_description",
-				"tour_package_pivots.refund_policy as package_refund_policy",
-				// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
-				knex.raw(`(
-          SELECT image_url
-          FROM tour_galleries
-          WHERE tour_galleries.tour_id = tour_reservations.tour_id
-          AND tour_galleries.deleted_at IS NULL
-          ORDER BY tour_galleries.created_at ASC
-          LIMIT 1
-        ) as tour_image`),
-				// Turun tüm lokasyonlarını getir
-				knex.raw(
-					`(
-          SELECT COALESCE(json_agg(
-            jsonb_build_object(
-              'id', tl.id,
-              'location_id', tl.location_id,
-              'city_name', cp.name,
-              'country_name', cnp.name,
-              'country_id', cnp.country_id
-            )
-          ), '[]'::json)
-          FROM tour_locations tl
-          LEFT JOIN cities c ON tl.location_id = c.id
-          LEFT JOIN city_pivots cp ON c.id = cp.city_id AND cp.language_code = ?
-          LEFT JOIN country_pivots cnp ON c.country_id = cnp.country_id AND cnp.language_code = ?
-          WHERE tl.tour_id = tour_reservations.tour_id
-          AND tl.deleted_at IS NULL
-        ) as tour_locations`,
-					[language, language]
-				),
-				knex.raw("COALESCE(json_agg(DISTINCT jsonb_build_object('id', tour_reservation_users.id, 'name', tour_reservation_users.name, 'surname', tour_reservation_users.surname, 'email', tour_reservation_users.email, 'phone', tour_reservation_users.phone, 'type', tour_reservation_users.type,'age', tour_reservation_users.age)) FILTER (WHERE tour_reservation_users.id IS NOT NULL), '[]'::json) as guests"),
+		try {
+			return await knex("tour_reservations")
+				.select(
+					"tour_reservations.*",
+					"tour_pivots.title as tour_title",
+					"city_pivots.name as tour_city",
+					"country_pivots.name as tour_country",
+					"tour_package_prices.date as package_date",
+					"tour_package_prices.discount as package_discount",
+					"tour_packages.return_acceptance_period as package_return_acceptance_period",
+					"tour_packages.constant_price as package_constant_price",
+					"tour_package_pivots.name as package_name",
+					"tour_package_pivots.description as package_description",
+					"tour_package_pivots.refund_policy as package_refund_policy",
+					// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
+					knex.raw(`(
+				SELECT image_url
+				FROM tour_galleries
+				WHERE tour_galleries.tour_id = tour_reservations.tour_id
+				AND tour_galleries.deleted_at IS NULL
+				ORDER BY tour_galleries.created_at ASC
+				LIMIT 1
+			) as tour_image`),
+					// Turun tüm lokasyonlarını getir
+					knex.raw(
+						`(
+				SELECT COALESCE(json_agg(
+					jsonb_build_object(
+						'id', tl.id,
+						'location_id', tl.location_id,
+						'city_name', cp.name,
+						'country_name', cnp.name,
+						'country_id', cnp.country_id
+					)
+				), '[]'::json)
+				FROM tour_locations tl
+				LEFT JOIN cities c ON tl.location_id = c.id
+				LEFT JOIN city_pivots cp ON c.id = cp.city_id AND cp.language_code = ?
+				LEFT JOIN country_pivots cnp ON c.country_id = cnp.country_id AND cnp.language_code = ?
+				WHERE tl.tour_id = tour_reservations.tour_id
+				AND tl.deleted_at IS NULL
+			) as tour_locations`,
+						[language, language]
+					),
+					knex.raw(
+						"COALESCE(json_agg(DISTINCT jsonb_build_object('id', tour_reservation_users.id, 'name', tour_reservation_users.name, 'surname', tour_reservation_users.surname, 'email', tour_reservation_users.email, 'phone', tour_reservation_users.phone, 'type', tour_reservation_users.type,'age', tour_reservation_users.age,'room', tour_reservation_users.room)) FILTER (WHERE tour_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+					),
 
-				knex.raw(`(
-          SELECT to_jsonb(c)
-          FROM comments c
-          WHERE c.reservation_id = tour_reservations.id
-            AND c.deleted_at IS NULL
-          ORDER BY c.created_at DESC
-          LIMIT 1
-        ) AS comment`)
-			)
-			.where("tour_reservations.created_by", userId)
-			.where("tour_reservations.status", true)
-			.whereNull("tour_reservations.deleted_at")
-			.leftJoin("tour_pivots", function () {
-				this.on("tour_reservations.tour_id", "=", "tour_pivots.tour_id")
-					.andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
-					.andOnNull("tour_pivots.deleted_at")
-			})
-			.leftJoin("tours", "tour_reservations.tour_id", "tours.id")
-			.leftJoin("cities", "tours.location_id", "cities.id")
-			.leftJoin("city_pivots", function () {
-				this.on("cities.id", "=", "city_pivots.city_id")
-					.andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
-					.andOnNull("city_pivots.deleted_at")
-			})
-			.leftJoin("countries", "cities.country_id", "countries.id")
-			.leftJoin("country_pivots", function () {
-				this.on("countries.id", "=", "country_pivots.country_id")
-					.andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
-					.andOnNull("country_pivots.deleted_at")
-			})
-			.leftJoin("tour_packages", function () {
-				this.on("tour_reservations.package_id", "=", "tour_packages.id").andOnNull("tour_packages.deleted_at")
-			})
-			.leftJoin("tour_package_pivots", function () {
-				this.on("tour_packages.id", "=", "tour_package_pivots.tour_package_id")
-					.andOn("tour_package_pivots.language_code", "=", knex.raw("?", [language]))
-					.andOnNull("tour_package_pivots.deleted_at")
-			})
-			.leftJoin("tour_reservation_users", "tour_reservations.id", "tour_reservation_users.tour_reservation_id")
-			.whereNull("tour_reservation_users.deleted_at")
-			.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_packages.date", "tour_packages.discount", "tour_packages.return_acceptance_period", "tour_packages.constant_price", "tour_package_pivots.name", "tour_package_pivots.description", "tour_package_pivots.refund_policy")
-			.orderBy("tour_reservations.created_at", "desc")
+					knex.raw(`(
+				SELECT to_jsonb(c)
+				FROM comments c
+				WHERE c.reservation_id = tour_reservations.id
+					AND c.deleted_at IS NULL
+				ORDER BY c.created_at DESC
+				LIMIT 1
+			) AS comment`)
+				)
+				.where("tour_reservations.created_by", userId)
+				.where("tour_reservations.status", true)
+				.whereNull("tour_reservations.deleted_at")
+				.leftJoin("tour_pivots", function () {
+					this.on("tour_reservations.tour_id", "=", "tour_pivots.tour_id")
+						.andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
+						.andOnNull("tour_pivots.deleted_at")
+				})
+				.leftJoin("tours", "tour_reservations.tour_id", "tours.id")
+				.leftJoin("cities", "tours.location_id", "cities.id")
+				.leftJoin("city_pivots", function () {
+					this.on("cities.id", "=", "city_pivots.city_id")
+						.andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
+						.andOnNull("city_pivots.deleted_at")
+				})
+				.leftJoin("countries", "cities.country_id", "countries.id")
+				.leftJoin("country_pivots", function () {
+					this.on("countries.id", "=", "country_pivots.country_id")
+						.andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
+						.andOnNull("country_pivots.deleted_at")
+				})
+				.leftJoin("tour_packages", function () {
+					this.on("tour_reservations.package_id", "=", "tour_packages.id").andOnNull("tour_packages.deleted_at")
+				})
+				.leftJoin("tour_package_pivots", function () {
+					this.on("tour_packages.id", "=", "tour_package_pivots.tour_package_id")
+						.andOn("tour_package_pivots.language_code", "=", knex.raw("?", [language]))
+						.andOnNull("tour_package_pivots.deleted_at")
+				})
+				.leftJoin("tour_reservation_users", "tour_reservations.id", "tour_reservation_users.tour_reservation_id")
+				.whereNull("tour_reservation_users.deleted_at")
+				.leftJoin("tour_package_prices", function () {
+					this.on("tour_reservations.tour_package_price_id", "=", "tour_package_prices.id").andOnNull("tour_package_prices.deleted_at")
+				})
+
+				.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_package_prices.discount", "tour_packages.return_acceptance_period", "tour_packages.constant_price", "tour_package_pivots.name", "tour_package_pivots.description", "tour_package_pivots.refund_policy", "tour_package_prices.date")
+				.orderBy("tour_reservations.created_at", "desc")
+		} catch (error) {
+			console.error(error)
+			return []
+		}
 	}
 
 	// async getUserReservationById(reservationId: string, language: string) {
@@ -294,8 +305,8 @@ class TourReservationModel extends BaseModel {
 				"tour_pivots.title as tour_title",
 				"city_pivots.name as tour_city",
 				"country_pivots.name as tour_country",
-				"tour_packages.date as package_date",
-				"tour_packages.discount as package_discount",
+				"tour_package_prices.date as package_date",
+				"tour_package_prices.discount as package_discount",
 				"tour_packages.return_acceptance_period as package_return_acceptance_period",
 				"tour_packages.constant_price as package_constant_price",
 				"tour_package_pivots.name as package_name",
@@ -339,7 +350,8 @@ class TourReservationModel extends BaseModel {
                    'birthday', tru.birthday,
                   'phone', tru.phone,
                   'type', tru.type,
-                  'age', tru.age
+                  'age', tru.age,
+                  'room', tru.room
                 )
               ), '[]'::json)
               FROM tour_reservation_users tru
@@ -382,6 +394,9 @@ class TourReservationModel extends BaseModel {
 				this.on("tour_packages.id", "=", "tour_package_pivots.tour_package_id")
 					.andOn("tour_package_pivots.language_code", "=", knex.raw("?", [language]))
 					.andOnNull("tour_package_pivots.deleted_at")
+			})
+			.leftJoin("tour_package_prices", function () {
+				this.on("tour_reservations.tour_package_price_id", "=", "tour_package_prices.id").andOnNull("tour_package_prices.deleted_at")
 			})
 			.first()
 

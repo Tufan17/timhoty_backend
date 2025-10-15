@@ -12,6 +12,10 @@ export default async function reservationRoutes(fastify: FastifyInstance) {
     handler: reservationController.mobile,
     preHandler: [authUserMiddleware],
   });
+  fastify.get("/mobile/:id", {
+    handler: reservationController.mobileShow,
+    preHandler: [authUserMiddleware],
+  });
   fastify.get("/:id", {
     handler: reservationController.show,
     preHandler: [authUserMiddleware],
