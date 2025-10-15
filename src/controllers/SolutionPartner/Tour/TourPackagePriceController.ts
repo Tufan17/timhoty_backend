@@ -7,10 +7,12 @@ export default class TourPackagePriceController {
   async findAll(req: FastifyRequest, res: FastifyReply) {
     try {
       const { tour_package_id } = req.query as { tour_package_id?: string };
-      
+
       let prices;
       if (tour_package_id) {
-        prices = await new TourPackagePriceModel().getPricesByTourPackageId(tour_package_id);
+        prices = await new TourPackagePriceModel().getPricesByTourPackageId(
+          tour_package_id
+        );
       } else {
         prices = await new TourPackagePriceModel().getAll();
       }
@@ -65,7 +67,7 @@ export default class TourPackagePriceController {
         currency_id,
         period,
         date,
-        // quota,
+        quota,
         discount,
         total_tax_amount,
         single,
@@ -77,7 +79,7 @@ export default class TourPackagePriceController {
         currency_id: string;
         period?: string;
         date?: string;
-        // quota?: number;
+        quota?: number;
         discount?: number;
         total_tax_amount?: number;
         single?: number;
@@ -120,7 +122,7 @@ export default class TourPackagePriceController {
         currency_id,
         period,
         date,
-        // quota,
+        quota,
         discount,
         total_tax_amount,
         single,
@@ -150,7 +152,7 @@ export default class TourPackagePriceController {
         currency_id,
         period,
         date,
-        // quota,
+        quota,
         discount,
         total_tax_amount,
         single,
@@ -161,7 +163,7 @@ export default class TourPackagePriceController {
         currency_id?: string;
         period?: string;
         date?: string;
-        // quota?: number;
+        quota?: number;
         discount?: number;
         total_tax_amount?: number;
         single?: number;
@@ -201,7 +203,7 @@ export default class TourPackagePriceController {
         total_tax_amount,
         period,
         date,
-        // quota,
+        quota,
         single,
       });
 
@@ -251,7 +253,9 @@ export default class TourPackagePriceController {
       const { tour_package_id } = req.params as { tour_package_id: string };
 
       // Validate tour package exists
-      const existingTourPackage = await new TourPackageModel().findId(tour_package_id);
+      const existingTourPackage = await new TourPackageModel().findId(
+        tour_package_id
+      );
       if (!existingTourPackage) {
         return res.status(400).send({
           success: false,
@@ -274,4 +278,3 @@ export default class TourPackagePriceController {
     }
   }
 }
-
