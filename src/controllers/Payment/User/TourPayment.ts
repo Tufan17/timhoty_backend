@@ -41,6 +41,7 @@ interface CreatePaymentRequest {
 		phone: string
 		type: string
 		age: number
+		room: number
 	}[]
 	different_invoice?: boolean
 	package_id?: string
@@ -71,6 +72,7 @@ class UserTourPayment {
 	async createPaymentIntent(req: FastifyRequest<{ Body: CreatePaymentRequest }>, res: FastifyReply) {
 		try {
 			const { amount, currency = "USD", customer, tour_id, booking_id, description, period, users, different_invoice, package_id, discount, tour_package_price_id } = req.body
+
 			const user = (req as any).user
 			// Validate required fields
 			if (!amount || amount <= 0) {
@@ -103,7 +105,7 @@ class UserTourPayment {
 
 			// Create charge request
 			const chargeRequest = {
-				amount: Math.round(amount * 100), // Convert to smallest currency unit
+				amount: amount, // Convert to smallest currency unit
 				currency: currency,
 				customer: {
 					first_name: customer.first_name,
@@ -152,7 +154,7 @@ class UserTourPayment {
 					status: false,
 					progress_id: booking_id,
 					period: period || new Date().toISOString().split("T")[0], // Use current date if not provided
-					price: Number(amount) * 100,
+					price: Number(amount),
 					currency_code: currency,
 					tour_package_price_id: tour_package_price_id,
 				}
@@ -181,6 +183,7 @@ class UserTourPayment {
 							phone: user.phone,
 							type: user.type,
 							age: user.age,
+							room: user.room,
 						}
 						const userModel = new TourReservationUserModel()
 						await userModel.create(body_user)
