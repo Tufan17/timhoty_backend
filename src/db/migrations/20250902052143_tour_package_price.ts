@@ -11,6 +11,7 @@ export async function up(knex: Knex): Promise<void> {
         table.uuid("currency_id").references("id").inTable("currencies").onDelete("CASCADE");
         table.double("discount").nullable();
         table.double("total_tax_amount").nullable();
+        table.double("single").nullable();
         table.string("period").nullable();
         table.integer("quota").nullable();
         table.timestamp('created_at').defaultTo(knex.fn.now());

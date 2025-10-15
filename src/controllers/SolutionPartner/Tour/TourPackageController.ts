@@ -208,6 +208,7 @@ export class TourPackageController {
                   'code', currencies.code,
                   'discount', tour_package_prices.discount,
                   'total_tax_amount', tour_package_prices.total_tax_amount,
+                  'single', tour_package_prices.single,
                   'date', tour_package_prices.date,
                   'created_at', tour_package_prices.created_at,
                   'updated_at', tour_package_prices.updated_at,

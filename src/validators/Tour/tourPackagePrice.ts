@@ -11,6 +11,7 @@ export const tourPackagePriceSchema = Joi.object({
   period: Joi.string().optional().allow(null),
   date: Joi.date().iso().optional().allow(null),
   quota: Joi.number().integer().min(0).optional().allow(null),
+  single: Joi.number().positive().optional().allow(null),
 });
 
 export const tourPackagePriceUpdateSchema = Joi.object({
@@ -24,6 +25,7 @@ export const tourPackagePriceUpdateSchema = Joi.object({
   period: Joi.string().optional().allow(null),
   date: Joi.date().iso().optional().allow(null),
   quota: Joi.number().integer().min(0).optional().allow(null),
+  single: Joi.number().positive().optional().allow(null),
 });
 
 export const tourPackagePriceQuerySchema = Joi.object({
