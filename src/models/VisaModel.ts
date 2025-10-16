@@ -93,6 +93,10 @@ class VisaModel extends BaseModel {
         .whereNull("visa_pivots.deleted_at")
         .innerJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
         .whereNull("visa_galleries.deleted_at")
+        .leftJoin("visa_gallery_pivot", "visa_galleries.id", "visa_gallery_pivot.visa_gallery_id")
+        .where("visa_gallery_pivot.language_code", language)
+        .whereNull("visa_gallery_pivot.deleted_at")
+        .where("visa_gallery_pivot.category", "Kapak Resmi")
         .leftJoin("visa_packages", "visas.id", "visa_packages.visa_id")
         .whereNull("visa_packages.deleted_at")
         .leftJoin(

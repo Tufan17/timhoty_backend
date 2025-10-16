@@ -198,6 +198,16 @@ export default class VisaGalleryController {
           message: req.t("VISA.NOT_FOUND"),
         });
       }
+      if (["Kapak Resmi","الغلاف","Cover"].includes(category)) {
+        const existingCoverImage = await new VisaGalleryModel().hasCoverImage(visa_id);
+        
+        if (existingCoverImage) {
+          return res.status(400).send({
+            success: false,
+            message: req.t("TOUR_GALLERY.CATEGORY_ALREADY_EXISTS"),
+          });
+        }
+      }
 
       // Normalize images to array
       const imageUrls = Array.isArray(images) ? images : [images];
