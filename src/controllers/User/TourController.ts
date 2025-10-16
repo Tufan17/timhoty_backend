@@ -272,7 +272,6 @@ export default class TourController {
           .select(
             "tour_packages.id",
             "tour_packages.tour_id",
-            "tour_packages.constant_price",
             "tour_package_pivots.name"
           );
 
@@ -314,7 +313,7 @@ export default class TourController {
               "currency_pivots.name as currency_name"
             );
 
-          // Her paket için uygun fiyatı bul (constant_price veya tarihe göre)
+          // Her paket için en ucuz fiyatı bul
           const packagePriceMap: Record<string, any> = {};
           allTourPackages.forEach((pkg: any) => {
             const prices = allPackagePrices.filter(
@@ -322,23 +321,21 @@ export default class TourController {
             );
 
             if (prices.length > 0) {
-              let selectedPrice = null;
-
-              if (pkg.constant_price) {
-                // Sabit fiyat ise ilk fiyatı al
-                selectedPrice = prices[0];
-              } else {
-                // Tarihe göre uygun fiyatı bul
-                selectedPrice =
-                  prices.find((price: any) => {
-                    if (price.date) {
-                      const priceDate = new Date(price.date);
-                      // Bugünün tarihinden sonraki en yakın tarihi bul
-                      return priceDate >= now;
-                    }
-                    return true;
-                  }) || prices[0];
+              // Eğer period filtresi varsa, önce period'a uygun fiyatları filtrele
+              let filteredPrices = prices;
+              if (period) {
+                filteredPrices = prices.filter((price: any) => price.period === period);
               }
+
+              // Eğer period filtresi sonucu fiyat bulunamadıysa, tüm fiyatları kullan
+              if (filteredPrices.length === 0) {
+                filteredPrices = prices;
+              }
+
+              // En ucuz fiyatı bul
+              const selectedPrice = filteredPrices.reduce((lowest: any, current: any) => {
+                return current.main_price < lowest.main_price ? current : lowest;
+              }, filteredPrices[0]);
 
               if (selectedPrice) {
                 packagePriceMap[pkg.id] = {
@@ -691,7 +688,6 @@ export default class TourController {
           "tour_package_pivots.description as package_description",
           "tour_package_pivots.refund_policy as package_refund_policy",
           "tour_packages.return_acceptance_period",
-          "tour_packages.constant_price",
 
           // Paket fiyatları
           "tour_package_prices.id as price_id",
@@ -774,7 +770,6 @@ export default class TourController {
             description: row.package_description,
             refund_policy: row.package_refund_policy,
             return_acceptance_period: row.return_acceptance_period,
-            constant_price: row.constant_price,
             images: [],
             opportunities: [],
             features: [],
@@ -862,7 +857,6 @@ export default class TourController {
             description: pkg.description,
             refund_policy: pkg.refund_policy,
             return_acceptance_period: pkg.return_acceptance_period,
-            constant_price: pkg.constant_price,
             images: pkg.images,
             opportunities: pkg.opportunities,
             features: pkg.features,
@@ -877,7 +871,6 @@ export default class TourController {
               description: pkg.description,
               refund_policy: pkg.refund_policy,
               return_acceptance_period: pkg.return_acceptance_period,
-              constant_price: pkg.constant_price,
               images: pkg.images,
               opportunities: pkg.opportunities,
               features: pkg.features,

@@ -199,8 +199,9 @@ export default class TourGalleryController {
         });
       }
 
+   
       // Check if cover image already exists for this tour
-      if (category === "Kapak Resmi") {
+      if (["Kapak Resmi","الغلاف","Cover"].includes(category)) {
         const existingCoverImage = await new TourGalleryModel().hasCoverImage(tour_id);
         
         if (existingCoverImage) {

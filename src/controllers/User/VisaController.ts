@@ -51,13 +51,25 @@ export default class VisaController {
 
 			// Get all visa packages for all visas in one query
 			const visaIds = visas.map((visa: any) => visa.id)
-			const mainImages = await knex("visa_galleries").select("visa_id", "image_url").whereIn("visa_id", visaIds).whereNull("deleted_at").whereRaw(`id IN (
-        SELECT id FROM visa_galleries vg
+			const mainImages = await knex("visa_galleries")
+				.select("visa_galleries.visa_id", "visa_galleries.image_url")
+				.innerJoin("visa_gallery_pivot", "visa_galleries.id", "visa_gallery_pivot.visa_gallery_id")
+				.whereIn("visa_galleries.visa_id", visaIds)
+				.whereNull("visa_galleries.deleted_at")
+				.whereNull("visa_gallery_pivot.deleted_at")
+				.where("visa_gallery_pivot.language_code", language)
+				.where("visa_gallery_pivot.category", "Kapak Resmi")
+				.whereRaw(`visa_galleries.id IN (
+        SELECT vg.id FROM visa_galleries vg
+        LEFT JOIN visa_gallery_pivot vgp ON vg.id = vgp.visa_gallery_id
         WHERE vg.visa_id = visa_galleries.visa_id
         AND vg.deleted_at IS NULL
-        ORDER BY created_at ASC
+        AND vgp.deleted_at IS NULL
+        AND vgp.language_code = ?
+        AND vgp.category = 'Kapak Resmi'
+        ORDER BY vg.created_at ASC
         LIMIT 1
-    )`)
+    )`, [language])
 			visas.forEach((visa: any) => {
 				const image_url = mainImages.find((img: any) => img.visa_id === visa.id)
 				visa.image_url = image_url ? image_url.image_url : null
