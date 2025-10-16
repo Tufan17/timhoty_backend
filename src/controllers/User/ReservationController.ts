@@ -20,7 +20,6 @@ export default class ReservationController {
 			const visaReservations = await visaReservationModel.getUserReservation(req.user?.id as string, (req as any).language)
 
 			const tourReservations = await tourReservationModel.getUserReservation(req.user?.id as string, (req as any).language)
-			// console.log(tourReservations)
 
 			const activityReservations = await activityReservationModel.getUserReservation(req.user?.id as string, (req as any).language)
 
