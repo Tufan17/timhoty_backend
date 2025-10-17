@@ -30,7 +30,10 @@ class TourModel extends BaseModel {
 		try {
 			const now = new Date()
 			const today = now.toISOString().split("T")[0] // YYYY-MM-DD formatında bugünün tarihi
-
+			console.log(today)
+			console.log(language)
+			console.log(isHighlighted)
+			console.log(limit)
 			// Window function kullanarak her tur için en ucuz paketi seçiyoruz
 			const subquery = knex
 				.select(
@@ -49,12 +52,12 @@ class TourModel extends BaseModel {
 					"currency_pivots.name as currency_name",
 					"currencies.code as currency_code",
 					"currencies.symbol as currency_symbol",
-					"tour_package_prices.start_date",
-					"tour_package_prices.end_date",
+					"tour_package_prices.date",
+					"tour_package_prices.discount",
 					"tours.created_at",
 					knex.raw(`
 						ROW_NUMBER() OVER (
-							PARTITION BY tours.id 
+							PARTITION BY tours.id
 							ORDER BY tour_package_prices.main_price ASC, tour_galleries.id ASC
 						) as rn
 					`)
@@ -75,11 +78,8 @@ class TourModel extends BaseModel {
 				.whereNull("tour_package_prices.deleted_at")
 				.where(function () {
 					this.where("tour_packages.constant_price", true).orWhere(function () {
-						this.where("tour_packages.constant_price", false).andWhere(function () {
-							this.where("tour_package_prices.start_date", "<=", today).andWhere(function () {
-								this.whereNull("tour_package_prices.end_date").orWhere("tour_package_prices.end_date", ">=", today)
-							})
-						})
+						// Sadece bugün ve gelecekteki tarihleri al
+						this.where("tour_packages.constant_price", false).andWhere("tour_package_prices.date", ">=", today)
 					})
 				})
 				.leftJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
@@ -97,19 +97,19 @@ class TourModel extends BaseModel {
 					"title",
 					"photo",
 					knex.raw(`
-						CASE 
-							WHEN constant_price = true THEN 
+						CASE
+							WHEN constant_price = true THEN
 								json_build_object(
 									'main_price', main_price,
 									'child_price', child_price,
 									'baby_price', baby_price,
 									'currency_id', currency_id,
 									'currency_name', currency_name,
-									'currency_code', currency_code, 
+									'currency_code', currency_code,
 									'currency_symbol', currency_symbol,
 									'is_constant', true
 								)
-							WHEN constant_price = false THEN 
+							WHEN constant_price = false THEN
 								json_build_object(
 									'main_price', main_price,
 									'child_price', child_price,
@@ -119,8 +119,8 @@ class TourModel extends BaseModel {
 									'currency_code', currency_code,
 									'currency_symbol', currency_symbol,
 									'is_constant', false,
-									'start_date', start_date,
-									'end_date', end_date
+									'date', date,
+									'discount', discount
 								)
 							ELSE NULL
 						END as package_price
@@ -132,6 +132,7 @@ class TourModel extends BaseModel {
 				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
+			console.log(result)
 
 			// Paket fiyatlarını temizle ve sadece geçerli olanları al
 			return result.map(tour => {

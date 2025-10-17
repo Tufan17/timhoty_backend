@@ -52,6 +52,11 @@ interface CreatePaymentRequest {
 		amount: string
 		percentage: string
 	}
+	invoice_title?: string
+	invoice_official?: string
+	invoice_tax_number?: string
+	invoice_tax_office_address?: string
+	invoice_address?: string
 }
 
 interface PaymentStatusRequest {
@@ -71,7 +76,7 @@ class UserTourPayment {
 	 */
 	async createPaymentIntent(req: FastifyRequest<{ Body: CreatePaymentRequest }>, res: FastifyReply) {
 		try {
-			const { amount, currency = "USD", customer, tour_id, booking_id, description, period, users, different_invoice, package_id, discount, tour_package_price_id } = req.body
+			const { amount, currency = "USD", customer, tour_id, booking_id, description, period, users, different_invoice, package_id, discount, tour_package_price_id, invoice_title, invoice_official, invoice_tax_number, invoice_tax_office_address, invoice_address } = req.body
 
 			const user = (req as any).user
 			// Validate required fields
@@ -162,16 +167,18 @@ class UserTourPayment {
 
 				const body_invoice = {
 					tour_reservation_id: reservation.id,
-					tax_office: different_invoice ? users?.[0]?.tax_office_address : "",
-					title: different_invoice ? users?.[0]?.title : user.name_surname,
-					tax_number: different_invoice ? users?.[0]?.tax_number : "",
+					tax_office: invoice_tax_office_address,
+					title: invoice_title,
+					tax_number: invoice_tax_number,
 					payment_id: paymentIntent.id,
-					official: different_invoice ? users?.[0]?.official : "individual",
-					address: different_invoice ? users?.[0]?.address : "",
+					official: invoice_official,
+					address: invoice_address,
 				}
 
 				const invoiceModel = new TourReservationInvoiceModel()
+
 				const invoice = await invoiceModel.create(body_invoice)
+
 				if (users && users.length > 0) {
 					for (const user of users) {
 						const body_user = {
