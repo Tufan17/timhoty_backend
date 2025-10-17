@@ -17,7 +17,8 @@ export const activityPackageSchema = Joi.object({
 	description: Joi.string().required(),
 	refund_policy: Joi.string().required(),
 	return_acceptance_period: Joi.number().required(),
-	date: Joi.date().iso().required(),
+	start_date: Joi.date().iso().required(),
+	end_date: Joi.date().iso().required(),
 	prices: Joi.array().items(priceSchemata).min(1).required(),
 })
 
@@ -29,7 +30,8 @@ export const activityPackageUpdateSchema = Joi.object({
 	name: Joi.string().optional(),
 	description: Joi.string().optional(),
 	refund_policy: Joi.string().optional(),
-	date: Joi.date().iso().optional(),
+	start_date: Joi.date().iso().optional(),
+	end_date: Joi.date().iso().optional(),
 	prices: Joi.array().items(priceSchemata).min(1).optional(),
 })
 

@@ -12,8 +12,8 @@ export default class ActivityController {
 
 			const countQuery = knex("activities")
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
-				 .where("activities.status", true)
-				 .where("activities.admin_approval", true)
+				.where("activities.status", true)
+				.where("activities.admin_approval", true)
 
 				.whereNull("activities.deleted_at")
 				.where("activity_pivots.language_code", language)
@@ -80,30 +80,33 @@ export default class ActivityController {
 
 			// Get cover images (Kapak Resmi) for all activities
 			const activityIds = activities.map((activity: any) => activity.id)
-			const mainImages = await knex.raw(`
-				SELECT DISTINCT ON (activities.id) 
+			const mainImages = await knex.raw(
+				`
+				SELECT DISTINCT ON (activities.id)
 					activities.id as activity_id,
 					COALESCE(
-						(SELECT ag.image_url 
-						 FROM activity_galleries ag 
-						 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id 
-						 WHERE ag.activity_id = activities.id 
-						 AND agp.category = 'Kapak Resmi' 
-						 AND agp.language_code = ? 
-						 AND ag.deleted_at IS NULL 
-						 AND agp.deleted_at IS NULL 
+						(SELECT ag.image_url
+						 FROM activity_galleries ag
+						 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id
+						 WHERE ag.activity_id = activities.id
+						 AND agp.category = 'Kapak Resmi'
+						 AND agp.language_code = ?
+						 AND ag.deleted_at IS NULL
+						 AND agp.deleted_at IS NULL
 						 LIMIT 1),
-						(SELECT ag.image_url 
-						 FROM activity_galleries ag 
-						 WHERE ag.activity_id = activities.id 
-						 AND ag.deleted_at IS NULL 
-						 ORDER BY ag.id 
+						(SELECT ag.image_url
+						 FROM activity_galleries ag
+						 WHERE ag.activity_id = activities.id
+						 AND ag.deleted_at IS NULL
+						 ORDER BY ag.id
 						 LIMIT 1)
 					) as image_url
-				FROM activities 
+				FROM activities
 				WHERE activities.id = ANY(?)
-			`, [language, activityIds])
-			
+			`,
+				[language, activityIds]
+			)
+
 			activities.forEach((activity: any) => {
 				const image_url = mainImages.rows.find((img: any) => img.activity_id === activity.id)
 				activity.image_url = image_url ? image_url.image_url : null
@@ -203,13 +206,6 @@ export default class ActivityController {
 			} else if (arrangement === "rating_decreasing") {
 				activities.sort((a: any, b: any) => b.average_rating - a.average_rating)
 			}
-
-
-
-
-
-
-
 
 			const total = await countQuery.first()
 			const totalPages = Math.ceil(total?.total ?? 0 / Number(limit))
@@ -380,7 +376,8 @@ export default class ActivityController {
 					"activity_package_pivots.refund_policy as package_refund_policy",
 					"activity_packages.return_acceptance_period",
 					"activity_packages.discount",
-					"activity_packages.date",
+					"activity_packages.start_date as package_start_date",
+					"activity_packages.end_date as package_end_date",
 					"activity_packages.total_tax_amount",
 					"activity_packages.constant_price",
 
@@ -388,8 +385,8 @@ export default class ActivityController {
 					"activity_package_prices.id as price_id",
 					"activity_package_prices.main_price",
 					"activity_package_prices.child_price",
-					"activity_package_prices.start_date",
-					"activity_package_prices.end_date",
+					"activity_package_prices.start_date as price_start_date",
+					"activity_package_prices.end_date as price_end_date",
 					"currency_pivots.name as currency_name",
 					"currencies.code as currency_code",
 					"currencies.symbol as currency_symbol",
@@ -456,10 +453,11 @@ export default class ActivityController {
 				if (!packageMap.has(row.package_id)) {
 					packageMap.set(row.package_id, {
 						id: row.package_id,
-						date: row.date,
+						start_date: row.package_start_date,
 						name: row.package_name,
 						description: row.package_description,
 						refund_policy: row.package_refund_policy,
+						end_date: row.package_end_date,
 						return_acceptance_period: row.return_acceptance_period,
 						discount: row.discount,
 						total_tax_amount: row.total_tax_amount,
@@ -530,8 +528,8 @@ export default class ActivityController {
 							main_price: row.main_price,
 							child_price: row.child_price,
 
-							start_date: row.start_date,
-							end_date: row.end_date,
+							start_date: row.price_start_date,
+							end_date: row.price_end_date,
 							currency: {
 								name: row.currency_name,
 								code: row.currency_code,
@@ -540,9 +538,9 @@ export default class ActivityController {
 						}
 					} else {
 						// Sabit fiyat değilse - fakat burada daha esnek bir yaklaşım uygulayalım
-						if (row.start_date && row.end_date) {
-							const startDate = new Date(row.start_date)
-							const endDate = new Date(row.end_date)
+						if (row.price_start_date && row.price_end_date) {
+							const startDate = new Date(row.price_start_date)
+							const endDate = new Date(row.price_end_date)
 							const today = new Date()
 
 							// Eğer aktivite gelecekteki bir tarih için ise, o fiyatı göster
@@ -554,8 +552,8 @@ export default class ActivityController {
 									main_price: row.main_price,
 									child_price: row.child_price,
 
-									start_date: row.start_date,
-									end_date: row.end_date,
+									start_date: row.price_start_date,
+									end_date: row.price_end_date,
 									currency: {
 										name: row.currency_name,
 										code: row.currency_code,
@@ -570,8 +568,8 @@ export default class ActivityController {
 								main_price: row.main_price,
 								child_price: row.child_price,
 
-								start_date: row.start_date,
-								end_date: row.end_date,
+								start_date: row.price_start_date,
+								end_date: row.price_end_date,
 								currency: {
 									name: row.currency_name,
 									code: row.currency_code,
@@ -636,12 +634,9 @@ export default class ActivityController {
 
 			activity.features = Array.from(featureMap.values()) as any
 
-
-			const activityModel = new ActivityModel();
-			const comments = await activityModel.getComments(language, 100, id);
-			activity.comments = comments as any;
-
-
+			const activityModel = new ActivityModel()
+			const comments = await activityModel.getComments(language, 100, id)
+			activity.comments = comments as any
 
 			return res.status(200).send({
 				success: true,
