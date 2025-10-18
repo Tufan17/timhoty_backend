@@ -66,13 +66,13 @@ export const authSalesPartnerMiddleware = async (request: FastifyRequest, reply:
 			})
 		}
 
-		// Kullanıcının aktif olup olmadığını kontrol et
-		// if (salesPartnerUser.status === false) {
-		//   return reply.status(401).send({
-		//     success: false,
-		//     message: request.t('AUTH.SALES_PARTNER_NOT_ACTIVE')
-		//   });
-		// }
+		// User'ın aktif olup olmadığını kontrol et
+		if (salesPartnerUser.status === false) {
+		  return reply.status(401).send({
+		    success: false,
+		    message: request.t('AUTH.SALES_PARTNER_NOT_ACTIVE')
+		  });
+		}
 
 		// User bilgilerini request'e ekle
 		;(request as any).user = {
