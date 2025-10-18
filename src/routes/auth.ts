@@ -9,11 +9,15 @@ import SolutionPartnerAuthController from "@/controllers/Auth/SolutionPartnerAut
 import { authSolutionPartnerMiddleware } from "@/middlewares/authSolutionPartnerMiddleware";
 import { forgotPasswordSchema, resetPasswordSchema, solutionPartnerRegisterSchema, verifyCodeSchema } from "@/validators/solutionPartner";
 import { authUserMiddleware } from "@/middlewares/authUserMiddleware";
+import SalesPartnerAuthController from "@/controllers/Auth/SalesPartnerAuthController";
+import { authSalesPartnerMiddleware } from "@/middlewares/authSalesPartnerMiddleware";
+import { salesPartnerLoginSchema, salesPartnerRegisterSchema } from "@/validators/salesPartner";
 
 export default async function authRoutes(fastify: FastifyInstance) {
   const adminController = new AdminAuthController(); // Admin Auth Controller
   const userAuthController = new UserAuthController(); // User Auth Controller
   const solutionPartnerAuthController = new SolutionPartnerAuthController(); // Solution Partner Auth Controller
+  const salesPartnerAuthController = new SalesPartnerAuthController(); // Sales Partner Auth Controller
 
   // ===========================================
   // ADMIN AUTH ROUTES
@@ -82,5 +86,21 @@ export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post("/solution-partner/logout", {
     preHandler: [authSolutionPartnerMiddleware],
     handler: solutionPartnerAuthController.logout,
+  });
+
+  // ===========================================
+  // SALE PARTNER AUTH ROUTES
+  // ===========================================
+  fastify.post("/sales-partner/login", {
+    preValidation: [validate(salesPartnerLoginSchema)],
+    handler: salesPartnerAuthController.login,
+  });
+  fastify.post("/sales-partner/register", {
+    preValidation: [validate(salesPartnerRegisterSchema)],
+    handler: salesPartnerAuthController.register,
+  });
+  fastify.post("/sales-partner/logout", {
+    preHandler: [authSalesPartnerMiddleware],
+    handler: salesPartnerAuthController.logout,
   });
 }
