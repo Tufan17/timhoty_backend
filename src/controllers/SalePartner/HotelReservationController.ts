@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "@/db/knex";
+import HotelReservationModel from "@/models/HotelReservationModel";
 
 export default class HotelReservationController {
   async getSalesPartnerReservations(req: FastifyRequest, res: FastifyReply) {
@@ -213,6 +214,33 @@ export default class HotelReservationController {
       return res.status(500).send({
         success: false,
         message: req.t("HOTEL_RESERVATION.RESERVATION_FETCHED_ERROR"),
+      });
+    }
+  }
+
+
+
+  async previewSalesPartnerReservation(req: FastifyRequest, res: FastifyReply) {
+    try {
+      const { id } = req.params as { id: string };
+      const language = (req as any).language as string;
+
+      const reservationModel = new HotelReservationModel();
+
+      const reservation = await reservationModel.getSalesPartnerReservationById(id, language);
+
+      return res.status(200).send({
+        success: true,
+        message: req.t("HOTEL_RESERVATION.RESERVATION_PREVIEW_SUCCESS"),
+        data: reservation,
+      });
+
+
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: req.t("HOTEL_RESERVATION.RESERVATION_PREVIEW_ERROR"),
       });
     }
   }

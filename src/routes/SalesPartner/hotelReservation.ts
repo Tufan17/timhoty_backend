@@ -14,4 +14,8 @@ export default async function hotelReservationRoutes(fastify: FastifyInstance) {
     preHandler: [authSalesPartnerMiddleware],
     handler: hotelReservationController.getReservationById,
   });
+  fastify.get("/preview/:id", {
+    // preHandler: [authSalesPartnerMiddleware],
+    handler: hotelReservationController.previewSalesPartnerReservation,
+  });
 }
