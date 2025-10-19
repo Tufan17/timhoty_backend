@@ -35,6 +35,7 @@ export default class HotelReservationController {
 
       // Base query - sales partner'a ait rezervasyonlar
       const base = knex("hotel_reservations")
+        .where("hotel_reservations.status", true)
         .whereNull("hotel_reservations.deleted_at")
         .where("hotel_reservations.sales_partner_id", salesPartnerId)
         .innerJoin("hotels", "hotel_reservations.hotel_id", "hotels.id")
@@ -43,6 +44,14 @@ export default class HotelReservationController {
         .innerJoin("hotel_room_package_prices", "hotel_room_packages.id", "hotel_room_package_prices.hotel_room_package_id")
         .innerJoin("currencies", "hotel_room_package_prices.currency_id", "currencies.id")
         .leftJoin("users", "hotel_reservations.created_by", "users.id")
+        .leftJoin("cities", "hotels.location_id", "cities.id")
+        .leftJoin("city_pivots", function () {
+          this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]));
+        })
+        .leftJoin("countries", "cities.country_id", "countries.id")
+        .leftJoin("country_pivots", function () {
+          this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]));
+        })
         .where("hotel_pivots.language_code", language)
         .whereNull("hotels.deleted_at")
         .whereNull("hotel_pivots.deleted_at")
@@ -110,7 +119,9 @@ export default class HotelReservationController {
           "currencies.symbol as currency_symbol",
           "users.name_surname as user_name",
           "users.email as user_email",
-          "users.phone as user_phone"
+          "users.phone as user_phone",
+          "city_pivots.name as city_name",
+          "country_pivots.name as country_name",
         )
         .orderBy("hotel_reservations.created_at", "desc")
         .limit(Number(limit))
