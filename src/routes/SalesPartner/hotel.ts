@@ -6,11 +6,11 @@ export default async function hotelRoutes(fastify: FastifyInstance) {
   const hotelController = new HotelController();
   
   fastify.get("/", {
-    //  preHandler: [authSalesPartnerMiddleware],
+    preHandler: [authSalesPartnerMiddleware],
     handler: hotelController.getApprovedHotels,
   });
   fastify.get("/:id", {
-    //  preHandler: [authSalesPartnerMiddleware],
+    preHandler: [authSalesPartnerMiddleware],
     handler: hotelController.getHotelById,
   });
 }
