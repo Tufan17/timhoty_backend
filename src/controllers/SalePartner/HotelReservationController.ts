@@ -167,6 +167,7 @@ export default class HotelReservationController {
         .where("hotel_reservations.sales_partner_id", salesPartnerId)
         .innerJoin("hotels", "hotel_reservations.hotel_id", "hotels.id")
         .innerJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
+        .innerJoin("tour_package_prices", "hotel_reservations.tour_package_price_id", "tour_package_prices.id")
         .innerJoin("hotel_room_packages", "hotel_reservations.package_id", "hotel_room_packages.id")
         .innerJoin("hotel_room_package_prices", "hotel_room_packages.id", "hotel_room_package_prices.hotel_room_package_id")
         .innerJoin("currencies", "hotel_room_package_prices.currency_id", "currencies.id")

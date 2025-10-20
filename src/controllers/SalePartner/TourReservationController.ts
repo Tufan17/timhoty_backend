@@ -21,7 +21,7 @@ export default class TourReservationController {
         period?: string;
       };
 
-      const language = (req as any).language;
+      const language = (req as any).language||"en";
       const salesPartnerUser = (req as any).user;
       const salesPartnerId = salesPartnerUser?.sales_partner_id;
 
@@ -40,14 +40,14 @@ export default class TourReservationController {
         .innerJoin("tours", "tour_reservations.tour_id", "tours.id")
         .innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
         .innerJoin("tour_packages", "tour_reservations.package_id", "tour_packages.id")
-        .innerJoin("tour_package_prices", "tour_packages.id", "tour_package_prices.tour_package_id")
-        .innerJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
         .leftJoin("users", "tour_reservations.created_by", "users.id")
+        .leftJoin("tour_package_pivots", "tour_packages.id", "tour_package_pivots.tour_package_id")
+        .leftJoin("currencies", "tour_reservations.currency_code", "currencies.code")
+        .where("tour_package_pivots.language_code", language)
         .where("tour_pivots.language_code", language)
         .whereNull("tours.deleted_at")
         .whereNull("tour_pivots.deleted_at")
         .whereNull("tour_packages.deleted_at")
-        .whereNull("tour_package_prices.deleted_at")
         .modify((qb) => {
           if (typeof status !== "undefined") {
             qb.where("tour_reservations.status", status);
@@ -99,11 +99,8 @@ export default class TourReservationController {
           "tour_reservations.created_at",
           "tour_reservations.updated_at",
           "tour_pivots.title as tour_name",
-          "tour_package_prices.main_price",
-          "tour_package_prices.child_price",
-          "tour_package_prices.baby_price",
-          "currencies.code as currency_code",
-          "currencies.symbol as currency_symbol",
+          "tour_package_pivots.name as package_name",
+          "currencies.symbol as symbol",
           "users.name_surname as user_name",
           "users.email as user_email",
           "users.phone as user_phone",
@@ -152,21 +149,18 @@ export default class TourReservationController {
         .innerJoin("tours", "tour_reservations.tour_id", "tours.id")
         .innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
         .innerJoin("tour_packages", "tour_reservations.package_id", "tour_packages.id")
-        .innerJoin("tour_package_prices", "tour_packages.id", "tour_package_prices.tour_package_id")
-        .innerJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
         .leftJoin("users", "tour_reservations.created_by", "users.id")
+        .leftJoin("tour_package_pivots", "tour_packages.id", "tour_package_pivots.tour_package_id")
+        .leftJoin("currencies", "tour_reservations.currency_code", "currencies.code")
         .where("tour_pivots.language_code", language)
+        .where("tour_package_pivots.language_code", language)
         .whereNull("tours.deleted_at")
         .whereNull("tour_pivots.deleted_at")
         .whereNull("tour_packages.deleted_at")
-        .whereNull("tour_package_prices.deleted_at")
         .select(
           "tour_reservations.*",
           "tour_pivots.title as tour_name",
-          "tour_package_prices.main_price",
-          "tour_package_prices.child_price",
-          "tour_package_prices.baby_price",
-          "currencies.code as currency_code",
+          "tour_package_pivots.name as package_name",
           "currencies.symbol as currency_symbol",
           "users.name_surname as user_name",
           "users.email as user_email",
