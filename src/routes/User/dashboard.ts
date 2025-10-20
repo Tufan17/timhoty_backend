@@ -17,6 +17,9 @@ export default async function userRoutes(fastify: FastifyInstance) {
 	fastify.get("/cities", {
 		handler: dashboardController.cities,
 	})
+	fastify.get("/countries", {
+		handler: dashboardController.countries,
+	})
 	fastify.get("/stations", {
 		handler: dashboardController.stations,
 	})
