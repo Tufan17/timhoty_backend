@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
+import VisaModel from "@/models/VisaModel"
 
 export default class VisaController {
 	async index(req: FastifyRequest, res: FastifyReply) {
@@ -59,7 +60,8 @@ export default class VisaController {
 				.whereNull("visa_gallery_pivot.deleted_at")
 				.where("visa_gallery_pivot.language_code", language)
 				.where("visa_gallery_pivot.category", "Kapak Resmi")
-				.whereRaw(`visa_galleries.id IN (
+				.whereRaw(
+					`visa_galleries.id IN (
         SELECT vg.id FROM visa_galleries vg
         LEFT JOIN visa_gallery_pivot vgp ON vg.id = vgp.visa_gallery_id
         WHERE vg.visa_id = visa_galleries.visa_id
@@ -69,7 +71,9 @@ export default class VisaController {
         AND vgp.category = 'Kapak Resmi'
         ORDER BY vg.created_at ASC
         LIMIT 1
-    )`, [language])
+    )`,
+					[language]
+				)
 			visas.forEach((visa: any) => {
 				const image_url = mainImages.find((img: any) => img.visa_id === visa.id)
 				visa.image_url = image_url ? image_url.image_url : null
@@ -376,6 +380,7 @@ export default class VisaController {
 				packages: [],
 				galleries: [],
 				features: [],
+				comments: [],
 				// opportunities: [],
 			}
 
@@ -532,6 +537,9 @@ export default class VisaController {
 			// })
 
 			// visa.opportunities = Array.from(opportunityMap.values()) as any
+			const visaModel = new VisaModel()
+			const comments = await visaModel.getComments(language, 100, id)
+			visa.comments = comments as any
 
 			return res.status(200).send({
 				success: true,
