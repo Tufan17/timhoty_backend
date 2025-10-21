@@ -113,7 +113,6 @@ class VisaReservationModel extends BaseModel {
 			.select(
 				"visa_reservations.*",
 				"visa_pivots.title as visa_title",
-				"city_pivots.name as visa_city",
 				"country_pivots.name as visa_country",
 				// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
 				knex.raw(`(
@@ -151,17 +150,13 @@ class VisaReservationModel extends BaseModel {
 				this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("visas", "visa_reservations.visa_id", "visas.id")
-			.leftJoin("cities", "visas.location_id", "cities.id")
-			.leftJoin("city_pivots", function () {
-				this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
-			})
-			.leftJoin("countries", "cities.country_id", "countries.id")
+			.leftJoin("countries", "visas.location_id", "countries.id")
 			.leftJoin("country_pivots", function () {
 				this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
 			.whereNull("visa_reservation_users.deleted_at")
-			.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
+			.groupBy("visa_reservations.id", "visa_pivots.title", "country_pivots.name")
 			.orderBy("visa_reservations.created_at", "desc")
 	}
 
@@ -172,9 +167,8 @@ class VisaReservationModel extends BaseModel {
 				"visa_reservations.*",
 				"visa_pivots.title as visa_title",
 				"visa_pivots.refund_policy as visa_refund_policy",
-				"city_pivots.name as visa_city",
-				"visas.refund_days as visa_refund_days",
 				"country_pivots.name as visa_country",
+				"visas.refund_days as visa_refund_days",
 				// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
 				knex.raw(`(
           SELECT image_url
@@ -184,7 +178,9 @@ class VisaReservationModel extends BaseModel {
           ORDER BY visa_galleries.created_at ASC
           LIMIT 1
         ) as visa_image`),
-				knex.raw("COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests"),
+				knex.raw(
+					"COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type,'age', visa_reservation_users.age, 'birthday', visa_reservation_users.birthday)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+				),
 
 				knex.raw(`(
           SELECT to_jsonb(c)
@@ -211,17 +207,13 @@ class VisaReservationModel extends BaseModel {
 				this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("visas", "visa_reservations.visa_id", "visas.id")
-			.leftJoin("cities", "visas.location_id", "cities.id")
-			.leftJoin("city_pivots", function () {
-				this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
-			})
-			.leftJoin("countries", "cities.country_id", "countries.id")
+			.leftJoin("countries", "visas.location_id", "countries.id")
 			.leftJoin("country_pivots", function () {
 				this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
 			.whereNull("visa_reservation_users.deleted_at")
-			.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name", "visas.refund_days", "visa_pivots.refund_policy")
+			.groupBy("visa_reservations.id", "visa_pivots.title", "country_pivots.name", "visas.refund_days", "visa_pivots.refund_policy")
 			.orderBy("visa_reservations.created_at", "desc")
 			.first()
 	}

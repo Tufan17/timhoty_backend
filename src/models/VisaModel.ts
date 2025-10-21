@@ -43,6 +43,7 @@ class VisaModel extends BaseModel {
 					"visa_galleries.image_url",
 					"visa_packages.constant_price",
 					"visa_package_prices.main_price",
+					"visa_packages.discount",
 					"visa_package_prices.child_price",
 					"visa_package_prices.currency_id",
 					"currency_pivots.name as currency_name",
@@ -109,7 +110,8 @@ class VisaModel extends BaseModel {
                   'currency_name', currency_name,
                   'currency_code', currency_code,
                   'currency_symbol', currency_symbol,
-                  'is_constant', true
+                  'is_constant', true,
+									'discount', discount
                 )
               WHEN constant_price = false THEN
                 json_build_object(
@@ -121,7 +123,8 @@ class VisaModel extends BaseModel {
                   'currency_symbol', currency_symbol,
                   'is_constant', false,
                   'start_date', start_date,
-                  'end_date', end_date
+                  'end_date', end_date,
+									'discount', discount
                 )
               ELSE NULL
             END as package_price

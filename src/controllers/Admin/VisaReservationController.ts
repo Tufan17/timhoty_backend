@@ -89,7 +89,6 @@ export default class VisaReservationController {
 				.orderBy("visa_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
-			console.log(data)
 
 			const formattedData = data.map((item: any) => {
 				let locale = "en-US" // varsayılan

@@ -37,7 +37,7 @@ interface CreatePaymentRequest {
 		address: string
 		name: string
 		surname: string
-		birthday: string
+		birthDate: string
 		email: string
 		phone: string
 		type: string
@@ -66,6 +66,7 @@ class UserVisaPayment {
 		try {
 			const { amount, currency = "USD", customer, visa_id, booking_id, description, date, users, different_invoice, package_id } = req.body
 			const user = (req as any).user
+
 			// Validate required fields
 			if (!amount || amount <= 0) {
 				return res.status(400).send({
@@ -161,7 +162,7 @@ class UserVisaPayment {
 							visa_reservation_id: reservation.id,
 							name: user.name,
 							surname: user.surname,
-							birthday: user.birthday,
+							birthday: user.birthDate,
 							email: user.email,
 							phone: user.phone,
 							type: user.type,

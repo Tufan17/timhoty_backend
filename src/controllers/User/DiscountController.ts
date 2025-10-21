@@ -10,12 +10,12 @@ export default class DiscountController {
 				service_type: string
 				service_id: string
 			}
-			console.log(code, service_type, service_id)
+
 			const discountCode = await new DiscountCodeModel().first({
 				code,
 				service_type,
 			})
-			console.log(discountCode)
+
 			if (!discountCode) {
 				return res.status(404).send({
 					success: false,
@@ -28,7 +28,7 @@ export default class DiscountController {
 				service_type,
 				product_id: service_id,
 			})
-			console.log(discountProduct)
+
 			if (!discountProduct) {
 				return res.status(404).send({
 					success: false,

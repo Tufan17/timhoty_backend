@@ -42,6 +42,7 @@ class ActivityModel extends BaseModel {
 					"activity_packages.constant_price",
 					"activity_package_prices.main_price",
 					"activity_package_prices.child_price",
+					"activity_packages.discount",
 					"activity_package_prices.currency_id",
 					"currency_pivots.name as currency_name",
 					"currencies.code as currency_code",
@@ -52,8 +53,8 @@ class ActivityModel extends BaseModel {
 					"activities.created_at",
 					knex.raw(`
 						ROW_NUMBER() OVER (
-							PARTITION BY activities.id 
-							ORDER BY activity_package_prices.main_price ASC, activity_galleries.id ASC
+							PARTITION BY activities.id
+							ORDER BY activity_packages.discount DESC, activity_package_prices.main_price ASC, activity_galleries.id ASC
 						) as rn
 					`)
 				)
@@ -94,6 +95,7 @@ class ActivityModel extends BaseModel {
 					"duration",
 					"title",
 					"image_url",
+					"discount",
 					knex.raw(`
 						CASE
 							WHEN constant_price = true THEN
@@ -104,7 +106,8 @@ class ActivityModel extends BaseModel {
 									'currency_name', currency_name,
 									'currency_code', currency_code,
 									'currency_symbol', currency_symbol,
-									'is_constant', true
+									'is_constant', true,
+									'discount', discount
 								)
 							WHEN constant_price = false THEN
 								json_build_object(
@@ -116,7 +119,8 @@ class ActivityModel extends BaseModel {
 									'currency_symbol', currency_symbol,
 									'is_constant', false,
 									'start_date', start_date,
-									'end_date', end_date
+									'end_date', end_date,
+									'discount', discount
 								)
 							ELSE NULL
 						END as package_price
@@ -125,7 +129,7 @@ class ActivityModel extends BaseModel {
 					"created_at"
 				)
 				.from(knex.raw(`(${subquery.toString()}) as ranked_activities`))
-				.where('rn', 1)
+				.where("rn", 1)
 				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
@@ -133,30 +137,33 @@ class ActivityModel extends BaseModel {
 			// Get cover images (Kapak Resmi) for all activities
 			const activityIds = result.map((activity: any) => activity.id)
 			if (activityIds.length > 0) {
-				const mainImages = await knex.raw(`
-					SELECT DISTINCT ON (activities.id) 
+				const mainImages = await knex.raw(
+					`
+					SELECT DISTINCT ON (activities.id)
 						activities.id as activity_id,
 						COALESCE(
-							(SELECT ag.image_url 
-							 FROM activity_galleries ag 
-							 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id 
-							 WHERE ag.activity_id = activities.id 
-							 AND agp.category = 'Kapak Resmi' 
-							 AND agp.language_code = ? 
-							 AND ag.deleted_at IS NULL 
-							 AND agp.deleted_at IS NULL 
+							(SELECT ag.image_url
+							 FROM activity_galleries ag
+							 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id
+							 WHERE ag.activity_id = activities.id
+							 AND agp.category = 'Kapak Resmi'
+							 AND agp.language_code = ?
+							 AND ag.deleted_at IS NULL
+							 AND agp.deleted_at IS NULL
 							 LIMIT 1),
-							(SELECT ag.image_url 
-							 FROM activity_galleries ag 
-							 WHERE ag.activity_id = activities.id 
-							 AND ag.deleted_at IS NULL 
-							 ORDER BY ag.id 
+							(SELECT ag.image_url
+							 FROM activity_galleries ag
+							 WHERE ag.activity_id = activities.id
+							 AND ag.deleted_at IS NULL
+							 ORDER BY ag.id
 							 LIMIT 1)
 						) as image_url
-					FROM activities 
+					FROM activities
 					WHERE activities.id = ANY(?)
-				`, [language, activityIds])
-				
+				`,
+					[language, activityIds]
+				)
+
 				// Add image_url to each activity
 				result.forEach((activity: any) => {
 					const image_url = mainImages.rows.find((img: any) => img.activity_id === activity.id)
@@ -193,27 +200,25 @@ class ActivityModel extends BaseModel {
 		}
 	}
 
-	getComments(language: string, limit: number = 3,id?:string): Promise<any[]> {
+	getComments(language: string, limit: number = 3, id?: string): Promise<any[]> {
 		return knex("comments")
-		  .where("comments.service_type", "activity")
-		  .whereNull("comments.deleted_at")
-		  .where("comments.language_code", language)
-		  .leftJoin("users", "comments.user_id", "users.id")
-		  .modify(qb => {
-			if (id) {
-			  qb.where("comments.service_id", id);
-			}
-		  })
-		  .leftJoin("activity_pivots", function() {
-		    this.on("comments.service_id", "activity_pivots.activity_id")
-		      .andOn("activity_pivots.language_code", knex.raw("?", [language]));
-		  })
-		  .whereNull("activity_pivots.deleted_at")
-		  .select("comments.comment as comment", "comments.created_at as created_at", "comments.rating as rating", "users.name_surname as user_name", "users.avatar as user_avatar", "activity_pivots.title as title")
-		  .orderBy("comments.created_at", "desc")
-		  .limit(limit);
-	
-	  }
+			.where("comments.service_type", "activity")
+			.whereNull("comments.deleted_at")
+			.where("comments.language_code", language)
+			.leftJoin("users", "comments.user_id", "users.id")
+			.modify(qb => {
+				if (id) {
+					qb.where("comments.service_id", id)
+				}
+			})
+			.leftJoin("activity_pivots", function () {
+				this.on("comments.service_id", "activity_pivots.activity_id").andOn("activity_pivots.language_code", knex.raw("?", [language]))
+			})
+			.whereNull("activity_pivots.deleted_at")
+			.select("comments.comment as comment", "comments.created_at as created_at", "comments.rating as rating", "users.name_surname as user_name", "users.avatar as user_avatar", "activity_pivots.title as title")
+			.orderBy("comments.created_at", "desc")
+			.limit(limit)
+	}
 }
 
 export default ActivityModel
