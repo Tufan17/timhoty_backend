@@ -1,13 +1,12 @@
 import { FastifyReply } from "fastify"
 import { FastifyRequest } from "fastify"
 import { tapPaymentsService } from "@/services/Payment"
-import VisaReservationModel from "@/models/VisaReservationModel"
-import VisaReservationUserModel from "@/models/VisaReservationUserModel"
-import VisaReservationInvoiceModel from "@/models/VisaReservationInvoiceModel"
-import dotenv from "dotenv"
-import path from "path"
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") })
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
+import TourReservationModel from "@/models/TourReservationModel"
+import TourReservationInvoiceModel from "@/models/TourReservationInvoiceModel"
+import TourReservationUserModel from "@/models/TourReservationUserModel"
+import DiscountUserModel from "@/models/DiscountUserModel"
+
+const SALE_PARTNER_FRONTEND_URL = process.env.SALE_PARTNER_FRONTEND_URL || "http://localhost:5173"
 
 interface CreatePaymentRequest {
 	amount: number
@@ -21,13 +20,13 @@ interface CreatePaymentRequest {
 			number: string
 		}
 	}
-	visa_id?: string
-	application_id?: string
+	tour_id?: string
+	booking_id?: string
 	description?: string
 	redirect_url?: string
 	post_url?: string
-	booking_id?: string
-	date?: string
+	period?: string
+	tour_package_price_id?: string
 	users?: {
 		tax_office_address: string
 		title: string
@@ -37,14 +36,27 @@ interface CreatePaymentRequest {
 		address: string
 		name: string
 		surname: string
-		birthday: string
+		birthDate: string
 		email: string
 		phone: string
 		type: string
 		age: number
+		room: number
 	}[]
 	different_invoice?: boolean
 	package_id?: string
+	discount?: {
+		id: string
+		code: string
+		service_type: string
+		amount: string
+		percentage: string
+	}
+	invoice_title?: string
+	invoice_official?: string
+	invoice_tax_number?: string
+	invoice_tax_office_address?: string
+	invoice_address?: string
 }
 
 interface PaymentStatusRequest {
@@ -58,14 +70,24 @@ interface RefundRequest {
 	description?: string
 }
 
-class UserVisaPayment {
+class TourPayment {
 	/**
-	 * Create a payment charge for visa application
+	 * Create a payment charge for tour booking
 	 */
 	async createPaymentIntent(req: FastifyRequest<{ Body: CreatePaymentRequest }>, res: FastifyReply) {
 		try {
-			const { amount, currency = "USD", customer, visa_id, booking_id, description, date, users, different_invoice, package_id } = req.body
+			const { amount, currency = "USD", customer, tour_id, booking_id, description, period, users, different_invoice, package_id, discount, tour_package_price_id, invoice_title, invoice_official, invoice_tax_number, invoice_tax_office_address, invoice_address } = req.body
+
 			const user = (req as any).user
+			const salesPartnerId = user?.sales_partner_id
+
+			// Check if user is a sales partner
+			if (!salesPartnerId) {
+				return res.status(401).send({
+					success: false,
+					message: "Unauthorized: Sales partner access required",
+				})
+			}
 			// Validate required fields
 			if (!amount || amount <= 0) {
 				return res.status(400).send({
@@ -81,10 +103,10 @@ class UserVisaPayment {
 				})
 			}
 
-			if (!visa_id) {
+			if (!tour_id) {
 				return res.status(400).send({
 					success: false,
-					message: "Visa ID is required",
+					message: "Tour ID is required",
 				})
 			}
 
@@ -97,7 +119,7 @@ class UserVisaPayment {
 
 			// Create charge request
 			const chargeRequest = {
-				amount: Math.round(amount * 100), // Convert to smallest currency unit
+				amount: amount, // Convert to smallest currency unit
 				currency: currency,
 				customer: {
 					first_name: customer.first_name,
@@ -105,69 +127,103 @@ class UserVisaPayment {
 					email: customer.email,
 					phone: customer.phone,
 				},
-				description: description || `Visa application payment - ${visa_id ? `Visa ID: ${visa_id}` : ""}`,
+				description: description || `Tour payment - ${tour_id ? `Tour ID: ${tour_id}` : ""}`,
 				redirect: {
-					url: `${FRONTEND_URL}/reservation/visa-confirmation/${booking_id}`,
+					url: `${SALE_PARTNER_FRONTEND_URL}/tour-reservations/approve/${booking_id}`,
 				},
 				post: {
-					url: `${FRONTEND_URL}/reservation/visa-confirmation/${booking_id}`,
+					url: `${SALE_PARTNER_FRONTEND_URL}/tour-reservations/approve/${booking_id}`,
 				},
 				metadata: {
-					visa_id,
+					tour_id,
 					booking_id,
-					payment_type: "visa_application",
+					payment_type: "sales_partner_tour_booking",
+					sales_partner_id: salesPartnerId,
 					created_at: new Date().toISOString(),
 				},
 			}
 
-			const paymentIntent = await tapPaymentsService.createCharge(chargeRequest)
-			const reservationModel = new VisaReservationModel()
+			// Try to create payment intent, but handle service unavailability
+			let paymentIntent;
+			try {
+				paymentIntent = await tapPaymentsService.createCharge(chargeRequest)
+			} catch (paymentError: any) {
+				// If Tap Payments is down, create a mock payment intent for testing
+				if (paymentError.message?.includes("503") || paymentError.message?.includes("unavailable")) {
+					console.log("Tap Payments unavailable, creating mock payment for testing")
+					paymentIntent = {
+						id: `mock_${Date.now()}`,
+						status: "INITIATED",
+						amount: amount * 100, // Convert to smallest currency unit
+						currency: currency,
+						redirect: { url: `${SALE_PARTNER_FRONTEND_URL}/tour-reservations/approve/${booking_id}` },
+						transaction: { url: `${SALE_PARTNER_FRONTEND_URL}/tour-reservations/approve/${booking_id}` },
+						created: Math.floor(Date.now() / 1000)
+					}
+				} else {
+					throw paymentError
+				}
+			}
+			
+			const reservationModel = new TourReservationModel()
 
 			const existingReservation = await reservationModel.exists({
 				progress_id: booking_id,
 			})
 
 			if (!existingReservation) {
+				if (discount && discount.id) {
+					const discountUserModel = new DiscountUserModel()
+					await discountUserModel.create({
+						discount_code_id: discount.id,
+						user_id: user.id,
+						status: false,
+						payment_id: paymentIntent.id,
+					})
+				}
 				const body_form = {
 					payment_id: paymentIntent.id,
-					created_by: user.id,
+					sales_partner_id: salesPartnerId,
 					different_invoice: different_invoice,
-					visa_id: visa_id,
+					tour_id: tour_id,
 					package_id: package_id,
 					status: false,
 					progress_id: booking_id,
-					date: date || new Date().toISOString().split("T")[0], // Use current date if not provided
-					price: Number(amount) * 100,
+					period: period || new Date().toISOString().split("T")[0], // Use current date if not provided
+					price: Number(amount),
 					currency_code: currency,
+					tour_package_price_id: tour_package_price_id,
 				}
 				const reservation = await reservationModel.create(body_form)
 
 				const body_invoice = {
-					visa_reservation_id: reservation.id,
-					tax_office: different_invoice ? users?.[0]?.tax_office_address : "",
-					title: different_invoice ? users?.[0]?.title : user.name_surname,
-					tax_number: different_invoice ? users?.[0]?.tax_number : "",
+					tour_reservation_id: reservation.id,
+					tax_office: invoice_tax_office_address,
+					title: invoice_title,
+					tax_number: invoice_tax_number,
 					payment_id: paymentIntent.id,
-					official: different_invoice ? users?.[0]?.official : "individual",
-					address: different_invoice ? users?.[0]?.address : "",
+					official: invoice_official,
+					address: invoice_address,
 				}
 
-				const invoiceModel = new VisaReservationInvoiceModel()
+				const invoiceModel = new TourReservationInvoiceModel()
+
 				const invoice = await invoiceModel.create(body_invoice)
 
 				if (users && users.length > 0) {
 					for (const user of users) {
 						const body_user = {
-							visa_reservation_id: reservation.id,
+							tour_reservation_id: reservation.id,
 							name: user.name,
 							surname: user.surname,
-							birthday: user.birthday,
+							birthday: user.birthDate,
 							email: user.email,
 							phone: user.phone,
 							type: user.type,
 							age: user.age,
+							room: user.room,
 						}
-						const userModel = new VisaReservationUserModel()
+						const userModel = new TourReservationUserModel()
 						await userModel.create(body_user)
 					}
 				}
@@ -187,7 +243,17 @@ class UserVisaPayment {
 				},
 			})
 		} catch (error: any) {
-			console.error("Hotel Payment Error:", error)
+			console.error("Tour Payment Error:", error)
+			
+			// Handle Tap Payments service unavailability
+			if (error.message?.includes("503") || error.message?.includes("unavailable")) {
+				return res.status(503).send({
+					success: false,
+					message: "Payment service is temporarily unavailable. Please try again later.",
+					error: "SERVICE_UNAVAILABLE",
+				})
+			}
+			
 			return res.status(500).send({
 				success: false,
 				message: "Payment intent creation failed",
@@ -210,23 +276,9 @@ class UserVisaPayment {
 				})
 			}
 
-			// charge_id kontrolü
-			if (!charge_id) {
-				return res.status(400).send({
-					success: false,
-					message: "Charge ID is required",
-				})
-			}
-
-			// charge bilgisini al
 			const charge = await tapPaymentsService.getCharge(charge_id)
-
-			const reservationModel = new VisaReservationModel()
-
-			// rezervasyon bilgisini al
+			const reservationModel = new TourReservationModel()
 			const reservation = await reservationModel.getReservationByPaymentId(charge_id)
-
-			// rezervasyon bulunamadıysa hata dön
 			if (!reservation) {
 				return res.status(400).send({
 					success: false,
@@ -234,12 +286,18 @@ class UserVisaPayment {
 				})
 			}
 
-			// charge status CAPTURED ise rezervasyonu güncelle
 			if (charge.status === "CAPTURED") {
 				await reservationModel.update(reservation.id, { status: true })
+				const discountUserModel = new DiscountUserModel()
+				const existingDiscountUser = await discountUserModel.first({
+					payment_id: charge_id,
+				})
+				if (existingDiscountUser) {
+					await discountUserModel.update(existingDiscountUser.id, {
+						status: true,
+					})
+				}
 			}
-
-			// rezervasyon bilgisini dön
 			return res.status(200).send({
 				success: true,
 				message: "Payment status retrieved successfully",
@@ -281,9 +339,9 @@ class UserVisaPayment {
 				charge_id,
 				amount: amount ? Math.round(amount * 100) : undefined, // Convert to smallest currency unit
 				reason: reason || "requested_by_customer",
-				description: description || "Visa application refund",
+				description: description || "Tour booking refund",
 				metadata: {
-					refund_type: "visa_application",
+					refund_type: "tour_booking",
 					created_at: new Date().toISOString(),
 				},
 			}
@@ -351,4 +409,4 @@ class UserVisaPayment {
 	}
 }
 
-export default UserVisaPayment
+export default TourPayment

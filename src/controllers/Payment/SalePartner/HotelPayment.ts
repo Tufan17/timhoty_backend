@@ -9,7 +9,8 @@ import dotenv from "dotenv";
 import path from "path";
 import HotelReservationSpecialRequestModel from "@/models/HotelReservationSpecialRequestModel";
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const SALE_PARTNER_FRONTEND_URL =
+  process.env.SALE_PARTNER_FRONTEND_URL || "http://localhost:5173";
 import DiscountUserModel from "@/models/DiscountUserModel";
 
 interface CreatePaymentRequest {
@@ -32,30 +33,30 @@ interface CreatePaymentRequest {
   redirect_url?: string;
   post_url?: string;
   users?: {
-    tax_office_address: string;
-    title: string;
-    tax_office: string;
-    tax_number: string;
-    official: string;
-    address: string;
+    id?: number;
     name: string;
     surname: string;
     birthDate: string;
     email: string;
     phone: string;
     type: string;
-    age: number;
+    age?: string | number;
   }[];
-  different_invoice?: boolean;
   package_id?: string;
-  special_requests?: number[];
-  discount?: {
-    id: string;
-    code: string;
-    service_type: string;
-    amount: string;
-    percentage: string;
-  };
+  different_invoice?: boolean;
+  special_requests?: string[];
+  discount?:
+    | number
+    | {
+        id: string;
+        code: string;
+        service_type: string;
+        amount: string;
+        percentage: string;
+      };
+  invoice_name: string;
+  invoice_surname: string;
+  invoice_address: string;
 }
 
 interface PaymentStatusRequest {
@@ -88,12 +89,15 @@ class UserHotelPayment {
         start_date,
         end_date,
         users,
-        different_invoice,
         package_id,
         special_requests,
-        discount
+        discount,
+        invoice_name,
+        invoice_surname,
+        invoice_address,
       } = req.body;
-      const user = (req as any).user;
+      const salesPartner = (req as any).user;
+      const salesPartnerId = salesPartner?.sales_partner_id;
       // Validate required fields
       if (!amount || amount <= 0) {
         return res.status(400).send({
@@ -137,10 +141,10 @@ class UserHotelPayment {
           description ||
           `Hotel booking payment - ${hotel_id ? `Hotel ID: ${hotel_id}` : ""}`,
         redirect: {
-          url: `${FRONTEND_URL}/reservation/hotel-confirmation/${booking_id}`,
+          url: `${SALE_PARTNER_FRONTEND_URL}/hotel-reservations/approve/${booking_id}`,
         },
         post: {
-          url: `${FRONTEND_URL}/reservation/hotel-confirmation/${booking_id}`,
+          url: `${SALE_PARTNER_FRONTEND_URL}/hotel-reservations/approve/${booking_id}`,
         },
         metadata: {
           hotel_id,
@@ -155,43 +159,42 @@ class UserHotelPayment {
       );
       const reservationModel = new HotelReservationModel();
 
-      const existingReservation = await reservationModel.first({
+      const existingReservation = await reservationModel.exists({
         progress_id: booking_id,
       });
 
       if (!existingReservation) {
-        if(discount && discount.id){
+        if (discount && typeof discount === "object" && discount.id) {
           const discountUserModel = new DiscountUserModel();
           await discountUserModel.create({
             discount_code_id: discount.id,
-            user_id: user.id,
             status: false,
             payment_id: paymentIntent.id,
           });
         }
         const body_form = {
           payment_id: paymentIntent.id,
-          created_by: user.id,
-          different_invoice: different_invoice,
+          different_invoice: false,
           hotel_id: hotel_id,
           package_id: package_id,
           status: false,
           progress_id: booking_id,
           start_date: start_date,
           end_date: end_date,
-          price: Number(amount)*100,
+          price: Number(amount) * 100,
+          sales_partner_id: salesPartnerId,
           currency_code: currency,
         };
         const reservation = await reservationModel.create(body_form);
 
         const body_invoice = {
           hotel_reservation_id: reservation.id,
-          tax_office: different_invoice ? users?.[0]?.tax_office_address : "",
-          title: different_invoice ? users?.[0]?.title : user.name_surname,
-          tax_number: different_invoice ? users?.[0]?.tax_number : "",
+          tax_office: invoice_address,
+          title: invoice_name + " " + invoice_surname,
+          tax_number: "",
           payment_id: paymentIntent.id,
-          official: different_invoice ? users?.[0]?.official : "individual",
-          address: different_invoice ? users?.[0]?.address : "",
+          official: "individual",
+          address: invoice_address,
         };
 
         const invoiceModel = new HotelReservationInvoiceModel();
@@ -203,36 +206,31 @@ class UserHotelPayment {
               hotel_reservation_id: reservation.id,
               name: user.name,
               surname: user.surname,
-              birthday: user.birthDate, // Geçerli tarih ya da null kaydı
-              email: user.email,
-              phone: user.phone,
+              birthday: user.birthDate || null, // Geçerli tarih ya da null kaydı
+              email: user.email || null,
+              phone: user.phone || null,
               type: user.type,
-              age: user.age,
+              age:
+                typeof user.age === "string"
+                  ? parseInt(user.age)
+                  : user.age || null,
             };
             const userModel = new HotelReservationUserModel();
             await userModel.create(body_user);
           }
         }
-        if(special_requests && special_requests.length > 0){
-
+        if (special_requests && special_requests.length > 0) {
           for (const request of special_requests) {
             const body_request = {
               hotel_reservation_id: reservation.id,
-              request: request,
+              request: request, // Now handling string values directly
             };
             const requestModel = new HotelReservationSpecialRequestModel();
             await requestModel.create(body_request);
           }
         }
-  
-      }else{
-        await reservationModel.update(existingReservation.id || "", {
-          payment_id: paymentIntent.id,
-          status: false
-        });
       }
 
-    
       return res.status(200).send({
         success: true,
         message: "Payment intent created successfully",
@@ -287,15 +285,17 @@ class UserHotelPayment {
         });
       }
 
-      if(charge.status === "CAPTURED"){
-        await reservationModel.update(reservation.id, {status:true});
+      if (charge.status === "CAPTURED") {
+        await reservationModel.update(reservation.id, { status: true });
         const discountUserModel = new DiscountUserModel();
 
         const existingDiscountUser = await discountUserModel.first({
           payment_id: charge_id,
         });
-        if(existingDiscountUser){
-          await discountUserModel.update(existingDiscountUser.id, {status:true});
+        if (existingDiscountUser) {
+          await discountUserModel.update(existingDiscountUser.id, {
+            status: true,
+          });
         }
       }
 

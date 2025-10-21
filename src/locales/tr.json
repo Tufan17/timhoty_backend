@@ -477,5 +477,12 @@
     "DISCOUNT_LIMIT_REACHED": "Kullanılan kodun limiti doldu.",
     "DISCOUNT_ADDED_SUCCESS": "İndirim başarıyla eklendi",
     "DISCOUNT_ADD_ERROR": "İndirim eklenirken hata oluştu"
+  },
+  "ACTIVITY": {
+    "ACTIVITY_FETCHED_SUCCESS": "Aktiviteler başarıyla getirildi",
+    "ACTIVITY_FETCHED_ERROR": "Aktiviteler getirilirken hata oluştu",
+    "ACTIVITY_NOT_FOUND": "Aktivite bulunamadı",
+    "ACTIVITY_PACKAGE_FETCHED_SUCCESS": "Aktivite paketleri başarıyla getirildi",
+    "INVALID_DATE_FORMAT": "Geçersiz tarih formatı. Lütfen YYYY-MM-DD formatını kullanın"
   }
 }
