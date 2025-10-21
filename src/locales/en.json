@@ -464,5 +464,12 @@
     "DISCOUNT_LIMIT_REACHED": "Discount limit reached",
     "DISCOUNT_ADDED_SUCCESS": "Discount added successfully",
     "DISCOUNT_ADD_ERROR": "Error adding discount"
+  },
+  "ACTIVITY": {
+    "ACTIVITY_FETCHED_SUCCESS": "Activities fetched successfully",
+    "ACTIVITY_FETCHED_ERROR": "Activities fetch failed",
+    "ACTIVITY_NOT_FOUND": "Activity not found",
+    "ACTIVITY_PACKAGE_FETCHED_SUCCESS": "Activity packages fetched successfully",
+    "INVALID_DATE_FORMAT": "Invalid date format. Please use YYYY-MM-DD format"
   }
 }

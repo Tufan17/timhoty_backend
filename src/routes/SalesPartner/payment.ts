@@ -3,11 +3,13 @@ import HotelPayment from "@/controllers/Payment/SalePartner/HotelPayment";
 import { authSalesPartnerMiddleware } from "@/middlewares/authSalesPartnerMiddleware";
 import WebhookController from "@/controllers/Payment/WebhookController";
 import TourPayment from "@/controllers/Payment/SalePartner/TourPayment";
+import ActivityPayment from "@/controllers/Payment/SalePartner/ActivityPayment";
 
 export default async function paymentRoutes(fastify: FastifyInstance) {
   const hotelPayment = new HotelPayment();
   const webhookController = new WebhookController();
   const tourPayment = new TourPayment();
+  const activityPayment = new ActivityPayment();
   // Hotel Payment Routes
   fastify.post("/hotel", {
     preHandler: [authSalesPartnerMiddleware],
@@ -45,8 +47,26 @@ export default async function paymentRoutes(fastify: FastifyInstance) {
     handler: tourPayment.getRefundStatus,
   });
 
+  
+  // Activity Payment Routes
+  fastify.post("/activity", {
+    preHandler: [authSalesPartnerMiddleware],
+    handler: activityPayment.createPaymentIntent,
+  });
+
+  fastify.get("/activity/status/:charge_id", {
+    handler: activityPayment.getPaymentStatus,
+  });
+
+  fastify.post("/activity/refund", {
+    handler: activityPayment.createRefund,
+  });
+
+  fastify.get("/activity/refund/:refund_id", {
+    handler: activityPayment.getRefundStatus,
+  });
   // Webhook Routes
-  fastify.post("/webhook", {
+  fastify.post("/activity/webhook", {
     handler: webhookController.handleWebhook,
   });
 }

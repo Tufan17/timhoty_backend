@@ -6,6 +6,8 @@ import cityRoutes from "./SalesPartner/city"
 import paymentRoutes from "./SalesPartner/payment"
 import tourRoutes from "./SalesPartner/tour"
 import tourReservationRoutes from "./SalesPartner/tourReservation"
+import activityRoutes from "./SalesPartner/activity"
+import activityReservationRoutes from "./SalesPartner/activityReservation"
 
 export default async function salesPartnerRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -38,6 +40,20 @@ export default async function salesPartnerRoutes(fastify: FastifyInstance) {
 	// TOUR RESERVATION ROUTES
 	// ===========================================
 	fastify.register(tourReservationRoutes, { prefix: "/tour-reservations" })
+
+	// ===========================================
+	// ACTIVITY ROUTES
+	// ===========================================
+	fastify.register(activityRoutes, { prefix: "/activities" })
+
+	// ===========================================
+	// ACTIVITY RESERVATION ROUTES
+	// ===========================================
+	fastify.register(activityReservationRoutes, { prefix: "/activity-reservations" })
+
+	// ===========================================
+	// ACTIVITY PAYMENT ROUTES
+	// ===========================================
 
 
 
