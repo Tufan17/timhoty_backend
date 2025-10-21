@@ -36,15 +36,12 @@ export default class VisaController {
 			const base = knex("visas")
 				.whereNull("visas.deleted_at")
 				.innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-				.innerJoin("cities", "visas.location_id", "cities.id")
-				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+				.innerJoin("countries", "visas.location_id", "countries.id")
+				.innerJoin("country_pivots", "countries.id", "country_pivots.country_id")
 				.where("visa_pivots.language_code", language)
 				.where("country_pivots.language_code", language)
-				.where("city_pivots.language_code", language)
-				.whereNull("cities.deleted_at")
+				.whereNull("countries.deleted_at")
 				.whereNull("country_pivots.deleted_at")
-				.whereNull("city_pivots.deleted_at")
 				.whereNull("visa_pivots.deleted_at")
 				.modify(qb => {
 					// solution_partner_id (önce user'dan, yoksa query)
@@ -59,7 +56,8 @@ export default class VisaController {
 					if (search) {
 						const like = `%${search}%`
 						qb.andWhere(w => {
-							w.where("visa_pivots.title", "ilike", like).orWhere("visa_pivots.general_info", "ilike", like).orWhere("visa_pivots.visa_info", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("city_pivots.name", "ilike", like)
+							w.where("visa_pivots.title", "ilike", like).orWhere("visa_pivots.general_info", "ilike", like).orWhere("visa_pivots.visa_info", "ilike", like).orWhere("country_pivots.name", "ilike", like)
+							// city_pivots.name kaldırıldı
 						})
 
 						// "true"/"false" metni status filtresine eşlensin (opsiyonel)
@@ -82,12 +80,13 @@ export default class VisaController {
 				.distinct("visas.id") // aynı visa birden fazla pivot kaydına düşmesin
 				.select(
 					"visas.*",
-					"visa_pivots.title as title", // Changed from visa_pivots.name to visa_pivots.title
+					"visa_pivots.title as title",
 					"visa_pivots.general_info",
 					"visa_pivots.visa_info",
 					"visa_pivots.refund_policy",
 					knex.ref("country_pivots.name").as("country_name"),
-					knex.ref("city_pivots.name").as("city_name")
+					// city_name kaldırıldı
+					knex.ref("countries.id").as("location_id")
 				)
 				.orderBy("visas.created_at", "desc")
 				.limit(Number(limit))
@@ -96,7 +95,7 @@ export default class VisaController {
 			const newData = data.map((item: any) => {
 				return {
 					...item,
-					address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+					address: `${item.country_name || ""}`.trim(), // city_name kaldırıldı
 				}
 			})
 
@@ -132,18 +131,15 @@ export default class VisaController {
 					if (typeof admin_approval !== "undefined") qb.where("visas.admin_approval", admin_approval)
 				})
 				.innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-				.innerJoin("cities", "visas.location_id", "cities.id")
+				.innerJoin("countries", "visas.location_id", "countries.id")
 				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+				.innerJoin("country_pivots", "countries.id", "country_pivots.country_id")
 				.where("visa_pivots.language_code", req.language)
 				.where("country_pivots.language_code", req.language)
-				.where("city_pivots.language_code", req.language)
+				.whereNull("countries.deleted_at")
+				.whereNull("country_pivots.deleted_at")
 				.whereNull("visa_pivots.deleted_at")
 				.whereNull("visas.deleted_at")
-				.whereNull("cities.deleted_at")
-				.whereNull("country_pivots.deleted_at")
-				.whereNull("city_pivots.deleted_at")
-				.whereNull("visa_pivots.deleted_at")
 				.select("visas.*", "visa_pivots.title as title", "visa_pivots.general_info", "visa_pivots.visa_info", "visa_pivots.refund_policy", knex.ref("country_pivots.name").as("country_name"), knex.ref("city_pivots.name").as("city_name"))
 			const newData = visas.map((item: any) => {
 				return {

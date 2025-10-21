@@ -33,22 +33,21 @@ export default class VisaController {
 				.innerJoin("visa_pivots", function () {
 					this.on("visas.id", "visa_pivots.visa_id").andOn("visa_pivots.language_code", knex.raw("?", [language]))
 				})
-				.innerJoin("cities", "visas.location_id", "cities.id")
 				.innerJoin("country_pivots", function () {
-					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
-				})
-				.innerJoin("city_pivots", function () {
-					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
+					this.on("visas.location_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
 				})
 
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("visas.location_id", location_id)
 					}
+					if (guest_rating) {
+						queryBuilder.where("visas.average_rating", ">=", guest_rating)
+					}
 				})
 				.limit(limit)
 				.offset((page - 1) * limit)
-				.select("visas.id", "visa_pivots.title", "country_pivots.name as country_name", "city_pivots.name as city_name", "city_pivots.city_id as location_id", "country_pivots.country_id as country_id", "visas.average_rating", "visas.comment_count", "visas.refund_days")
+				.select("visas.id", "visa_pivots.title", "country_pivots.name as country_name", "country_pivots.country_id as location_id", "visas.average_rating", "visas.comment_count", "visas.refund_days")
 
 			// Get all visa packages for all visas in one query
 			const visaIds = visas.map((visa: any) => visa.id)
@@ -221,15 +220,11 @@ export default class VisaController {
 				.whereNull("visa_pivots.deleted_at")
 
 				// Şehir ve ülke bilgileri
-				.innerJoin("cities", "visas.location_id", "cities.id")
+				.innerJoin("countries", "visas.location_id", "countries.id")
 				.innerJoin("country_pivots", function () {
-					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
+					this.on("countries.id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
 				})
 				.whereNull("country_pivots.deleted_at")
-				.innerJoin("city_pivots", function () {
-					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
-				})
-				.whereNull("city_pivots.deleted_at")
 
 				// Gallery bilgileri
 				.leftJoin("visa_galleries", function () {
@@ -306,7 +301,6 @@ export default class VisaController {
 
 					// Lokasyon bilgileri
 					"country_pivots.name as country_name",
-					"city_pivots.name as city_name",
 
 					// Gallery bilgileri
 					"visa_galleries.id as gallery_id",

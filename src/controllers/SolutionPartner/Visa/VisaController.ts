@@ -11,6 +11,7 @@ import VisaFeatureModel from "@/models/VisaFeatureModel"
 import VisaPackagePriceModel from "@/models/VisaPackagePriceModel"
 import VisaPackageImageModel from "@/models/VisaPackageImageModel"
 import VisaPackageFeatureModel from "@/models/VisaPackageFeatureModel"
+import CountryModel from "@/models/CountryModel"
 export default class VisaController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
 		try {
@@ -42,15 +43,15 @@ export default class VisaController {
 			const base = knex("visas")
 				.whereNull("visas.deleted_at")
 				.innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-				.innerJoin("cities", "visas.location_id", "cities.id")
-				.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-				.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
+				.innerJoin("countries", "visas.location_id", "countries.id")
+				.innerJoin("country_pivots", "countries.id", "country_pivots.country_id")
+
 				.where("visa_pivots.language_code", language)
 				.where("country_pivots.language_code", language)
-				.where("city_pivots.language_code", language)
-				.whereNull("cities.deleted_at")
+
+				.whereNull("countries.deleted_at")
 				.whereNull("country_pivots.deleted_at")
-				.whereNull("city_pivots.deleted_at")
+
 				.whereNull("visa_pivots.deleted_at")
 				.modify(qb => {
 					// solution_partner_id (önce user'dan, yoksa query)
@@ -65,7 +66,7 @@ export default class VisaController {
 					if (search) {
 						const like = `%${search}%`
 						qb.andWhere(w => {
-							w.where("visa_pivots.title", "ilike", like).orWhere("visa_pivots.general_info", "ilike", like).orWhere("visa_pivots.visa_info", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("city_pivots.name", "ilike", like)
+							w.where("visa_pivots.title", "ilike", like).orWhere("visa_pivots.general_info", "ilike", like).orWhere("visa_pivots.visa_info", "ilike", like).orWhere("country_pivots.name", "ilike", like)
 						})
 
 						// "true"/"false" metni status filtresine eşlensin (opsiyonel)
@@ -92,8 +93,7 @@ export default class VisaController {
 					"visa_pivots.general_info",
 					"visa_pivots.visa_info",
 					"visa_pivots.refund_policy",
-					knex.ref("country_pivots.name").as("country_name"),
-					knex.ref("city_pivots.name").as("city_name")
+					knex.ref("country_pivots.name").as("country_name")
 				)
 				.orderBy("visas.created_at", "desc")
 				.limit(Number(limit))
@@ -102,7 +102,7 @@ export default class VisaController {
 			const newData = data.map((item: any) => {
 				return {
 					...item,
-					address: `${item.country_name || ""}, ${item.city_name || ""}`.trim(),
+					address: `${item.country_name || ""}`.trim(),
 				}
 			})
 
@@ -155,21 +155,10 @@ export default class VisaController {
 			}
 
 			if (visa.location_id) {
-				const city = await knex("cities")
-					.where("cities.id", visa.location_id)
-					.whereNull("cities.deleted_at")
-					.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-					.where("country_pivots.language_code", req.language)
-					.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
-					.where("city_pivots.language_code", req.language)
-					.whereNull("cities.deleted_at")
-					.whereNull("country_pivots.deleted_at")
-					.whereNull("city_pivots.deleted_at")
-					.select("country_pivots.name as country_name", "city_pivots.name as city_name", "cities.country_id as country_id")
-					.first()
-				visa.location = city
-				visa.address = `${city.country_name}, ${city.city_name}`
-				visa.country_id = city.country_id
+				const country = await knex("countries").where("countries.id", visa.location_id).whereNull("countries.deleted_at").innerJoin("country_pivots", "countries.id", "country_pivots.country_id").where("country_pivots.language_code", req.language).whereNull("country_pivots.deleted_at").select("country_pivots.name as country_name", "countries.id as country_id").first()
+				visa.location = country
+				visa.address = `${country.country_name}`
+				visa.country_id = country.country_id
 			}
 
 			const visaFeatures = await knex("visa_features").where("visa_features.visa_id", id).whereNull("visa_features.deleted_at").innerJoin("visa_feature_pivots", "visa_features.id", "visa_feature_pivots.visa_feature_id").where("visa_feature_pivots.language_code", req.language).select("visa_features.*", "visa_feature_pivots.name")
@@ -220,17 +209,18 @@ export default class VisaController {
 				refund_policy: string
 				approval_period?: number
 			}
+			console.log("location_id", location_id)
 
 			// Validate location_id
 			if (location_id) {
-				const existingCity = await new CityModel().first({
-					"cities.id": location_id,
+				const existingCountry = await new CountryModel().first({
+					"countries.id": location_id,
 				})
 
-				if (!existingCity) {
+				if (!existingCountry) {
 					return res.status(400).send({
 						success: false,
-						message: req.t("CITY.CITY_NOT_FOUND"),
+						message: req.t("COUNTRY.COUNTRY_NOT_FOUND"),
 					})
 				}
 			}
@@ -299,14 +289,14 @@ export default class VisaController {
 
 			// Validate location_id if provided
 			if (location_id) {
-				const existingCity = await new CityModel().first({
-					"cities.id": location_id,
+				const existingCountry = await new CountryModel().first({
+					"countries.id": location_id,
 				})
 
-				if (!existingCity) {
+				if (!existingCountry) {
 					return res.status(400).send({
 						success: false,
-						message: req.t("CITY.CITY_NOT_FOUND"),
+						message: req.t("COUNTRY.COUNTRY_NOT_FOUND"),
 					})
 				}
 			}
