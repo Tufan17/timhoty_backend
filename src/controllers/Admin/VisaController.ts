@@ -174,21 +174,10 @@ export default class VisaController {
 			}
 
 			if (visa.location_id) {
-				const city = await knex("cities")
-					.where("cities.id", visa.location_id)
-					.whereNull("cities.deleted_at")
-					.innerJoin("country_pivots", "cities.country_id", "country_pivots.country_id")
-					.where("country_pivots.language_code", req.language)
-					.innerJoin("city_pivots", "cities.id", "city_pivots.city_id")
-					.where("city_pivots.language_code", req.language)
-					.whereNull("cities.deleted_at")
-					.whereNull("country_pivots.deleted_at")
-					.whereNull("city_pivots.deleted_at")
-					.select("country_pivots.name as country_name", "city_pivots.name as city_name", "cities.country_id as country_id")
-					.first()
-				visa.location = city
-				visa.address = `${city.country_name}, ${city.city_name}`
-				visa.country_id = city.country_id
+				const country = await knex("countries").where("countries.id", visa.location_id).whereNull("countries.deleted_at").innerJoin("country_pivots", "countries.id", "country_pivots.country_id").where("country_pivots.language_code", req.language).whereNull("country_pivots.deleted_at").select("country_pivots.name as country_name", "countries.id as country_id").first()
+				visa.location = country
+				visa.address = `${country.country_name}`
+				visa.country_id = country.country_id
 			}
 
 			const visaFeatures = await knex("visa_features").where("visa_features.visa_id", id).whereNull("visa_features.deleted_at").innerJoin("visa_feature_pivots", "visa_features.id", "visa_feature_pivots.visa_feature_id").where("visa_feature_pivots.language_code", req.language).select("visa_features.*", "visa_feature_pivots.name")
