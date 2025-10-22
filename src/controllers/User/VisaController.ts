@@ -47,7 +47,7 @@ export default class VisaController {
 				})
 				.limit(limit)
 				.offset((page - 1) * limit)
-				.select("visas.id", "visa_pivots.title", "country_pivots.name as country_name", "country_pivots.country_id as location_id", "visas.average_rating", "visas.comment_count", "visas.refund_days")
+				.select("visas.id", "visa_pivots.title", "country_pivots.name as country_name", "country_pivots.country_id as location_id", "visas.average_rating", "visas.comment_count", "visas.refund_days", "visas.approval_period")
 
 			// Get all visa packages for all visas in one query
 			const visaIds = visas.map((visa: any) => visa.id)

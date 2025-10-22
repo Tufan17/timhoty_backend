@@ -43,6 +43,7 @@ class CarRentalModel extends BaseModel {
 					"car_rentals.age_limit",
 					"car_rentals.air_conditioning",
 					"car_rental_pivots.title",
+					"car_rental_packages.discount",
 					"car_rental_galleries.image_url",
 					"car_rental_packages.constant_price",
 					"car_rental_package_prices.main_price",
@@ -116,7 +117,8 @@ class CarRentalModel extends BaseModel {
                   'currency_name', currency_name,
                   'currency_code', currency_code,
                   'currency_symbol', currency_symbol,
-                  'is_constant', true
+                  'is_constant', true,
+									'discount', discount
                 )
               WHEN constant_price = false THEN
                 json_build_object(
@@ -128,7 +130,8 @@ class CarRentalModel extends BaseModel {
                   'currency_symbol', currency_symbol,
                   'is_constant', false,
                   'start_date', start_date,
-                  'end_date', end_date
+                  'end_date', end_date,
+									'discount', discount
                 )
               ELSE NULL
             END as package_price
