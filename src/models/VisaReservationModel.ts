@@ -217,6 +217,57 @@ class VisaReservationModel extends BaseModel {
 			.orderBy("visa_reservations.created_at", "desc")
 			.first()
 	}
+	async getSalesPartnerReservationById(reservationId: string, language: string) {
+		return await knex("visa_reservations")
+			.leftJoin("visas", "visa_reservations.visa_id", "visas.id")
+			.leftJoin("visa_pivots", function () {
+				this.on("visas.id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("visa_packages", "visa_reservations.package_id", "visa_packages.id")
+			.leftJoin("visa_package_prices", "visa_packages.id", "visa_package_prices.visa_package_id")
+			.leftJoin("currencies", "visa_package_prices.currency_id", "currencies.id")
+			.leftJoin("users", "visa_reservations.created_by", "users.id")
+			.leftJoin("countries", "visas.location_id", "countries.id")
+			.leftJoin("country_pivots", function () {
+				this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
+			.select(
+				"visa_reservations.*",
+				"visa_pivots.title as visa_title",
+				"visa_pivots.general_info",
+				"visa_pivots.visa_info",
+				"visa_pivots.refund_policy",
+				"visa_package_prices.main_price",
+				"visa_package_prices.child_price",
+				"currencies.code as currency_code",
+				"currencies.symbol as currency_symbol",
+				"users.name_surname as user_name",
+				"users.email as user_email",
+				"users.phone as user_phone",
+				"country_pivots.name as country_name",
+				knex.raw("COALESCE(json_agg(DISTINCT jsonb_build_object('id', visa_reservation_users.id, 'name', visa_reservation_users.name, 'surname', visa_reservation_users.surname, 'email', visa_reservation_users.email, 'phone', visa_reservation_users.phone, 'type', visa_reservation_users.type, 'age', visa_reservation_users.age)) FILTER (WHERE visa_reservation_users.id IS NOT NULL), '[]'::json) as users")
+			)
+			.where("visa_reservations.id", reservationId)
+			.whereNull("visa_reservations.deleted_at")
+			.whereNull("visa_reservation_users.deleted_at")
+			.groupBy(
+				"visa_reservations.id",
+				"visa_pivots.title",
+				"visa_pivots.general_info",
+				"visa_pivots.visa_info",
+				"visa_pivots.refund_policy",
+				"visa_package_prices.main_price",
+				"visa_package_prices.child_price",
+				"currencies.code",
+				"currencies.symbol",
+				"users.name_surname",
+				"users.email",
+				"users.phone",
+				"country_pivots.name"
+			)
+			.first()
+	}
 }
 
 export default VisaReservationModel
