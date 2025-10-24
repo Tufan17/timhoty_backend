@@ -11,6 +11,8 @@ import activityReservationRoutes from "./SalesPartner/activityReservation";
 import visaReservationRoutes from "./SalesPartner/visaReservation";
 import visaRoutes from "./SalesPartner/visa";
 import visaReservationUserFileRoutes from "./SalesPartner/visaReservationUserFile";
+import carRentalRoutes from "./SalesPartner/carRental";
+import carRentalReservationRoutes from "./SalesPartner/carRentalReservation";
 export default async function salesPartnerRoutes(fastify: FastifyInstance) {
   // ===========================================
   // COUNTRY ROUTES
@@ -67,6 +69,16 @@ export default async function salesPartnerRoutes(fastify: FastifyInstance) {
   // VISA RESERVATION USER FILE ROUTES
   // ===========================================
   fastify.register(visaReservationUserFileRoutes, { prefix: "/visa-reservation-user-files" });
+
+  // ===========================================
+  // CAR RENTAL ROUTES
+  // ===========================================
+  fastify.register(carRentalRoutes, { prefix: "/car-rentals" });
+
+  // ===========================================
+  // CAR RENTAL RESERVATION ROUTES
+  // ===========================================
+  fastify.register(carRentalReservationRoutes, { prefix: "/car-rental-reservations" });
 
   // ===========================================
   // PAYMENT ROUTES
