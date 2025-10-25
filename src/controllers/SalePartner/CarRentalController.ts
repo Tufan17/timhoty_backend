@@ -241,7 +241,7 @@ export default class CarRentalController {
     const taxAmount = (discountedTotal * totalTaxAmount) / 100;
     
     // Final fiyat
-    const finalPrice = discountedTotal + taxAmount;
+    const finalPrice = discountedTotal ;
 
     return {
       currency_code: priceData.currency_code,

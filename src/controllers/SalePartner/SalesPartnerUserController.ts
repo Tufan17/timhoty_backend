@@ -156,7 +156,7 @@ export default class SalesPartnerUserController {
 				language_code: string
 				status: boolean
 			}
-			// console.log(req.body)
+			 console.log(req.body)
 
 			const existingSalesPartnerUser = await new SalesPartnerUserModel().first({ id })
 
@@ -197,7 +197,7 @@ export default class SalesPartnerUserController {
 				email: email || existingSalesPartnerUser.email,
 				password: password,
 				status: status !== undefined ? status : existingSalesPartnerUser.status,
-				language_code: language_code.toLowerCase() || existingSalesPartnerUser.language_code,
+				language_code: language_code ? language_code.toLowerCase() : existingSalesPartnerUser.language_code,
 			}
 
 			const updatedSalesPartnerUser = await new SalesPartnerUserModel().update(id, body)

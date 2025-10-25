@@ -116,3 +116,17 @@ export const resetPasswordSchema = Joi.object({
   code: Joi.string().required(),
   password: Joi.string().required(),
 });
+
+export const salesPartnerIndexUpdateSchema = Joi.object({
+  name: Joi.string().optional(),
+  phone: Joi.string().optional(),
+  whatsapp_no: Joi.string().optional(),
+  telegram_no: Joi.string().optional(),
+  address: Joi.string().optional(),
+  tax_office: Joi.string().optional(),
+  tax_number: Joi.string().optional(),
+  bank_name: Joi.string().optional(),
+  swift_number: Joi.string().optional(),
+  account_owner: Joi.string().optional(),
+  iban: Joi.string().optional(),
+});

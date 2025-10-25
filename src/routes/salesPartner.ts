@@ -14,7 +14,17 @@ import visaReservationUserFileRoutes from "./SalesPartner/visaReservationUserFil
 import carRentalRoutes from "./SalesPartner/carRental";
 import carRentalReservationRoutes from "./SalesPartner/carRentalReservation";
 import workerRoutes from "./SalesPartner/worker";
+import salesPartnerIndexRoutes from "./SalesPartner/index";
 export default async function salesPartnerRoutes(fastify: FastifyInstance) {
+
+  // ===========================================
+  // SALES PARTNER ROUTES
+  // ===========================================
+  fastify.register(salesPartnerIndexRoutes, { prefix: "/index" });
+
+
+
+
   // ===========================================
   // COUNTRY ROUTES
   // ===========================================

@@ -262,7 +262,7 @@ export default class TourController {
     const taxAmount = (discountedSubtotal * totalTaxAmount) / 100;
     
     // Final fiyat
-    const finalPrice = discountedSubtotal + taxAmount;
+    const finalPrice = discountedSubtotal;
 
     return {
       currency_code: priceData.currency_code,

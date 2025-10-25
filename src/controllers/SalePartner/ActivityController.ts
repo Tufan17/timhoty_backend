@@ -348,7 +348,7 @@ export default class ActivityController {
     const taxAmount = (discountedSubtotal * totalTaxAmount) / 100;
     
     // Final fiyat
-    const finalPrice = discountedSubtotal + taxAmount;
+    const finalPrice = discountedSubtotal ;
 
     return {
       currency_code: hourData.currency_code || "USD",
