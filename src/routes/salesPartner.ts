@@ -15,6 +15,10 @@ import carRentalRoutes from "./SalesPartner/carRental";
 import carRentalReservationRoutes from "./SalesPartner/carRentalReservation";
 import workerRoutes from "./SalesPartner/worker";
 import salesPartnerIndexRoutes from "./SalesPartner/index";
+import salesPartnerUserRoutes from "./Admin/salesPartnerUser";
+import salesPartnerNotificationRoutes from "./SalesPartner/notification";
+import salesPartnerAccountingRoutes from "./SalesPartner/accounting";
+import salesPartnerCampaignRoutes from "./SalesPartner/campaign";
 export default async function salesPartnerRoutes(fastify: FastifyInstance) {
 
   // ===========================================
@@ -101,5 +105,20 @@ export default async function salesPartnerRoutes(fastify: FastifyInstance) {
   // WORKER ROUTES
   // ===========================================
 	fastify.register(workerRoutes, { prefix: "/workers" })
+
+  // ===========================================
+  // SALES PARTNER NOTIFICATIONS
+  // ===========================================
+  fastify.register(salesPartnerNotificationRoutes, { prefix: "/notifications" });
+
+  // ===========================================
+  // SALES PARTNER ACCOUNTING
+  // ===========================================
+  fastify.register(salesPartnerAccountingRoutes, { prefix: "/accounting" });
+
+  // ===========================================
+  // SALES PARTNER CAMPAIGNS
+  // ===========================================
+  fastify.register(salesPartnerCampaignRoutes, { prefix: "/campaigns" });
 
 }
