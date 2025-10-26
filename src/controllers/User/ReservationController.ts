@@ -80,19 +80,19 @@ export default class ReservationController {
 				data: reservations.map(reservation => {
 					return {
 						id: reservation.id,
-						module_id: reservation.hotel_id || reservation.tour_id || reservation.car_rental_id || reservation.activity_id,
+						module_id: reservation.hotel_id || reservation.tour_id || reservation.car_rental_id || reservation.activity_id||reservation.visa_id,
 						progress_id: reservation.progress_id,
-						county: reservation.hotel_country || reservation.tour_country || reservation.car_rental_country || reservation.activity_country,
-						city: reservation.hotel_city || reservation.tour_city || reservation.car_rental_city || reservation.activity_city,
+						county: reservation.hotel_country || reservation.tour_country || reservation.car_rental_country || reservation.activity_country || reservation.visa_country,
+						city: reservation.hotel_city || reservation.tour_city || reservation.car_rental_city || reservation.activity_city || reservation.visa_city,
 						comment: reservation.comment,
-						title: reservation.hotel_name || reservation.tour_name || reservation.car_rental_name || reservation.activity_name,
+						title: reservation.hotel_name || reservation.tour_name || reservation.car_rental_name || reservation.activity_name || reservation.visa_title,
 						adult: reservation.guests.filter((guest: any) => guest.type === "adult").length,
 						child: reservation.guests.filter((guest: any) => guest.type === "child").length,
 						baby: reservation.guests.filter((guest: any) => guest.type === "baby").length,
-						type: reservation.hotel_id ? "hotel" : reservation.tour_id ? "tour" : reservation.car_rental_id ? "car_rental" : reservation.activity_id ? "activity" : "other",
+						type: reservation.hotel_id ? "hotel" : reservation.tour_id ? "tour" : reservation.car_rental_id ? "car_rental" : reservation.activity_id ? "activity" : reservation.visa_id ? "visa" : "other",
 						start_date: reservation.start_date || reservation.package_date || reservation.car_rental_start_date || reservation.activity_start_date || null,
 						end_date: reservation.end_date || reservation.car_rental_end_date || reservation.activity_end_date || null,
-						image: reservation.hotel_image || reservation.tour_image || reservation.car_rental_image || reservation.activity_image,
+						image: reservation.hotel_image || reservation.tour_image || reservation.car_rental_image || reservation.activity_image || reservation.visa_image,
 					}
 				}),
 			})
