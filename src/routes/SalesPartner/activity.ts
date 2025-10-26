@@ -6,11 +6,11 @@ export default async function activityRoutes(fastify: FastifyInstance) {
   const activityController = new ActivityController();
   
   fastify.get("/", {
-    // preHandler: [authSalesPartnerMiddleware],
+    preHandler: [authSalesPartnerMiddleware],
     handler: activityController.getApprovedActivities,
   });
   fastify.get("/:id", {
-    // preHandler: [authSalesPartnerMiddleware],
+    preHandler: [authSalesPartnerMiddleware],
     handler: activityController.getActivityById,
   });
 }
