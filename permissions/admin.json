@@ -42,5 +42,6 @@
 	"tour-reservations",
 	"stations",
 	"pending-approval-stations",
-	"discount-codes"
+	"discount-codes",
+	"pending-approval-sale-partner"
 ]

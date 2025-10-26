@@ -19,6 +19,7 @@ import favoritesRoutes from "./User/favorites"
 import commentsRoutes from "./User/comments"
 import discountRoutes from "./User/discount"
 import tourGroupAskRoutes from "./User/tourGroupAsk"
+import visaReservationUserFileRoutes from "./User/visaReservationUserFile"
 
 export default async function userMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -41,4 +42,5 @@ export default async function userMainRoutes(fastify: FastifyInstance) {
 	fastify.register(commentsRoutes, { prefix: "/comments" })
 	fastify.register(discountRoutes, { prefix: "/discount" })
 	fastify.register(tourGroupAskRoutes, { prefix: "/tour-group-asks" })
+	fastify.register(visaReservationUserFileRoutes, { prefix: "/visa-reservation-user-files" })
 }

@@ -155,7 +155,7 @@ class UserHotelPayment {
       );
       const reservationModel = new HotelReservationModel();
 
-      const existingReservation = await reservationModel.exists({
+      const existingReservation = await reservationModel.first({
         progress_id: booking_id,
       });
 
@@ -225,6 +225,11 @@ class UserHotelPayment {
           }
         }
   
+      }else{
+        await reservationModel.update(existingReservation.id || "", {
+          payment_id: paymentIntent.id,
+          status: false
+        });
       }
 
     

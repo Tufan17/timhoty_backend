@@ -284,7 +284,7 @@ export default class CarRentalController {
 			})
 
 			const updatedActivity = await new CarRentalModel().oneToMany(id, "car_rental_pivots", "car_rental_id")
-			console.log(updatedActivity)
+			// console.log(updatedActivity)
 
 			return res.status(200).send({
 				success: true,

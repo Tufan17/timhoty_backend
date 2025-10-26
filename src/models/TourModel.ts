@@ -30,10 +30,10 @@ class TourModel extends BaseModel {
 		try {
 			const now = new Date()
 			const today = now.toISOString().split("T")[0] // YYYY-MM-DD formatında bugünün tarihi
-			console.log(today)
-			console.log(language)
-			console.log(isHighlighted)
-			console.log(limit)
+			// console.log(today)
+			// console.log(language)
+			// console.log(isHighlighted)
+			// console.log(limit)
 			// Window function kullanarak her tur için en ucuz paketi seçiyoruz
 			const subquery = knex
 				.select(
@@ -132,7 +132,6 @@ class TourModel extends BaseModel {
 				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
-			console.log(result)
 
 			// Paket fiyatlarını temizle ve sadece geçerli olanları al
 			return result.map(tour => {

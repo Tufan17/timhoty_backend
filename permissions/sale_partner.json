@@ -1,8 +1,14 @@
 [
-    "policy",
-    "customer",
     "accounting",
-    "employee",
-    "dealer",
-    "support"
+    "settings",
+    "employees",
+    "notifications",
+    "workers",
+    "hotel_reservations",
+    "visa_reservations",
+    "activity_reservations",
+    "car_rental_reservations",
+    "tour_reservations",
+    "tour_group_asks",
+    "campaigns"
 ]

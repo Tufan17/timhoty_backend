@@ -10,9 +10,11 @@ export default class SalesPartnerController {
         page = 1,
         limit = 10,
         search = "",
-      } = req.query as { page: number; limit: number; search: string };
+        status = true,
+      } = req.query as { page: number; limit: number; search: string; status: boolean };
       const query = knex("sales_partners")
         .whereNull("sales_partners.deleted_at")
+        .where("sales_partners.status", status)
         .where(function () {
           this.where("name", "ilike", `%${search}%`)
             .orWhere("phone", "ilike", `%${search}%`)
@@ -69,19 +71,21 @@ export default class SalesPartnerController {
   async findOne(req: FastifyRequest, res: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const salesPartner = await new SalesPartnerModel().first({ id });
+      const admin = await new SalesPartnerModel().first({ id });
       
-      if (!salesPartner) {
+      if (!admin) {
         return res.status(404).send({
           success: false,
           message: req.t("SALES_PARTNER.SALES_PARTNER_NOT_FOUND"),
         });
       }
 
+      const permissions = await new PermissionModel().getSalePartnerPermissions(id);
+
       return res.status(200).send({
         success: true,
         message: req.t("SALES_PARTNER.SALES_PARTNER_FETCHED_SUCCESS"),
-        data: salesPartner,
+        data: { admin, permissions },
       });
     } catch (error) {
       console.log(error);
@@ -230,6 +234,18 @@ export default class SalesPartnerController {
         admin_verified: admin_verified !== undefined ? admin_verified : existingSalesPartner.admin_verified,
         application_status_id: application_status_id !== undefined ? application_status_id : existingSalesPartner.application_status_id,
       };
+
+
+      if(status&&admin_verified){
+        // bu satış partnera ait tüm kullanıcıların statusunu true yap
+        await knex("sales_partner_users").where("sales_partner_id", id).whereNull("deleted_at").update({
+          status: true,
+          updated_at: new Date(),
+        });
+
+      }
+
+
 
       const updatedSalesPartner = await new SalesPartnerModel().update(id, body);
 

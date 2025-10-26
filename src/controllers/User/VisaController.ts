@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
+import VisaModel from "@/models/VisaModel"
 
 export default class VisaController {
 	async index(req: FastifyRequest, res: FastifyReply) {
@@ -32,44 +33,64 @@ export default class VisaController {
 				.innerJoin("visa_pivots", function () {
 					this.on("visas.id", "visa_pivots.visa_id").andOn("visa_pivots.language_code", knex.raw("?", [language]))
 				})
-				.innerJoin("cities", "visas.location_id", "cities.id")
 				.innerJoin("country_pivots", function () {
-					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
-				})
-				.innerJoin("city_pivots", function () {
-					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
+					this.on("visas.location_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
 				})
 
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("visas.location_id", location_id)
 					}
+					if (guest_rating) {
+						queryBuilder.where("visas.average_rating", ">=", guest_rating)
+					}
 				})
 				.limit(limit)
 				.offset((page - 1) * limit)
-				.select("visas.id", "visa_pivots.title", "country_pivots.name as country_name", "city_pivots.name as city_name", "city_pivots.city_id as location_id", "country_pivots.country_id as country_id", "visas.average_rating", "visas.comment_count", "visas.refund_days")
+				.select("visas.id", "visa_pivots.title", "country_pivots.name as country_name", "country_pivots.country_id as location_id", "visas.average_rating", "visas.comment_count", "visas.refund_days", "visas.approval_period")
 
 			// Get all visa packages for all visas in one query
 			const visaIds = visas.map((visa: any) => visa.id)
+
+			const getCoverImageCategory = (lang: string) => {
+				const categories: Record<string, string> = {
+					tr: "Kapak Resmi",
+					en: "Cover Image",
+					ar: "صورة الغلاف",
+				}
+				return categories[lang] || "Kapak Resmi"
+			}
+
+			const coverImageCategory = getCoverImageCategory(language)
 			const mainImages = await knex("visa_galleries")
 				.select("visa_galleries.visa_id", "visa_galleries.image_url")
-				.innerJoin("visa_gallery_pivot", "visa_galleries.id", "visa_gallery_pivot.visa_gallery_id")
+				.leftJoin("visa_gallery_pivot", function () {
+					this.on("visa_galleries.id", "=", "visa_gallery_pivot.visa_gallery_id")
+						.andOn("visa_gallery_pivot.language_code", "=", knex.raw("?", [language]))
+						.andOn("visa_gallery_pivot.category", "=", knex.raw("?", [coverImageCategory]))
+				})
 				.whereIn("visa_galleries.visa_id", visaIds)
 				.whereNull("visa_galleries.deleted_at")
-				.whereNull("visa_gallery_pivot.deleted_at")
-				.where("visa_gallery_pivot.language_code", language)
-				.where("visa_gallery_pivot.category", "Kapak Resmi")
-				.whereRaw(`visa_galleries.id IN (
-        SELECT vg.id FROM visa_galleries vg
-        LEFT JOIN visa_gallery_pivot vgp ON vg.id = vgp.visa_gallery_id
-        WHERE vg.visa_id = visa_galleries.visa_id
-        AND vg.deleted_at IS NULL
-        AND vgp.deleted_at IS NULL
-        AND vgp.language_code = ?
-        AND vgp.category = 'Kapak Resmi'
-        ORDER BY vg.created_at ASC
-        LIMIT 1
-    )`, [language])
+				.where(function () {
+					this.whereNull("visa_gallery_pivot.deleted_at").orWhereNull("visa_gallery_pivot.id")
+				})
+				.whereRaw(
+					`visa_galleries.id IN (
+            SELECT vg.id FROM visa_galleries vg
+            LEFT JOIN visa_gallery_pivot vgp ON vg.id = vgp.visa_gallery_id
+            WHERE vg.visa_id = visa_galleries.visa_id
+            AND vg.deleted_at IS NULL
+            AND (vgp.deleted_at IS NULL OR vgp.id IS NULL)
+            AND (vgp.language_code = ? OR vgp.language_code IS NULL)
+            AND (vgp.category = ? OR vgp.category IS NULL)
+            ORDER BY
+                CASE WHEN vgp.language_code = ? THEN 0 ELSE 1 END,
+                vg.created_at ASC
+            LIMIT 1
+        )`,
+					[language, coverImageCategory, language]
+				)
+
 			visas.forEach((visa: any) => {
 				const image_url = mainImages.find((img: any) => img.visa_id === visa.id)
 				visa.image_url = image_url ? image_url.image_url : null
@@ -217,15 +238,11 @@ export default class VisaController {
 				.whereNull("visa_pivots.deleted_at")
 
 				// Şehir ve ülke bilgileri
-				.innerJoin("cities", "visas.location_id", "cities.id")
+				.innerJoin("countries", "visas.location_id", "countries.id")
 				.innerJoin("country_pivots", function () {
-					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
+					this.on("countries.id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
 				})
 				.whereNull("country_pivots.deleted_at")
-				.innerJoin("city_pivots", function () {
-					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
-				})
-				.whereNull("city_pivots.deleted_at")
 
 				// Gallery bilgileri
 				.leftJoin("visa_galleries", function () {
@@ -302,7 +319,6 @@ export default class VisaController {
 
 					// Lokasyon bilgileri
 					"country_pivots.name as country_name",
-					"city_pivots.name as city_name",
 
 					// Gallery bilgileri
 					"visa_galleries.id as gallery_id",
@@ -376,6 +392,7 @@ export default class VisaController {
 				packages: [],
 				galleries: [],
 				features: [],
+				comments: [],
 				// opportunities: [],
 			}
 
@@ -532,6 +549,9 @@ export default class VisaController {
 			// })
 
 			// visa.opportunities = Array.from(opportunityMap.values()) as any
+			const visaModel = new VisaModel()
+			const comments = await visaModel.getComments(language, 100, id)
+			visa.comments = comments as any
 
 			return res.status(200).send({
 				success: true,

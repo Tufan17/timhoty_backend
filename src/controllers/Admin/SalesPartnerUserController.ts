@@ -11,14 +11,17 @@ export default class SalesPartnerUserController {
         limit = 10,
         search = "",
         sales_partner_id = "",
-      } = req.query as {
+        status = true,
+        } = req.query as {
         page: number;
         limit: number;
         search: string;
         sales_partner_id: string;
+        status: boolean;
       };
       const query = knex("sales_partner_users")
         .whereNull("sales_partner_users.deleted_at")
+        .where("sales_partner_users.status", status)
         .leftJoin(
           "sales_partners",
           "sales_partners.id",

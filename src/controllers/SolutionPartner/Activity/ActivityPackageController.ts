@@ -15,7 +15,8 @@ interface CreatePackageBody {
 	description: string
 	refund_policy: string
 	return_acceptance_period: number
-	date: string
+	start_date: string
+	end_date: string
 	prices: Array<{
 		main_price: number
 		child_price?: number
@@ -33,7 +34,8 @@ interface UpdatePackageBody {
 	name?: string
 	description?: string
 	refund_policy?: string
-	date?: string
+	start_date?: string
+	end_date?: string
 	prices?: Array<{
 		main_price: number
 		child_price?: number
@@ -155,7 +157,7 @@ export class ActivityPackageController {
 			const packageModel = await knex
 				.select(
 					"activity_packages.*",
-					"activity_packages.date",
+					"activity_packages.start_date",
 					knex.raw(`
             json_agg(
               json_build_object(
@@ -188,7 +190,7 @@ export class ActivityPackageController {
 				.innerJoin("currency_pivots", "activity_package_prices.currency_id", "currency_pivots.currency_id")
 				.where("currency_pivots.language_code", req.language)
 				.innerJoin("currencies", "activity_package_prices.currency_id", "currencies.id")
-				.groupBy("activity_packages.id", "activity_packages.date", "activity_package_pivots.name", "activity_package_pivots.description", "activity_package_pivots.refund_policy")
+				.groupBy("activity_packages.id", "activity_packages.start_date", "activity_package_pivots.name", "activity_package_pivots.description", "activity_package_pivots.refund_policy")
 				.first()
 
 			// Optionally, you can fetch images and features as before if needed
@@ -236,7 +238,7 @@ export class ActivityPackageController {
 	}
 	async create(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { activity_id, discount, total_tax_amount, constant_price, name, description, refund_policy, return_acceptance_period, prices, date } = req.body as CreatePackageBody
+			const { activity_id, discount, total_tax_amount, constant_price, name, description, refund_policy, return_acceptance_period, prices, start_date, end_date } = req.body as CreatePackageBody
 
 			const existingActivity = await new ActivityModel().exists({
 				id: activity_id,
@@ -284,7 +286,8 @@ export class ActivityPackageController {
 				total_tax_amount,
 				constant_price,
 				return_acceptance_period,
-				date,
+				start_date,
+				end_date,
 			})
 
 			await translateCreate({
@@ -330,7 +333,7 @@ export class ActivityPackageController {
 	async update(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const { id } = req.params as { id: number }
-			const { discount, total_tax_amount, constant_price, return_acceptance_period, refund_policy, name, description, prices, date } = req.body as UpdatePackageBody
+			const { discount, total_tax_amount, constant_price, return_acceptance_period, refund_policy, name, description, prices, start_date, end_date } = req.body as UpdatePackageBody
 
 			const packageModel = await knex.select("activity_packages.*", knex.raw("json_agg(activity_package_prices.*) as prices")).from("activity_packages").leftJoin("activity_package_prices", "activity_packages.id", "activity_package_prices.activity_package_id").where("activity_packages.id", id).whereNull("activity_package_prices.deleted_at").whereNull("activity_packages.deleted_at").groupBy("activity_packages.id").first()
 
@@ -390,7 +393,8 @@ export class ActivityPackageController {
 					total_tax_amount,
 					constant_price,
 					return_acceptance_period,
-					date,
+					start_date,
+					end_date,
 				})
 				.where("id", id)
 				.whereNull("deleted_at")

@@ -9,6 +9,7 @@ import { languageMiddleware } from "./middlewares/languageMiddleware";
 // Authentication Routes
 import authRoutes from "./routes/auth";
 import solutionPartnerMainRoutes from "./routes/solutionPartner";
+import salesPartnerMainRoutes from "./routes/salesPartner";
 
 // Admin Management Routes (All admin routes grouped together)
 import adminMainRoutes from "./routes/admin";
@@ -50,6 +51,11 @@ export default async function app(fastify: FastifyInstance) {
   // SOLUTION PARTNER ROUTES (All solution partner functionality)
   // ===========================================
   fastify.register(solutionPartnerMainRoutes, { prefix: "/solution-partner" });
+
+  // ===========================================
+  // SALES PARTNER ROUTES (All sales partner functionality)
+  // ===========================================
+  fastify.register(salesPartnerMainRoutes, { prefix: "/sales-partner" });
 
   // ===========================================
   // PAYMENT ROUTES
