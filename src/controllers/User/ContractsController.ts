@@ -4,16 +4,7 @@ export default class UserController {
     async termsOfService(req: FastifyRequest, res: FastifyReply) {
         try {
             const htmlContent = `
-                <html>
-                    <head>
-                        <title>Kullanıcı Sözleşmesi</title>
-                    </head>
-                    <body>
-                        <h1>Kullanıcı Sözleşmesi</h1>
-                        <p>Welcome to our service. By using our service, you agree to the following terms and conditions...</p>
-                        <!-- Add more HTML content as needed -->
-                    </body>
-                </html>
+               <div class="bg-white border1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4"><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">1. AMAÇ VE KAPSAM</h3><p class="font-regular text-sm mb-4">Bu Kullanıcı Sözleşmesi ("Sözleşme"), GLOBIVOY TOURISM L.L.C ("Timhoty") tarafından işletilen platformun ("Platform") web sitesi, mobil uygulamaları ve diğer dijital servisleri üzerinden sunulan tüm hizmetleri kapsar.</p><p class="font-regular text-sm">Platforma erişen veya kullanan her kişi ("Kullanıcı"), bu Sözleşmeyi okuyup anladığını ve tüm şartları kabul ettiğini beyan eder.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">2. TANIMLAR</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Platform: Timhoty'nin web sitesi, mobil uygulaması ve tüm dijital hizmetleri.</li><li class="text-sm"> Kullanıcı: Platformu kullanan gerçek kişi.</li><li class="text-sm"> Tedarikçi / İş Ortağı: Etkinlik, tur, bilet veya benzeri hizmetleri sunan üçüncü taraf.</li><li class="text-sm"> Etkinlik / Hizmet: Platform üzerinden sunulan tüm rezervasyon yapılabilir aktiviteler.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">3. SÖZLEŞMENİN KABULÜ VE GÜNCELLENMESİ</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Platformu kullanmak, bu şartların tamamının kabulü anlamına gelir.</li><li class="text-sm"> Timhoty, şartlarda değişiklik yapma hakkını saklı tutar.</li><li class="text-sm"> Güncellenen şartlar, yayımlandığı tarihten itibaren geçerlidir.</li><li class="text-sm"> Kullanıcı, değişikliklerden haberdar olmakla yükümlüdür.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">4. LİSANS VE KULLANIM HAKKI</h3><p class="font-regular text-sm mb-4">Timhoty, Kullanıcı'ya Platformu kişisel, ticari olmayan amaçlarla kullanma sınırlı, devredilemez bir lisans verir.</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Yazılımın kaynak kodunu çözemez, değiştiremez, satamaz, kopyalayamaz.</li><li class="text-sm"> Hizmeti kötüye kullanamaz, yasa dışı amaçlarla kullanamaz.</li><li class="text-sm"> Otomatik sistemler (bot, scraper vb.) kullanarak veri toplayamaz.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">5. KULLANICI HESABI</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Kullanıcı, 18 yaşını doldurmuş olmalıdır.</li><li class="text-sm"> Hesap oluştururken verilen bilgilerin doğru ve güncel tutulması gerekir.</li><li class="text-sm"> Şifre gizliliği tamamen Kullanıcı sorumluluğundadır.</li><li class="text-sm"> Hesap güvenliği ihlalinde support@timhoty.com adresine derhal bildirim yapılmalıdır.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">6. REZERVASYON VE ÖDEME ŞARTLARI</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Timhoty, Tedarikçiler adına aracı olarak hizmet verir.</li><li class="text-sm"> Platform üzerinden yapılan her rezervasyon, ilgili tedarikçinin onayına tabidir.</li><li class="text-sm"> Fiyatlar, hizmete özel olarak belirlenir ve para birimi Platform'da belirtilir.</li><li class="text-sm"> Ödemeler güvenli üçüncü taraf ödeme altyapısı üzerinden alınır.</li><li class="text-sm"> Timhoty, rezervasyon hatalarından veya ödeme servislerinin aksamasından sorumlu değildir.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">7. İPTAL VE İADE POLİTİKASI</h3><p class="font-regular text-sm mb-4">İade talepleri Timhoty tarafından vaka bazında değerlendirilir. Aşağıdaki durumlarda iade yapılmaz:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Kişisel nedenlerle etkinliğe katılamama</li><li class="text-sm"> Etkinliğin kaçırılması</li><li class="text-sm"> "En iyi fırsatlar" veya indirimli etkinlikler</li><li class="text-sm"> Üçüncü taraf satıcı kaynaklı kalite şikayetleri</li></ul><p class="font-regular text-sm mb-4">İptal süresi, aksi belirtilmedikçe etkinlikten en az 24 saat önce olmalıdır. Her hizmette iade politikası ayrı olabilir lütfen bakınız.</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Banka iadeleri: 10–15 iş günü</li><li class="text-sm"> Promosyon kodları: Nakit olarak iade edilmez</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">8. ETKİNLİKLER VE KATILIM SORUMLULUĞU</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Timhoty yalnızca aracı platformdur; etkinliklerin yürütülmesinden Tedarikçi sorumludur.</li><li class="text-sm"> Kullanıcı, etkinlik katılımında kendi güvenliğinden sorumludur.</li><li class="text-sm"> Etkinlik sırasında çekilen fotoğraf/video'lar Timhoty'nin sosyal medya kanallarında tanıtım amacıyla kullanılabilir. Kullanıcıdan izin alınmasına gerek yoktur.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">9. KULLANICI İÇERİĞİ VE PAYLAŞIM</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Kullanıcı tarafından yüklenen içerikler (yorum, fotoğraf, inceleme vb.) kullanıcının sorumluluğundadır.</li><li class="text-sm"> Kullanıcı, bu içerikleri Platformda yayınlama, çoğaltma ve tanıtımda kullanma hakkını Timhoty'ye devreder.</li><li class="text-sm"> Timhoty, uygunsuz veya yasalara aykırı içerikleri kaldırma hakkını saklı tutar.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">10. GİZLİLİK VE VERİ KORUMA</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Timhoty, kişisel verileri Kişisel Verilerin Korunması ve Çerez Tercihleri kapsamında işler.</li><li class="text-sm"> Kullanıcı, Platform'u kullanarak veri işleme koşullarını kabul etmiş sayılır.</li><li class="text-sm"> Timhoty, kullanıcı verilerini satmaz veya izinsiz üçüncü taraflarla paylaşmaz.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">11. GARANTİ VE SORUMLULUK REDDİ</h3><p class="font-regular text-sm mb-4">Timhoty hizmetleri "olduğu gibi" sunar. Platformun kesintisiz, hatasız veya belirli bir amaca uygun olacağı garanti edilmez.</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> veri kaybı</li><li class="text-sm"> gelir veya kâr kaybı</li><li class="text-sm"> üçüncü taraf aksaklıkları nedeniyle oluşan dolaylı zararlardan sorumlu tutulamaz.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">12. TAZMİNAT</h3><p class="font-regular text-sm">Kullanıcı, Platformu kullanırken yaptığı ihlaller sonucu Timhoty'nin uğrayabileceği her türlü zarar, dava, masraf veya talep karşısında Timhoty'yi tazmin etmeyi kabul eder.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">13. FESİH</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Kullanıcı, hesabını dilediği an silebilir.</li><li class="text-sm"> Timhoty, şartların ihlali veya yasal gereklilik nedeniyle hesabı askıya alabilir ya da sonlandırabilir.</li><li class="text-sm"> Fesih durumunda, Kullanıcı Platforma erişimini kaybeder.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">14. ÜÇÜNCÜ TARAF LİNKLER VE ARAÇLAR</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Platform, üçüncü taraf bağlantılar veya servisler içerebilir.</li><li class="text-sm"> Bu bağlantılar bilgilendirme amaçlıdır; içeriklerinden Timhoty sorumlu değildir.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">15. HUKUKİ DAYANAK VE YETKİ</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Bu Sözleşme, Birleşik Arap Emirlikleri – Dubai Yasalarına tabidir.</li><li class="text-sm"> Taraflar arasında doğabilecek uyuşmazlıklar, Dubai Mahkemeleri'nin yetkisindedir.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">16. BÖLÜNEBİLİRLİK VE TAM SÖZLEŞME</h3><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Herhangi bir madde geçersiz sayılırsa, diğer hükümler yürürlükte kalır.</li><li class="text-sm"> Bu Sözleşme ve Gizlilik Politikası, taraflar arasındaki tek ve tam anlaşmayı oluşturur.</li></ul></div><div class="mt-6 pt-4 border-t border-gray-200"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">17. İLETİŞİM</h3><p class="font-regular text-sm mb-2">Her türlü soru, öneri veya yasal bildirim için:</p><div class="space-y-1 text-sm"><div class="font-semibold text-[#1173DB]">E-posta: support@timhoty.com</div><div class="font-semibold text-[#1173DB]">Web: https://www.timhoty.com</div></div></div></div>
             `;
             return res.status(200).send({
                 success: true,
@@ -29,62 +20,45 @@ export default class UserController {
         }
     }
 
- 
 
-async kvkk(req: FastifyRequest, res: FastifyReply) {
-    try {
-        const htmlContent = `
-            <html>
-                <head>
-                    <title>Kişisel Verilerin Korunması</title>
-                </head>
-                <body>
-                    <h1>Kişisel Verilerin Korunmas</h1>
-                    <p>Welcome to our service. By using our service, you agree to the following terms and conditions...</p>
-                    <!-- Add more HTML content as needed -->
-                </body>
-            </html>
+
+    async kvkk(req: FastifyRequest, res: FastifyReply) {
+        try {
+            const htmlContent = `
+           <div class="bg-white border1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4"><div class="font-regular text-sm space-y-4"><p>Timhoty, GlobiVoy Tourism L.L.C. kuruluşu olup ("GlobiVoy", "Şirket", "biz"), kullanıcılarının gizliliğini ve kişisel verilerinin korunmasını önemsemektedir. İşbu Gizlilik ve Kişisel Verilerin Korunması Politikası ("Politika"), Birleşik Arap Emirlikleri Federal Kişisel Verilerin Korunması Kanunu (Federal Decree Law No. 45 of 2021) ve ilgili mevzuata uygun olarak hazırlanmıştır.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">1. Veri Sorumlusu</h3><p class="font-regular text-sm">Kişisel verileriniz, veri sorumlusu sıfatıyla GlobiVoy Tourism L.L.C. tarafından işlenmektedir. Timhoty, GlobiVoy Tourism L.L.C. tarafından işletilen bir marka ve platformdur.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">2. Toplanan Kişisel Veriler</h3><p class="font-regular text-sm mb-4">Timhoty platformu üzerinden aşağıdaki kişisel veriler toplanabilmektedir:</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Kimlik Bilgileri: Ad, Soyad, doğum tarihi, pasaport bilgileri (zorunlu hallerde).</li><li class="text-sm"> İletişim Bilgileri: Telefon numarası, e-posta adresi, ikamet adresi.</li><li class="text-sm"> Finansal Bilgiler: Ödeme bilgileri (kredi kartı verileri yalnızca ödeme altyapısı tarafından işlenir, GlobiVoy/Timhoty sistemlerinde saklanmaz).</li><li class="text-sm"> Rezervasyon ve Seyahat Bilgileri: Tur paketleri, uçuş/otel rezervasyonları, seyahat tercihleri.</li><li class="text-sm"> Teknik Veriler: IP adresi, cihaz modeli, konum bilgisi, çerez ve kullanım verileri.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">3. İşleme Amaçları</h3><p class="font-regular text-sm mb-4">Kişisel verileriniz şu amaçlarla işlenmektedir:</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Timhoty uygulaması ve web sitesi üzerinden turizm hizmetlerinin sunulması</li><li class="text-sm"> Rezervasyon, ödeme ve faturalama süreçlerinin yürütülmesi</li><li class="text-sm"> Müşteri hizmetleri ve destek sağlanması</li><li class="text-sm"> Kullanıcı deneyiminin geliştirilmesi, kampanyalar ve kişiselleştirilmiş içerik sunulması</li><li class="text-sm"> Yasal yükümlülüklerin yerine getirilmesi (ör. göçmenlik otoritelerine zorunlu raporlamalar)</li><li class="text-sm"> Güvenlik, sahtecilik ve dolandırıcılığın önlenmesi</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">4. Verilerin Paylaşımı</h3><p class="font-regular text-sm mb-4">Kişisel verileriniz yalnızca hizmetin sağlanması veya yasal zorunluluk durumlarında paylaşılabilir:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Turizm hizmet sağlayıcıları (oteller, havayolları, transfer firmaları, tur operatörleri)</li><li class="text-sm"> Ödeme altyapısı sağlayıcıları ve bankalar</li><li class="text-sm"> BAE'deki ve uluslararası yetkili kamu otoriteleri</li><li class="text-sm"> Sözleşmeli iş ortaklarımız ve teknik hizmet sağlayıcılarımız</li></ul><p class="font-semibold text-sm text-gray-700">Verileriniz hiçbir şekilde üçüncü taraflara satılmaz.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">5. Verilerin Yurtdışına Aktarımı</h3><p class="font-regular text-sm">Hizmetin gerektirdiği durumlarda (örneğin yurtdışı otel rezervasyonu), verileriniz yalnızca yasal güvenceler sağlanarak BAE dışındaki ülkelere aktarılır.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">6. Saklama Süresi</h3><p class="font-regular text-sm mb-4">Kişisel verileriniz:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Yasal yükümlülüklerin gerektirdiği süre boyunca,</li><li class="text-sm"> Ticari ilişki süresince saklanır.</li></ul><p class="font-semibold text-sm text-gray-700">Süre dolduğunda güvenli şekilde silinir veya anonim hale getirilir.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">7. Kullanıcı Hakları</h3><p class="font-regular text-sm mb-4">BAE Federal Kişisel Verilerin Korunması Kanunu uyarınca aşağıdaki haklara sahipsiniz:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Kişisel verilerinize erişim talep etme</li><li class="text-sm"> Yanlış veya eksik bilgilerin düzeltilmesini isteme</li><li class="text-sm"> Verilerinizin silinmesini talep etme</li><li class="text-sm"> Belirli bir işlemeye itiraz etme veya kısıtlama talep etme</li><li class="text-sm"> Verilerinizin başka bir hizmet sağlayıcıya aktarılmasını isteme (data portability)</li><li class="text-sm"> Daha önce vermiş olduğunuz rızayı geri çekme</li></ul><p class="font-semibold text-sm text-[#1173DB]">Talepleriniz için: support@timhoty.com</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">8. Güvenlik</h3><p class="font-regular text-sm">GlobiVoy/Timhoty, kişisel verilerinizi korumak için uygun teknik ve idari tedbirleri uygular.</p></div><div class="mt-6 pt-4 border-t border-gray-200"><div class="font-semibold text-sm text-[#1173DB] mb-2">GLOBIVOY TOURISM L.L.C</div><div class="space-y-1 text-sm"><div>Adres: Warba Centre 5. Kat No:504 Al Murqabat/Deira Dubai/BAE</div><div>Ticaret Lisans No: 1235153</div><div>Mail: support@timhoty.com</div></div></div></div>
         `;
-        return res.status(200).send({
-            success: true,
-            message: "Privacy policy generated successfully",
-            data: htmlContent
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({
-            success: false,
-            message: "Error generating privacy policy"
-        });
-    }
+            return res.status(200).send({
+                success: true,
+                message: "Privacy policy generated successfully",
+                data: htmlContent
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send({
+                success: false,
+                message: "Error generating privacy policy"
+            });
+        }
 
-}
-async privacyPolicy(req: FastifyRequest, res: FastifyReply) {
-    try {
-        const htmlContent = `
-            <html>
-                <head>
-                    <title>Gizlilik Politikası</title>
-                </head>
-                <body>
-                    <h1>Gizlilik Politikası</h1>
-                    <p>Welcome to our service. By using our service, you agree to the following terms and conditions...</p>
-                    <!-- Add more HTML content as needed -->
-                </body>
-            </html>
+    }
+    async privacyPolicy(req: FastifyRequest, res: FastifyReply) {
+        try {
+            const htmlContent = `
+           <div class="bg-white border1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4"><div class="font-regular text-sm space-y-4"><p>Timhoty, GlobiVoy Tourism L.L.C. kuruluşu olup ("GlobiVoy", "Şirket", "biz"), kullanıcılarının gizliliğini ve kişisel verilerinin korunmasını önemsemektedir. İşbu Gizlilik ve Kişisel Verilerin Korunması Politikası ("Politika"), Birleşik Arap Emirlikleri Federal Kişisel Verilerin Korunması Kanunu (Federal Decree Law No. 45 of 2021) ve ilgili mevzuata uygun olarak hazırlanmıştır.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">1. Veri Sorumlusu</h3><p class="font-regular text-sm">Kişisel verileriniz, veri sorumlusu sıfatıyla GlobiVoy Tourism L.L.C. tarafından işlenmektedir. Timhoty, GlobiVoy Tourism L.L.C. tarafından işletilen bir marka ve platformdur.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">2. Toplanan Kişisel Veriler</h3><p class="font-regular text-sm mb-4">Timhoty platformu üzerinden aşağıdaki kişisel veriler toplanabilmektedir:</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Kimlik Bilgileri: Ad, Soyad, doğum tarihi, pasaport bilgileri (zorunlu hallerde).</li><li class="text-sm"> İletişim Bilgileri: Telefon numarası, e-posta adresi, ikamet adresi.</li><li class="text-sm"> Finansal Bilgiler: Ödeme bilgileri (kredi kartı verileri yalnızca ödeme altyapısı tarafından işlenir, GlobiVoy/Timhoty sistemlerinde saklanmaz).</li><li class="text-sm"> Rezervasyon ve Seyahat Bilgileri: Tur paketleri, uçuş/otel rezervasyonları, seyahat tercihleri.</li><li class="text-sm"> Teknik Veriler: IP adresi, cihaz modeli, konum bilgisi, çerez ve kullanım verileri.</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">3. İşleme Amaçları</h3><p class="font-regular text-sm mb-4">Kişisel verileriniz şu amaçlarla işlenmektedir:</p><ul class="list-disc list-inside space-y-2"><li class="text-sm"> Timhoty uygulaması ve web sitesi üzerinden turizm hizmetlerinin sunulması</li><li class="text-sm"> Rezervasyon, ödeme ve faturalama süreçlerinin yürütülmesi</li><li class="text-sm"> Müşteri hizmetleri ve destek sağlanması</li><li class="text-sm"> Kullanıcı deneyiminin geliştirilmesi, kampanyalar ve kişiselleştirilmiş içerik sunulması</li><li class="text-sm"> Yasal yükümlülüklerin yerine getirilmesi (ör. göçmenlik otoritelerine zorunlu raporlamalar)</li><li class="text-sm"> Güvenlik, sahtecilik ve dolandırıcılığın önlenmesi</li></ul></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">4. Verilerin Paylaşımı</h3><p class="font-regular text-sm mb-4">Kişisel verileriniz yalnızca hizmetin sağlanması veya yasal zorunluluk durumlarında paylaşılabilir:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Turizm hizmet sağlayıcıları (oteller, havayolları, transfer firmaları, tur operatörleri)</li><li class="text-sm"> Ödeme altyapısı sağlayıcıları ve bankalar</li><li class="text-sm"> BAE'deki ve uluslararası yetkili kamu otoriteleri</li><li class="text-sm"> Sözleşmeli iş ortaklarımız ve teknik hizmet sağlayıcılarımız</li></ul><p class="font-semibold text-sm text-gray-700">Verileriniz hiçbir şekilde üçüncü taraflara satılmaz.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">5. Verilerin Yurtdışına Aktarımı</h3><p class="font-regular text-sm">Hizmetin gerektirdiği durumlarda (örneğin yurtdışı otel rezervasyonu), verileriniz yalnızca yasal güvenceler sağlanarak BAE dışındaki ülkelere aktarılır.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">6. Saklama Süresi</h3><p class="font-regular text-sm mb-4">Kişisel verileriniz:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Yasal yükümlülüklerin gerektirdiği süre boyunca,</li><li class="text-sm"> Ticari ilişki süresince saklanır.</li></ul><p class="font-semibold text-sm text-gray-700">Süre dolduğunda güvenli şekilde silinir veya anonim hale getirilir.</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">7. Kullanıcı Hakları</h3><p class="font-regular text-sm mb-4">BAE Federal Kişisel Verilerin Korunması Kanunu uyarınca aşağıdaki haklara sahipsiniz:</p><ul class="list-disc list-inside space-y-2 mb-4"><li class="text-sm"> Kişisel verilerinize erişim talep etme</li><li class="text-sm"> Yanlış veya eksik bilgilerin düzeltilmesini isteme</li><li class="text-sm"> Verilerinizin silinmesini talep etme</li><li class="text-sm"> Belirli bir işlemeye itiraz etme veya kısıtlama talep etme</li><li class="text-sm"> Verilerinizin başka bir hizmet sağlayıcıya aktarılmasını isteme (data portability)</li><li class="text-sm"> Daha önce vermiş olduğunuz rızayı geri çekme</li></ul><p class="font-semibold text-sm text-[#1173DB]">Talepleriniz için: support@timhoty.com</p></div><div class="mt-6"><h3 class="font-semibold text-lg text-[#FF6B00] mb-3">8. Güvenlik</h3><p class="font-regular text-sm">GlobiVoy/Timhoty, kişisel verilerinizi korumak için uygun teknik ve idari tedbirleri uygular.</p></div><div class="mt-6 pt-4 border-t border-gray-200"><div class="font-semibold text-sm text-[#1173DB] mb-2">GLOBIVOY TOURISM L.L.C</div><div class="space-y-1 text-sm"><div>Adres: Warba Centre 5. Kat No:504 Al Murqabat/Deira Dubai/BAE</div><div>Ticaret Lisans No: 1235153</div><div>Mail: support@timhoty.com</div></div></div></div>
+
         `;
-        return res.status(200).send({
-            success: true,
-            message: "Privacy policy generated successfully",
-            data: htmlContent
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({
-            success: false,
-            message: "Error generating privacy policy"
-        });
-    }
+            return res.status(200).send({
+                success: true,
+                message: "Privacy policy generated successfully",
+                data: htmlContent
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send({
+                success: false,
+                message: "Error generating privacy policy"
+            });
+        }
 
-}
+    }
 }
