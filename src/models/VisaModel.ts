@@ -32,6 +32,15 @@ class VisaModel extends BaseModel {
 			const today = now.toISOString().split("T")[0] // YYYY-MM-DD formatında bugünün tarihi
 
 			// Window function kullanarak her visa için en ucuz paketi seçiyoruz
+			const getCoverImageCategory = (lang: string) => {
+				const categories: Record<string, string> = {
+					tr: "Kapak Resmi",
+					en: "Cover Image",
+					ar: "صورة الغلاف",
+				}
+				return categories[lang] || "Kapak Resmi"
+			}
+			const coverImageCategory = getCoverImageCategory(language)
 			const subquery = knex
 				.select(
 					"visas.id",
@@ -53,26 +62,29 @@ class VisaModel extends BaseModel {
 					"visa_package_prices.end_date",
 					"visas.created_at",
 					knex.raw(`
-            ROW_NUMBER() OVER (
-              PARTITION BY visas.id
-              ORDER BY visa_package_prices.main_price ASC, visa_galleries.id ASC
-            ) as rn
-          `)
+      ROW_NUMBER() OVER (
+        PARTITION BY visas.id
+        ORDER BY visa_package_prices.main_price ASC, visa_galleries.id ASC
+      ) as rn
+    `)
 				)
 				.from("visas")
 				.whereNull("visas.deleted_at")
 				.where("visas.highlight", isHighlighted)
 				.where("visas.status", true)
 				.where("visas.admin_approval", true)
-				.innerJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
-				.where("visa_pivots.language_code", language)
+				.innerJoin("visa_pivots", function () {
+					this.on("visas.id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
+				})
 				.whereNull("visa_pivots.deleted_at")
 				.innerJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
 				.whereNull("visa_galleries.deleted_at")
-				.leftJoin("visa_gallery_pivot", "visa_galleries.id", "visa_gallery_pivot.visa_gallery_id")
-				.where("visa_gallery_pivot.language_code", language)
+				.leftJoin("visa_gallery_pivot", function () {
+					this.on("visa_galleries.id", "=", "visa_gallery_pivot.visa_gallery_id")
+						.andOn("visa_gallery_pivot.language_code", "=", knex.raw("?", [language]))
+						.andOn("visa_gallery_pivot.category", "=", knex.raw("?", [coverImageCategory]))
+				})
 				.whereNull("visa_gallery_pivot.deleted_at")
-				.where("visa_gallery_pivot.category", "Kapak Resmi")
 				.leftJoin("visa_packages", "visas.id", "visa_packages.visa_id")
 				.whereNull("visa_packages.deleted_at")
 				.leftJoin("visa_package_prices", "visa_packages.id", "visa_package_prices.visa_package_id")
@@ -156,7 +168,7 @@ class VisaModel extends BaseModel {
 		return knex("comments")
 			.where("comments.service_type", "visa")
 			.whereNull("comments.deleted_at")
-			.where("comments.language_code", language)
+
 			.modify(qb => {
 				if (id) {
 					qb.where("comments.service_id", id)
