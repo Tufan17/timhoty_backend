@@ -76,7 +76,7 @@ export default async function app(fastify: FastifyInstance) {
     `;
     
     await sendMail(
-      "tufanmemisali17@gmail.com",
+      "alitufan.asidev@gmail.com",
       "Timhoty Test Email",
       testEmailHtml
     );
