@@ -62,6 +62,32 @@ export default async function app(fastify: FastifyInstance) {
   // ===========================================
   fastify.register(paymentRoutes, { prefix: "/payment" });
 
+  // ===========================================
+  // TEST EMAIL ROUTE
+  // ===========================================
+  fastify.get("/test-email", async (request, reply) => {
+    const sendMail = (await import("./utils/mailer")).default;
+    
+    const testEmailHtml = `
+      <h1>Timhoty Test Email</h1>
+      <p>Bu bir test e-postasıdır.</p>
+      <p>Sistem çalışıyor! 🎉</p>
+      <p>Gönderim zamanı: ${new Date().toLocaleString('tr-TR')}</p>
+    `;
+    
+    await sendMail(
+      "tufanmemisali17@gmail.com",
+      "Timhoty Test Email",
+      testEmailHtml
+    );
+    
+    return reply.send({ 
+      success: true, 
+      message: "Test e-postası gönderildi",
+      sentTo: process.env.TEST_EMAIL || "test@example.com"
+    });
+  });
+
   fastify.get(
     "/uploads/:folder/:filename",
     async function handler(request, reply) {
