@@ -45,6 +45,7 @@ export default class ActivityController {
 
 			const language = (req as any).language
 			const solutionPartnerUser = (req as any).user
+
 			const spFromUser = solutionPartnerUser?.solution_partner_id
 
 			// Ortak JOIN'ler
