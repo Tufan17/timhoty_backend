@@ -17,10 +17,12 @@ export default async function activityRoutes(fastify: FastifyInstance) {
 		getUser: request => (request as any).user || {},
 	})
 	fastify.get("/", {
+		preHandler: [authSolutionPartnerMiddleware],
 		preValidation: [validateQuery(activityQuerySchema)],
 		handler: activityController.dataTable,
 	})
 	fastify.get("/all", {
+		preHandler: [authSolutionPartnerMiddleware],
 		handler: activityController.findAll,
 	})
 
