@@ -209,7 +209,6 @@ export default class VisaController {
 				refund_policy: string
 				approval_period?: number
 			}
-			console.log("location_id", location_id)
 
 			// Validate location_id
 			if (location_id) {
@@ -318,7 +317,7 @@ export default class VisaController {
 			let body: any = {
 				location_id: location_id !== undefined ? location_id : existingVisa.location_id,
 				solution_partner_id: solution_partner_id !== undefined ? solution_partner_id : existingVisa.solution_partner_id,
-				status: status !== undefined ? status : existingVisa.status,
+				status: false,
 				highlight: highlight !== undefined ? highlight : existingVisa.highlight,
 				refund_days: refund_days !== undefined ? refund_days : existingVisa.refund_days,
 				approval_period: approval_period != null ? approval_period : existingVisa.approval_period,

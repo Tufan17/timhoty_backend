@@ -383,7 +383,7 @@ export default class CarRentalController {
 			let body: any = {
 				location_id: location_id !== undefined ? location_id : existingCarRental.location_id,
 				solution_partner_id: solution_partner_id !== undefined ? solution_partner_id : existingCarRental.solution_partner_id,
-				status: status !== undefined ? status : existingCarRental.status,
+				status: false,
 				highlight: highlight !== undefined ? highlight : existingCarRental.highlight,
 				car_type_id: car_type_id !== undefined ? car_type_id : existingCarRental.car_type_id,
 				gear_type_id: gear_type_id !== undefined ? gear_type_id : existingCarRental.gear_type_id,

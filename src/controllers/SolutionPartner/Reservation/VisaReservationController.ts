@@ -43,11 +43,7 @@ export default class VisaReservationController {
 				.leftJoin("visa_pivots", function () {
 					this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("cities", "visas.location_id", "cities.id")
-				.leftJoin("city_pivots", function () {
-					this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
-				})
-				.leftJoin("countries", "cities.country_id", "countries.id")
+				.leftJoin("countries", "visas.location_id", "countries.id")
 				.leftJoin("country_pivots", function () {
 					this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -61,7 +57,7 @@ export default class VisaReservationController {
 					if (search) {
 						const like = `%${search}%`
 						qb.andWhere(w => {
-							w.where("visa_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("visa_reservations.id", "ilike", like).orWhere("visa_reservations.progress_id", "ilike", like)
+							w.where("visa_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhereRaw("CAST(visa_reservations.id AS TEXT) ILIKE ?", [like]).orWhereRaw("CAST(visa_reservations.progress_id AS TEXT) ILIKE ?", [like])
 						})
 					}
 				})
@@ -83,7 +79,7 @@ export default class VisaReservationController {
 					"visa_reservations.price",
 					"visa_reservations.currency_code",
 					"visa_pivots.title as visa_title",
-					"city_pivots.name as visa_city",
+
 					"country_pivots.name as visa_country"
 					// Vize fotoğrafı için subquery
 					// 	knex.raw(`(
@@ -95,11 +91,10 @@ export default class VisaReservationController {
 					//   LIMIT 1
 					// ) as visa_image`)
 				)
-				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
+				.groupBy("visa_reservations.id", "visa_pivots.title", "country_pivots.name")
 				.orderBy("visa_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
-			console.log(data)
 
 			const formattedData = data.map((item: any) => {
 				let locale = "en-US" // varsayılan
@@ -128,7 +123,7 @@ export default class VisaReservationController {
 				}
 				return {
 					...item,
-					visa_location: `${item.visa_country || ""}, ${item.visa_city || ""}`.trim(),
+					visa_location: `${item.visa_country || ""}`.trim(),
 					created_at_formatted: item.created_at ? new Date(item.created_at).toLocaleDateString(locale) : null,
 					price_formatted: formatPrice(item.price, item.currency_code),
 				}
@@ -171,7 +166,6 @@ export default class VisaReservationController {
 				.select(
 					"visa_reservations.*",
 					"visa_pivots.title as visa_title",
-					"city_pivots.name as visa_city",
 					"country_pivots.name as visa_country",
 					// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
 					knex.raw(`(
@@ -192,17 +186,13 @@ export default class VisaReservationController {
 				.leftJoin("visa_pivots", function () {
 					this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("cities", "visas.location_id", "cities.id")
-				.leftJoin("city_pivots", function () {
-					this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
-				})
-				.leftJoin("countries", "cities.country_id", "countries.id")
+				.leftJoin("countries", "visas.location_id", "countries.id")
 				.leftJoin("country_pivots", function () {
 					this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
 				})
 				.leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
 				.whereNull("visa_reservation_users.deleted_at")
-				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
+				.groupBy("visa_reservations.id", "visa_pivots.title", "country_pivots.name")
 				.first()
 
 			if (!reservation) {
@@ -241,7 +231,7 @@ export default class VisaReservationController {
 			// Veriyi formatla
 			const formattedReservation = {
 				...reservation,
-				visa_location: `${reservation.visa_country || ""}, ${reservation.visa_city || ""}`.trim(),
+				visa_location: `${reservation.visa_country || ""}`.trim(),
 				created_at_formatted: reservation.created_at ? new Date(reservation.created_at).toLocaleDateString(locale) : null,
 				price_formatted: formatPrice(reservation.price, reservation.currency_code),
 				guest_count: reservation.guests?.length || 0,

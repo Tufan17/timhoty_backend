@@ -186,7 +186,7 @@ export default class ActivityFeatureController {
 			})
 
 			activityFeature.activity_feature_pivots = translateResult
-
+			await new ActivityModel().update(activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_FEATURE.ACTIVITY_FEATURE_CREATED_SUCCESS"),
@@ -257,7 +257,7 @@ export default class ActivityFeatureController {
 			}
 
 			const updatedActivityFeature = await new ActivityFeatureModel().oneToMany(id, "activity_feature_pivots", "activity_feature_id")
-
+			await new ActivityModel().update(existingActivityFeature.activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_FEATURE.ACTIVITY_FEATURE_UPDATED_SUCCESS"),

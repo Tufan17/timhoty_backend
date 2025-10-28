@@ -193,7 +193,10 @@ export default class CarRentalFeatureController {
 			})
 
 			carRentalFeature.car_rental_feature_pivots = translateResult
-
+			await new CarRentalModel().update(car_rental_id, {
+				status: false,
+				admin_approval: false,
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("CAR_RENTAL_FEATURE.CAR_RENTAL_FEATURE_CREATED_SUCCESS"),
@@ -264,7 +267,10 @@ export default class CarRentalFeatureController {
 			}
 
 			const updatedCarRentalFeature = await new CarRentalFeatureModel().oneToMany(id, "car_rental_feature_pivots", "car_rental_feature_id")
-
+			await new CarRentalModel().update(existingCarRentalFeature.car_rental_id, {
+				status: false,
+				admin_approval: false,
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("CAR_RENTAL_FEATURE.CAR_RENTAL_FEATURE_UPDATED_SUCCESS"),

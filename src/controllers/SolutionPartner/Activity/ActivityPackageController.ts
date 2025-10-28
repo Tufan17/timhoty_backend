@@ -316,6 +316,7 @@ export class ActivityPackageController {
 			}
 
 			packageModel.prices = pricesModel
+			await new ActivityModel().update(activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_PACKAGE.CREATED_SUCCESS"),
@@ -418,7 +419,7 @@ export class ActivityPackageController {
 
 			// Get updated package with prices
 			const updatedPackage = await knex.select("activity_packages.*", knex.raw("json_agg(activity_package_prices.*) as prices")).from("activity_packages").leftJoin("activity_package_prices", "activity_packages.id", "activity_package_prices.activity_package_id").where("activity_packages.id", id).whereNull("activity_package_prices.deleted_at").whereNull("activity_packages.deleted_at").groupBy("activity_packages.id").first()
-
+			await new ActivityModel().update(updatedPackage.activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_PACKAGE.UPDATED_SUCCESS"),
