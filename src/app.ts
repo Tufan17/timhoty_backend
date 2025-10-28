@@ -69,7 +69,7 @@ export default async function app(fastify: FastifyInstance) {
     const sendMail = (await import("./utils/mailer")).default;
     
     const testEmailHtml = `
-      <h1>Timhoty Test Email</h1>
+      <h1>Test Email</h1>
       <p>Bu bir test e-postasıdır.</p>
       <p>Sistem çalışıyor! 🎉</p>
       <p>Gönderim zamanı: ${new Date().toLocaleString('tr-TR')}</p>
@@ -77,14 +77,15 @@ export default async function app(fastify: FastifyInstance) {
     
     await sendMail(
       "alitufan.asidev@gmail.com",
-      "Timhoty Test Email",
-      testEmailHtml
+      "Test Email",
+      "", // text
+      testEmailHtml // html
     );
     
     return reply.send({ 
       success: true, 
       message: "Test e-postası gönderildi",
-      sentTo: process.env.TEST_EMAIL || "test@example.com"
+      sentTo: "alitufan.asidev@gmail.com"
     });
   });
 

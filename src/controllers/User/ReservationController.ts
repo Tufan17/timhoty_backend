@@ -85,7 +85,7 @@ export default class ReservationController {
 						county: reservation.hotel_country || reservation.tour_country || reservation.car_rental_country || reservation.activity_country || reservation.visa_country,
 						city: reservation.hotel_city || reservation.tour_city || reservation.car_rental_city || reservation.activity_city || reservation.visa_city,
 						comment: reservation.comment,
-						title: reservation.hotel_name || reservation.tour_name || reservation.car_rental_name || reservation.activity_name || reservation.visa_title,
+						title: reservation.hotel_name || reservation.tour_name || reservation.car_rental_name || reservation.activity_title || reservation.visa_title,
 						adult: reservation.guests.filter((guest: any) => guest.type === "adult").length,
 						child: reservation.guests.filter((guest: any) => guest.type === "child").length,
 						baby: reservation.guests.filter((guest: any) => guest.type === "baby").length,
