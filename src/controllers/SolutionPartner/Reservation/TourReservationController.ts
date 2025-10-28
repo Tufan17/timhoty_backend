@@ -7,19 +7,21 @@ export default class TourReservationController {
 			const {
 				page = 1,
 				limit = 10,
-				search = "",
+				search_term = "",
 				status,
 				tour_id,
 				start_date,
 				end_date,
+				period,
 			} = req.query as {
 				page: number
 				limit: number
-				search: string
+				search_term: string
 				status?: boolean
 				tour_id?: string
 				start_date?: string
 				end_date?: string
+				period?: string
 			}
 
 			const language = (req as any).language
@@ -42,7 +44,8 @@ export default class TourReservationController {
 				.leftJoin("tour_pivots", function () {
 					this.on("tour_reservations.tour_id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("cities", "tours.location_id", "cities.id")
+				.leftJoin("tour_locations", "tours.id", "tour_locations.tour_id")
+				.leftJoin("cities", "tour_locations.location_id", "cities.id")
 				.leftJoin("city_pivots", function () {
 					this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -60,11 +63,11 @@ export default class TourReservationController {
 					if (tour_id) qb.where("tour_reservations.tour_id", tour_id)
 					if (start_date) qb.where("tour_reservations.created_at", ">=", start_date)
 					if (end_date) qb.where("tour_reservations.created_at", "<=", end_date)
-
-					if (search) {
-						const like = `%${search}%`
+					if (period) qb.where("tour_reservations.period", period)
+					if (search_term) {
+						const like = `%${search_term}%`
 						qb.andWhere(w => {
-							w.where("tour_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("tour_reservations.id", "ilike", like).orWhere("tour_reservations.progress_id", "ilike", like)
+							w.where("tour_pivots.title", "ilike", like).orWhereRaw("CAST(tour_reservations.id AS TEXT) ILIKE ?", [like]).orWhereRaw("CAST(tour_reservations.progress_id AS TEXT) ILIKE ?", [like])
 						})
 					}
 				})
@@ -197,7 +200,8 @@ export default class TourReservationController {
 				.leftJoin("tour_pivots", function () {
 					this.on("tour_reservations.tour_id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
 				})
-				.leftJoin("cities", "tours.location_id", "cities.id")
+				.leftJoin("tour_locations", "tours.id", "tour_locations.tour_id")
+				.leftJoin("cities", "tour_locations.location_id", "cities.id")
 				.leftJoin("city_pivots", function () {
 					this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
 				})

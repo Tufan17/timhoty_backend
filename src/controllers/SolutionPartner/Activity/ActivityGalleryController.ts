@@ -156,18 +156,14 @@ export default class ActivityGalleryController {
 			const imageUrls = Array.isArray(images) ? images : [images]
 			const createdImages = []
 
-			const existingActivityGallery = await new ActivityGalleryModel().hasCoverImage(
-				activity_id
-			  );
-		
-			  if (existingActivityGallery&&["Kapak Resmi","الغلاف","Cover"].includes(category)) {
+			const existingActivityGallery = await new ActivityGalleryModel().hasCoverImage(activity_id)
+
+			if (existingActivityGallery && ["Kapak Resmi", "الغلاف", "Cover"].includes(category)) {
 				return res.status(400).send({
-				  success: false,
-				  message: req.t("ACTIVITY_GALLERY.CATEGORY_ALREADY_EXISTS"),
-				});
-			  }
-
-
+					success: false,
+					message: req.t("ACTIVITY_GALLERY.CATEGORY_ALREADY_EXISTS"),
+				})
+			}
 
 			// Create activity images
 			for (const imageUrl of imageUrls) {
@@ -198,7 +194,7 @@ export default class ActivityGalleryController {
 				createdImages.push(image)
 			}
 
-
+			await new ActivityModel().update(activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_GALLERY.CREATED_SUCCESS"),
@@ -284,6 +280,7 @@ export default class ActivityGalleryController {
 				updatedImage.translations = newTranslations
 			}
 
+			await new ActivityModel().update(updatedImage.activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_GALLERY.UPDATED_SUCCESS"),

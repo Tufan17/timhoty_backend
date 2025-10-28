@@ -3,6 +3,7 @@ import knex from "../../../db/knex"
 import ActivityPackageFeatureModel from "@/models/ActivityPackageFeatureModel"
 import { translateCreate, translateUpdate } from "@/helper/translate"
 import ActivityPackageModel from "@/models/ActivityPackageModel"
+import ActivityModel from "@/models/ActivityModel"
 
 export default class ActivityPackageFeatureController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -149,7 +150,7 @@ export default class ActivityPackageFeatureController {
 			}
 
 			// Validate activity_package_id
-			const existingActivityPackage = await new ActivityPackageModel().exists({
+			const existingActivityPackage = await new ActivityPackageModel().first({
 				id: activity_package_id,
 			})
 
@@ -159,6 +160,7 @@ export default class ActivityPackageFeatureController {
 					message: req.t("ACTIVITY_PACKAGE_FEATURE.NOT_FOUND"),
 				})
 			}
+			await new ActivityModel().update(existingActivityPackage.activity_id, { admin_approval: false, status: false })
 
 			// Create activity package feature
 			const feature = await new ActivityPackageFeatureModel().create({
@@ -222,7 +224,7 @@ export default class ActivityPackageFeatureController {
 
 			if (activity_package_id) {
 				const activityPackage = await knex("activity_packages").where("id", activity_package_id).first()
-
+				await new ActivityModel().update(activityPackage.activity_id, { admin_approval: false, status: false })
 				if (!activityPackage) {
 					return res.status(400).send({
 						success: false,

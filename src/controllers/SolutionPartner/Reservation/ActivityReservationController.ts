@@ -72,7 +72,7 @@ export default class ActivityReservationController {
 					if (search) {
 						const like = `%${search}%`
 						qb.andWhere(w => {
-							w.where("activity_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("activity_reservations.id", "ilike", like).orWhere("activity_reservations.progress_id", "ilike", like).orWhere("activity_package_pivots.name", "ilike", like)
+							w.where("activity_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhereRaw("CAST(activity_reservations.id AS TEXT) ILIKE ?", [like]).orWhereRaw("CAST(activity_reservations.progress_id AS TEXT) ILIKE ?", [like]).orWhere("activity_package_pivots.name", "ilike", like)
 						})
 					}
 				})

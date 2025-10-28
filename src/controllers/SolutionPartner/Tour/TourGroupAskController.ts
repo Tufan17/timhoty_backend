@@ -22,6 +22,7 @@ export default class TourGroupAskController {
 				status?: boolean
 			}
 
+			const language = (req as any).language
 			const solutionPartnerUser = (req as any).user
 			const spFromUser = solutionPartnerUser?.solution_partner_id
 
@@ -37,11 +38,19 @@ export default class TourGroupAskController {
 			const base = knex("tour_group_asks")
 				.whereNull("tour_group_asks.deleted_at")
 				.innerJoin("tours", "tour_group_asks.tour_id", "tours.id")
+				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
 				.where("tours.solution_partner_id", spFromUser)
 				.whereNull("tours.deleted_at")
+				.where("tour_pivots.language_code", language)
 				.modify(qb => {
 					// Filter by status if provided
 					if (typeof status !== "undefined") qb.where("tour_group_asks.status", status)
+					if (search) {
+						const like = `%${search}%`
+						qb.andWhere(w => {
+							w.where("tour_pivots.title", "ilike", like).orWhereRaw("CAST(tour_group_asks.id AS TEXT) ILIKE ?", [like])
+						})
+					}
 				})
 
 			// Total count
@@ -57,7 +66,6 @@ export default class TourGroupAskController {
 				.offset((Number(page) - 1) * Number(limit))
 
 			// Get tour titles for each record
-			const language = (req as any).language
 			for (const item of data) {
 				const tourPivot = await knex("tour_pivots").where("tour_id", item.tour_id).where("language_code", language).whereNull("deleted_at").select("title").first()
 

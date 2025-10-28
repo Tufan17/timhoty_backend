@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify"
 import ActivityPackageImageModel from "@/models/ActivityPackageImageModel"
 import ActivityPackageModel from "@/models/ActivityPackageModel"
+import ActivityModel from "@/models/ActivityModel"
 
 export default class ActivityPackageImageController {
 	async findAll(req: FastifyRequest, res: FastifyReply) {
@@ -62,7 +63,7 @@ export default class ActivityPackageImageController {
 			}
 
 			// Validate hotel_room_id
-			const existingActivityPackage = await new ActivityPackageModel().exists({
+			const existingActivityPackage = await new ActivityPackageModel().first({
 				id: activity_package_id,
 			})
 
@@ -72,6 +73,7 @@ export default class ActivityPackageImageController {
 					message: req.t("ACTIVITY_PACKAGE.NOT_FOUND"),
 				})
 			}
+			await new ActivityModel().update(existingActivityPackage?.activity_id, { admin_approval: false, status: false })
 
 			// Normalize images to array
 			const imageUrls = Array.isArray(images) ? images : [images]
@@ -104,7 +106,7 @@ export default class ActivityPackageImageController {
 			const { id } = req.params as { id: string }
 			const { image_url } = req.body as { image_url: string }
 
-			const existingImage = await new ActivityPackageImageModel().findId(id)
+			const existingImage = await new ActivityPackageImageModel().first({ id })
 			if (!existingImage) {
 				return res.status(404).send({
 					success: false,
@@ -116,6 +118,7 @@ export default class ActivityPackageImageController {
 				image_url,
 			})
 
+			await new ActivityModel().update(existingImage?.activity_package?.activity_id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY_PACKAGE_IMAGE.IMAGE_UPDATED_SUCCESS"),

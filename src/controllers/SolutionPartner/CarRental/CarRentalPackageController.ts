@@ -293,6 +293,10 @@ export class CarRentalPackageController {
 			}
 
 			packageModel.prices = pricesModel
+			await new CarRentalModel().update(car_rental_id, {
+				status: false,
+				admin_approval: false,
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("CAR_RENTAL_PACKAGE.CREATED_SUCCESS"),
@@ -411,6 +415,10 @@ export class CarRentalPackageController {
 				.groupBy("car_rental_packages.id")
 				.first()
 
+			await new CarRentalModel().update(car_rental_id, {
+				status: false,
+				admin_approval: false,
+			})
 			return res.status(200).send({
 				success: true,
 				message: req.t("CAR_RENTAL_PACKAGE.UPDATED_SUCCESS"),

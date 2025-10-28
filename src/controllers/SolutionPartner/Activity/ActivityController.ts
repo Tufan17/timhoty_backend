@@ -429,6 +429,7 @@ export default class ActivityController {
 
 			const updatedActivity = await new ActivityModel().oneToMany(id, "activity_pivots", "activity_id")
 
+			await new ActivityModel().update(id, { admin_approval: false, status: false })
 			return res.status(200).send({
 				success: true,
 				message: req.t("ACTIVITY.ACTIVITY_UPDATED_SUCCESS"),
