@@ -365,23 +365,7 @@ export default class AuthUserService {
           email_verified: emailVerified,
         });
 
-        try {
-          const sendMail = (await import("@/utils/mailer")).default;
-          const path = require("path");
-          const fs = require("fs");
-          const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
-          const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
-  
-
-          const uploadsUrl = process.env.UPLOADS_URL;
-          let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
-
-          html = html.replace(/\{\{name\}\}/g, googleName);
-
-          await sendMail(googleEmail, "Timhoty'ye Hoş Geldiniz", html);
-        } catch (error) {
-          console.error("Register email error:", error);
-        }
+        welcomeEmail(googleEmail, googleName);
       }
 
       if (!user) {
@@ -482,23 +466,7 @@ export default class AuthUserService {
           email_verified: true, // Facebook'tan gelen email'ler verify edilmiş kabul ediyoruz
         });
 
-        try {
-          const sendMail = (await import("@/utils/mailer")).default;
-          const path = require("path");
-          const fs = require("fs");
-          const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
-        const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
-
-
-          const uploadsUrl = process.env.UPLOADS_URL;
-          let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
-
-          html = html.replace(/\{\{name\}\}/g, facebookName);
-
-          await sendMail(facebookEmail, "Timhoty'ye Hoş Geldiniz", html);
-        } catch (error) {
-          console.error("Register email error:", error);
-        }
+        welcomeEmail(facebookEmail, facebookName);
       }
 
       if (!user) {
@@ -558,5 +526,26 @@ export default class AuthUserService {
         message: t("AUTH.FACEBOOK_LOGIN_ERROR"),
       };
     }
+  }
+
+
+}
+async function welcomeEmail(email: string, name: string) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+    const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
+  const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+
+
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+
+    html = html.replace(/\{\{name\}\}/g, name);
+
+    await sendMail(email, "Timhoty'ye Hoş Geldiniz", html);
+  } catch (error) {
+    console.error("Register email error:", error);
   }
 }
