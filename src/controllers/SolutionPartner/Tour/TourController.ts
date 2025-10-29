@@ -347,10 +347,10 @@ export default class TourController {
 			const updateData: any = {}
 			if (night_count) updateData.night_count = night_count
 			if (day_count) updateData.day_count = day_count
-		if (refund_days) updateData.refund_days = refund_days
-		if (user_count) updateData.user_count = user_count
-		// title, general_info, tour_info, refund_policy are in tour_pivots, not tours table
-		updateData.admin_approval = false
+			if (refund_days) updateData.refund_days = refund_days
+			if (user_count) updateData.user_count = user_count
+			// title, general_info, tour_info, refund_policy are in tour_pivots, not tours table
+			updateData.admin_approval = false
 
 			// Update image
 			const updatedTour = await new TourModel().update(id, updateData)
@@ -374,6 +374,10 @@ export default class TourController {
 
 				updatedTour.translations = newTranslations
 			}
+			await new TourModel().update(id, {
+				status: false,
+				admin_approval: false,
+			})
 
 			return res.status(200).send({
 				success: true,
@@ -448,7 +452,7 @@ export default class TourController {
 			let tourGalleries = await new TourGalleryModel().exists({
 				tour_id: id,
 			})
-		
+
 			let tourFeatures = await new TourFeatureModel().exists({
 				tour_id: id,
 			})
@@ -473,15 +477,13 @@ export default class TourController {
 			let tourPackageOpportunities = await new TourPackageOpportunityModel().exists({
 				tour_package_id: tourPackages?.id,
 			})
-		
+
 			let tourPackagesPrices = await new TourPackagePriceModel().exists({
 				tour_package_id: tourPackages?.id,
 			})
 			let tourPackagesImages = await new TourPackageImageModel().exists({
 				tour_package_id: tourPackages?.id,
 			})
-
-		
 
 			const data = {
 				tour,
@@ -503,9 +505,8 @@ export default class TourController {
 				await new TourModel().update(id, {
 					status: true,
 				})
-				data.adminApproval = true;
+				data.adminApproval = true
 			}
-
 
 			return res.status(200).send({
 				success: true,

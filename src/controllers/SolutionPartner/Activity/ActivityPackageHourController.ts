@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "../../../db/knex"
 import ActivityPackageHourModel from "@/models/ActivityPackageHourModel"
 import ActivityPackageModel from "@/models/ActivityPackageModel"
+import ActivityModel from "@/models/ActivityModel"
 
 export default class ActivityPackageHourController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -135,7 +136,8 @@ export default class ActivityPackageHourController {
 				minute: number
 			}
 
-			const existActivityPackage = await new ActivityPackageModel().findId(activity_package_id)
+			const existActivityPackage = await new ActivityPackageModel().first({ id: activity_package_id })
+			await new ActivityModel().update(existActivityPackage?.activity_id, { admin_approval: false, status: false })
 			if (!existActivityPackage) {
 				return res.status(400).send({
 					success: false,
@@ -219,6 +221,7 @@ export default class ActivityPackageHourController {
 						message: req.t("ACTIVITY_PACKAGE.ACTIVITY_PACKAGE_NOT_FOUND"),
 					})
 				}
+				await new ActivityModel().update(existingActivityPackage?.activity_id, { admin_approval: false, status: false })
 			}
 
 			// Validate hour and minute values if provided

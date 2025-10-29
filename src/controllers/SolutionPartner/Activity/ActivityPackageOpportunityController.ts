@@ -3,6 +3,7 @@ import knex from "../../../db/knex"
 import ActivityPackageOpportunityModel from "@/models/ActivityPackageOpportunityModel"
 import { translateCreate, translateUpdate } from "@/helper/translate"
 import ActivityPackageModel from "@/models/ActivityPackageModel"
+import ActivityModel from "@/models/ActivityModel"
 
 export default class ActivityPackageOpportunityController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -153,13 +154,14 @@ export default class ActivityPackageOpportunityController {
 				name: string
 			}
 
-			const existActivityPackage = await new ActivityPackageModel().findId(activity_package_id)
+			const existActivityPackage = await new ActivityPackageModel().first({ id: activity_package_id })
 			if (!existActivityPackage) {
 				return res.status(400).send({
 					success: false,
 					message: req.t("ACTIVITY_PACKAGE.ACTIVITY_PACKAGE_NOT_FOUND"),
 				})
 			}
+			await new ActivityModel().update(existActivityPackage?.activity_id, { admin_approval: false, status: false })
 
 			// Validate activity_package_id
 			const existingActivityPackageOpportunity = await new ActivityPackageOpportunityModel().existOpportunity({
@@ -235,6 +237,7 @@ export default class ActivityPackageOpportunityController {
 						message: req.t("ACTIVITY_PACKAGE.ACTIVITY_PACKAGE_NOT_FOUND"),
 					})
 				}
+				await new ActivityModel().update(existingActivityPackage?.activity_id, { admin_approval: false, status: false })
 			}
 
 			// Update activity_package_opportunity if activity_package_id is provided

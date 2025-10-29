@@ -44,7 +44,7 @@ class TourModel extends BaseModel {
 					"tours.day_count",
 					"tour_pivots.title",
 					"tour_galleries.image_url as photo",
-					"tour_packages.constant_price",
+					// "tour_packages.constant_price",
 					"tour_package_prices.main_price",
 					"tour_package_prices.child_price",
 					"tour_package_prices.baby_price",
@@ -76,12 +76,7 @@ class TourModel extends BaseModel {
 				.whereNull("tour_packages.deleted_at")
 				.leftJoin("tour_package_prices", "tour_packages.id", "tour_package_prices.tour_package_id")
 				.whereNull("tour_package_prices.deleted_at")
-				.where(function () {
-					this.where("tour_packages.constant_price", true).orWhere(function () {
-						// Sadece bugün ve gelecekteki tarihleri al
-						this.where("tour_packages.constant_price", false).andWhere("tour_package_prices.date", ">=", today)
-					})
-				})
+				.where("tour_package_prices.date", ">=", today)
 				.leftJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
 				.leftJoin("currency_pivots", function (this: any) {
 					this.on("currencies.id", "=", "currency_pivots.currency_id").andOn("currency_pivots.language_code", "=", knex.raw("?", [language]))
@@ -97,34 +92,19 @@ class TourModel extends BaseModel {
 					"title",
 					"photo",
 					knex.raw(`
-						CASE
-							WHEN constant_price = true THEN
-								json_build_object(
-									'main_price', main_price,
-									'child_price', child_price,
-									'baby_price', baby_price,
-									'currency_id', currency_id,
-									'currency_name', currency_name,
-									'currency_code', currency_code,
-									'currency_symbol', currency_symbol,
-									'is_constant', true
-								)
-							WHEN constant_price = false THEN
-								json_build_object(
-									'main_price', main_price,
-									'child_price', child_price,
-									'baby_price', baby_price,
-									'currency_id', currency_id,
-									'currency_name', currency_name,
-									'currency_code', currency_code,
-									'currency_symbol', currency_symbol,
-									'is_constant', false,
-									'date', date,
-									'discount', discount
-								)
-							ELSE NULL
-						END as package_price
-					`),
+            json_build_object(
+                'main_price', main_price,
+                'child_price', child_price,
+                'baby_price', baby_price,
+                'currency_id', currency_id,
+                'currency_name', currency_name,
+                'currency_code', currency_code,
+                'currency_symbol', currency_symbol,
+                'is_constant', false,
+                'date', date,
+                'discount', discount
+            ) as package_price
+        `),
 					"created_at"
 				)
 				.from(knex.raw(`(${subquery.toString()}) as ranked_tours`))

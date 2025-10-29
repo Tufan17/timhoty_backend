@@ -60,13 +60,13 @@ export default class CarRentalReservationController {
 					// Filtreler
 					if (typeof status !== "undefined") qb.where("car_rental_reservations.status", status)
 					if (car_rental_id) qb.where("car_rental_reservations.car_rental_id", car_rental_id)
-					if (start_date) qb.where("car_rental_reservations.created_at", ">=", start_date)
-					if (end_date) qb.where("car_rental_reservations.created_at", "<=", end_date)
+					if (start_date) qb.where("car_rental_reservations.start_date", ">=", start_date)
+					if (end_date) qb.where("car_rental_reservations.end_date", "<=", end_date)
 
 					if (search) {
 						const like = `%${search}%`
 						qb.andWhere(w => {
-							w.where("car_rental_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhere("car_rental_reservations.id", "ilike", like).orWhere("car_rental_reservations.progress_id", "ilike", like).orWhere("car_rental_package_pivots.name", "ilike", like)
+							w.where("car_rental_pivots.title", "ilike", like).orWhere("city_pivots.name", "ilike", like).orWhere("country_pivots.name", "ilike", like).orWhereRaw("CAST(car_rental_reservations.id AS TEXT) ILIKE ?", [like]).orWhereRaw("CAST(car_rental_reservations.progress_id AS TEXT) ILIKE ?", [like]).orWhere("car_rental_package_pivots.name", "ilike", like)
 						})
 					}
 				})
