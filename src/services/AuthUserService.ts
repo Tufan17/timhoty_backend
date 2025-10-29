@@ -166,10 +166,8 @@ export default class AuthUserService {
         const sendMail = (await import("@/utils/mailer")).default;
         const path = require("path");
         const fs = require("fs");
-        const testEmailHtml = fs.readFileSync(
-          path.join(__dirname, "../emails/register.html"),
-          "utf8"
-        );
+        const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
+        const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
 
         const uploadsUrl = process.env.UPLOADS_URL;
         let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
@@ -371,10 +369,9 @@ export default class AuthUserService {
           const sendMail = (await import("@/utils/mailer")).default;
           const path = require("path");
           const fs = require("fs");
-          const testEmailHtml = fs.readFileSync(
-            path.join(__dirname, "../emails/register.html"),
-            "utf8"
-          );
+          const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
+          const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+  
 
           const uploadsUrl = process.env.UPLOADS_URL;
           let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
@@ -489,10 +486,9 @@ export default class AuthUserService {
           const sendMail = (await import("@/utils/mailer")).default;
           const path = require("path");
           const fs = require("fs");
-          const testEmailHtml = fs.readFileSync(
-            path.join(__dirname, "../emails/register.html"),
-            "utf8"
-          );
+          const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
+        const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+
 
           const uploadsUrl = process.env.UPLOADS_URL;
           let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
