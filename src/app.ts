@@ -67,21 +67,19 @@ export default async function app(fastify: FastifyInstance) {
   // ===========================================
   fastify.get("/test-email", async (request, reply) => {
     const sendMail = (await import("./utils/mailer")).default;
-    
-    const testEmailHtml = `
-      <h1>Test Email</h1>
-      <p>Bu bir test e-postasıdır.</p>
-      <p>Sistem çalışıyor! 🎉</p>
-      <p>Gönderim zamanı: ${new Date().toLocaleString('tr-TR')}</p>
-    `;
-    
+    const fs = require("fs");
+    const testEmailHtml = fs.readFileSync(path.join(__dirname, "../emails/register.html"), "utf8");
+
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+
+    html = html.replace(/\{\{name\}\}/g, "MEMİŞ ALİ Tufan");
+
     await sendMail(
       "alitufan.asidev@gmail.com",
       "Test Email",
-      "", // text
-      testEmailHtml // html
+      html
     );
-    
     return reply.send({ 
       success: true, 
       message: "Test e-postası gönderildi",

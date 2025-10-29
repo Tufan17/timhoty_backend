@@ -471,5 +471,6 @@
     "ACTIVITY_NOT_FOUND": "Activity not found",
     "ACTIVITY_PACKAGE_FETCHED_SUCCESS": "Activity packages fetched successfully",
     "INVALID_DATE_FORMAT": "Invalid date format. Please use YYYY-MM-DD format"
-  }
+  },
+  "GENERAL": "General"
 }

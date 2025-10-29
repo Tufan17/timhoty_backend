@@ -4,49 +4,27 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter: Transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
+  secure: process.env.SMTP_SECURE === "true",
   auth: {
-    user: 'timhoty.dev@gmail.com',
-    pass: 'izyp qzuk moje nkxa',
-  
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
-  tls: {
-    rejectUnauthorized: false
-  }
 });
 
-async function sendMail(to: string, subject: string, text?: string, html?: string, attachments?: string): Promise<any> {
-  console.log("Mail gönderiliyor:", to);
-  
+async function sendMail(to: string, subject: string, html: string): Promise<void> {
+  console.log("Mail gönderiliyor");
   try {
-    let mail;
-    
-    if (attachments) {
-      // send mail with defined transport object
-      mail = await transporter.sendMail({
-        from: "timhoty.dev@gmail.com",
-        to: to,
-        subject: subject,
-        text: text !== "" ? text : undefined,
-        html: html || undefined,
-        attachments: attachments !== "" ? [{ path: attachments }] : undefined
-      });
-    } else {
-      // send mail with defined transport object
-      mail = await transporter.sendMail({
-        from: "timhoty.dev@gmail.com",
-        to: to,
-        subject: subject,
-        text: text !== "" ? text : undefined,
-        html: html || undefined,
-      });
-    }
-
-    console.log("Mail gönderildi:", mail);
-    return mail;
+    const info = await transporter.sendMail({
+      from: `"Timhoty" <${process.env.SMTP_USER}>`,
+      to: to,
+      subject: subject,
+      html: html,
+    });
+    console.log("Mail gönderildi:", info.messageId);
   } catch (err) {
     console.error("Hata:", err);
-    throw err;
   }
 }
 

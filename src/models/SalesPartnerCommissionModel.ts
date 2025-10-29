@@ -7,6 +7,7 @@ class SalesPartnerCommissionModel extends BaseModel {
   static columns = [
     'id',
     'sales_partner_id',
+    'service_id',
     'service_type',
     'commission_type',
     'commission_value',
