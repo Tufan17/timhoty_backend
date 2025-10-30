@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable("sales_partner_commissions", (table) => {
         table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
         table.uuid("sales_partner_id").notNullable().references("id").inTable("sales_partners").onDelete("CASCADE");
-        table.enum("service_type", ["hotel", "rental", "activity", "tour"]).notNullable().defaultTo("hotel");
+        table.enum("service_type", ["hotel", "rental", "activity", "tour", "visa"]).notNullable().defaultTo("hotel");
         table.enum("commission_type", ["percentage", "fixed"]).notNullable().defaultTo("percentage");
         table.decimal("commission_value", 10, 2).notNullable();
         table.string("commission_currency").notNullable().defaultTo("USD");

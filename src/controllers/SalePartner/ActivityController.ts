@@ -85,6 +85,24 @@ export default class ActivityController {
         child?: number;
       };
       const language = (req as any).language;
+      const salesPartnerId = (req as any).user?.sales_partner_id;
+
+      // Fetch commission for this sales partner
+      let commission: any = null;
+      if (salesPartnerId) {
+        commission = await knex("sales_partner_commissions")
+          .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+          .where("sales_partner_commissions.service_type", "activity")
+          .where("sales_partner_commissions.service_id", id)
+          .first();
+
+        if (!commission) {
+          commission = await knex("sales_partner_commissions")
+            .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+            .where("sales_partner_commissions.service_type", "activity")
+            .first();
+        }
+      }
 
       // Get activity info with all related data in a single query
       const results = await knex("activities")
@@ -210,6 +228,7 @@ export default class ActivityController {
           "activity_package_prices.child_price",
           "activity_package_prices.start_date as price_start_date",
           "activity_package_prices.end_date as price_end_date",
+          "currencies.id as currency_id",
           "currency_pivots.name as currency_name",
           "currencies.code as currency_code",
           "currencies.symbol as currency_symbol",
@@ -295,11 +314,25 @@ export default class ActivityController {
           
           // constant_price true ise her zaman ilk fiyatı seç
           if (row.constant_price) {
+            let mainPrice = row.main_price;
+            let childPrice = row.child_price;
+            
+            // Apply commission if currency matches
+            if (commission && commission.commission_currency && row.currency_code === commission.commission_currency) {
+              if (commission.commission_percentage && commission.commission_percentage > 0) {
+                mainPrice = mainPrice * (1 - commission.commission_percentage / 100);
+                childPrice = childPrice * (1 - commission.commission_percentage / 100);
+              } else if (commission.commission_fixed && commission.commission_fixed > 0) {
+                mainPrice = Math.max(0, mainPrice - commission.commission_fixed);
+                childPrice = Math.max(0, childPrice - commission.commission_fixed);
+              }
+            }
+            
             packageData.price = {
               id: row.price_id,
               activity_package_id: row.package_id,
-              main_price: row.main_price,
-              child_price: row.child_price,
+              main_price: mainPrice,
+              child_price: childPrice,
               start_date: row.price_start_date,
               end_date: row.price_end_date,
               currency: row.currency_code ? {
@@ -317,11 +350,25 @@ export default class ActivityController {
                                   (!priceEndDate || currentDate <= priceEndDate);
             
             if (isInDateRange) {
+              let mainPrice = row.main_price;
+              let childPrice = row.child_price;
+              
+              // Apply commission if currency matches
+              if (commission && commission.commission_currency && row.currency_code === commission.commission_currency) {
+                if (commission.commission_percentage && commission.commission_percentage > 0) {
+                  mainPrice = mainPrice * (1 - commission.commission_percentage / 100);
+                  childPrice = childPrice * (1 - commission.commission_percentage / 100);
+                } else if (commission.commission_fixed && commission.commission_fixed > 0) {
+                  mainPrice = Math.max(0, mainPrice - commission.commission_fixed);
+                  childPrice = Math.max(0, childPrice - commission.commission_fixed);
+                }
+              }
+              
               packageData.price = {
                 id: row.price_id,
                 activity_package_id: row.package_id,
-                main_price: row.main_price,
-                child_price: row.child_price,
+                main_price: mainPrice,
+                child_price: childPrice,
                 start_date: row.price_start_date,
                 end_date: row.price_end_date,
                 currency: row.currency_code ? {

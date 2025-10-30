@@ -67,19 +67,19 @@ export const salesPartnerUserUpdateSchema = Joi.object({
 
 export const salesPartnerCommissionSchema = Joi.object({
   sales_partner_id: Joi.string().required(),
-  service_type: Joi.string().required().valid("hotel", "car_rental", "activity", "tour"),
+  service_type: Joi.string().required().valid("hotel", "car_rental", "activity", "tour","visa"),
   commission_type: Joi.string().required().valid("percentage", "fixed"),
   commission_value: Joi.number().required(),
   commission_currency: Joi.string().required().valid("USD", "EUR", "TRY"),
-  service_id: Joi.string().optional(),
+  service_id: Joi.string().optional().allow(null),
 });
 
 export const salesPartnerCommissionUpdateSchema = Joi.object({
-  service_type: Joi.string().optional().valid("hotel", "car_rental", "activity", "tour"),
+  service_type: Joi.string().optional().valid("hotel", "car_rental", "activity", "tour","visa"),
   commission_type: Joi.string().optional().valid("percentage", "fixed"),
   commission_value: Joi.number().optional(),
   commission_currency: Joi.string().optional().valid("USD", "EUR", "TRY"),
-  service_id: Joi.string().optional(),
+  service_id: Joi.string().optional().allow(null),
 });
 
 export const salesPartnerLoginSchema = Joi.object({

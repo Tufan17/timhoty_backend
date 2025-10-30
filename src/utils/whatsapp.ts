@@ -18,6 +18,14 @@ function handleWhatsAppError(err: any, to: string) {
   
   // Token hatası için daha açıklayıcı mesaj
   if (err.response?.data?.error?.code === 190) {
+    const errorSubCode = err.response?.data?.error?.error_subcode;
+    if (errorSubCode === 467) {
+      throw new Error(
+        "WhatsApp access token süresi dolmuş (user logged out). " +
+        "Yeni bir permanent access token oluşturmanız gerekiyor. " +
+        "Meta Business Suite > WhatsApp > API Setup bölümünden yeni token alın."
+      );
+    }
     throw new Error(
       "Invalid WhatsApp access token. Please check your WHATSAPP_TOKEN in .env file. " +
       "Token should be a valid permanent access token from Facebook Graph API."
@@ -43,14 +51,14 @@ async function sendWhatsAppMessage(to: string, message: string): Promise<any> {
   
   // Token kontrolü
   const token = process.env.WHATSAPP_TOKEN?.trim();
-  const phoneNumberId = process.env.PHONE_NUMBER_ID?.trim();
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() || process.env.PHONE_NUMBER_ID?.trim();
   
   if (!token) {
     throw new Error("WHATSAPP_TOKEN environment variable is not set or empty");
   }
   
   if (!phoneNumberId) {
-    throw new Error("PHONE_NUMBER_ID environment variable is not set or empty");
+    throw new Error("WHATSAPP_PHONE_NUMBER_ID or PHONE_NUMBER_ID environment variable is not set or empty");
   }
 
   // Telefon numarasını formatla
@@ -96,14 +104,14 @@ async function sendWhatsAppTemplate(
   
   // Token kontrolü
   const token = process.env.WHATSAPP_TOKEN?.trim();
-  const phoneNumberId = process.env.PHONE_NUMBER_ID?.trim();
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() || process.env.PHONE_NUMBER_ID?.trim();
   
   if (!token) {
     throw new Error("WHATSAPP_TOKEN environment variable is not set or empty");
   }
   
   if (!phoneNumberId) {
-    throw new Error("PHONE_NUMBER_ID environment variable is not set or empty");
+    throw new Error("WHATSAPP_PHONE_NUMBER_ID or PHONE_NUMBER_ID environment variable is not set or empty");
   }
 
   // Telefon numarasını formatla

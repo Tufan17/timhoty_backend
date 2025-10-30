@@ -287,12 +287,15 @@ export default class SalesPartnerCommissionController {
         commission_currency: string;
         service_id: string;
       };
-
-      const existingSalesPartnerCommission =
-        await new SalesPartnerCommissionModel().first({
-          sales_partner_id,
-          service_type,
-        });
+      const existingSalesPartnerCommission =service_id ?
+      await new SalesPartnerCommissionModel().first({
+        sales_partner_id,
+        service_type,
+        service_id,
+      }):await new SalesPartnerCommissionModel().first({
+        sales_partner_id,
+        service_type,
+      });
 
       if (existingSalesPartnerCommission) {
         return res.status(400).send({
@@ -506,6 +509,13 @@ export default class SalesPartnerCommissionController {
           .where("tour_pivots.language_code", language)
           .whereNull("tours.deleted_at")
           .select("tours.id", "tour_pivots.title as name");
+      }
+      if (type === "visa") {
+        serviceAll = await knex("visas")
+          .leftJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
+          .where("visa_pivots.language_code", language)
+          .whereNull("visas.deleted_at")
+          .select("visas.id", "visa_pivots.title as name");
       }
       return res.status(200).send({
         success: true,
