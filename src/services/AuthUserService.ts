@@ -162,22 +162,10 @@ export default class AuthUserService {
         language,
         avatar: "/uploads/avatar.png",
       });
-      try {
-        const sendMail = (await import("@/utils/mailer")).default;
-        const path = require("path");
-        const fs = require("fs");
-        const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
-        const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
 
-        const uploadsUrl = process.env.UPLOADS_URL;
-        let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+      welcomeEmail(email, name_surname);
 
-        html = html.replace(/\{\{name\}\}/g, name_surname);
-
-        await sendMail(email, "Timhoty'ye Hoş Geldiniz", html);
-      } catch (error) {
-        console.error("Register email error:", error);
-      }
+      verificationEmail(email, name_surname);
 
       const body = {
         id: user.id,
@@ -186,12 +174,6 @@ export default class AuthUserService {
         email: user.email,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
-
-      sendMail(
-        user.email,
-        t("AUTH.REGISTER_SUCCESS"),
-        t("AUTH.REGISTER_SUCCESS_DESCRIPTION")
-      );
 
       const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, {
         expiresIn: "1d",
@@ -527,17 +509,18 @@ export default class AuthUserService {
       };
     }
   }
-
-
 }
 async function welcomeEmail(email: string, name: string) {
   try {
     const sendMail = (await import("@/utils/mailer")).default;
     const path = require("path");
     const fs = require("fs");
-    const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
-  const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
-
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      "register.html"
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
 
     const uploadsUrl = process.env.UPLOADS_URL;
     let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
@@ -547,5 +530,45 @@ async function welcomeEmail(email: string, name: string) {
     await sendMail(email, "Timhoty'ye Hoş Geldiniz", html);
   } catch (error) {
     console.error("Register email error:", error);
+  }
+}
+
+async function verificationEmail(email: string, name: string) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      "email-verification.html"
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    
+    // Create JWT token for verification with 10 minute expiry
+    const verificationPayload = {
+      email: email,
+      purpose: 'email_verification',
+      expires_at: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+    };
+    
+    const verificationToken = jwt.sign(
+      verificationPayload, 
+      process.env.ACCESS_TOKEN_SECRET!,
+      { expiresIn: '10m' }
+    );
+    
+    const verificationUrl = `${process.env.FRONTEND_URL}#${verificationToken}`;
+    html = html.replace(/\{\{url\}\}/g, verificationUrl);
+    html = html.replace(/\{\{name\}\}/g, name);
+
+    console.log("Verification token created:", verificationToken.substring(0, 50) + "...");
+    console.log("Verification URL:", verificationUrl);
+
+    await sendMail(email, "Timhoty - E-posta Doğrulama", html);
+  } catch (error) {
+    console.error("Verification email error:", error);
   }
 }

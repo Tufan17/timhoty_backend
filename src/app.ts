@@ -87,6 +87,16 @@ export default async function app(fastify: FastifyInstance) {
       sentTo: "alitufan.asidev@gmail.com"
     });
   });
+  
+  // ===========================================
+  // TEST WHATSAPP ROUTE
+  // ===========================================
+  fastify.get("/test-whatsapp", async (request, reply) => {
+    const { sendWhatsAppTemplate } = await import("./utils/whatsapp");
+    // Test modunda sadece template mesajlar çalışır
+    await sendWhatsAppTemplate("905522855589", "hello_world", "en_US");
+    return reply.send({ success: true, message: "Test WhatsApp template mesajı gönderildi" });
+  });
 
   fastify.get(
     "/uploads/:folder/:filename",
