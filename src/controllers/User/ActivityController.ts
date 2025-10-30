@@ -7,6 +7,8 @@ export default class ActivityController {
 	async index(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const language = (req as any).language
+			const now = new Date()
+			const today = now.toISOString().split("T")[0]
 
 			const { location_id, page = 1, limit = 5, guest_rating, arrangement, min_price, max_price, type } = req.query as any
 
@@ -138,10 +140,22 @@ export default class ActivityController {
 			const allactivityPackageIds = allactivityPackages.map((pkg: any) => pkg.id)
 			const allactivityPackagePrices = await knex("activity_package_prices")
 				.whereIn("activity_package_prices.activity_package_id", allactivityPackageIds)
+				.innerJoin("activity_packages", "activity_package_prices.activity_package_id", "activity_packages.id")
 				.innerJoin("currencies", "activity_package_prices.currency_id", "currencies.id")
 				.innerJoin("currency_pivots", "currencies.id", "currency_pivots.currency_id")
 				.where("currency_pivots.language_code", language)
 				.whereNull("activity_package_prices.deleted_at")
+				.where(function () {
+					// Sabit fiyatlı paketler için tüm fiyatları getir
+					this.where("activity_packages.constant_price", true).orWhere(function () {
+						// Değişken fiyatlı paketler için sadece geçerli tarihteki fiyatları getir
+						this.where("activity_packages.constant_price", false)
+							.andWhere("activity_package_prices.start_date", "<=", today)
+							.andWhere(function () {
+								this.whereNull("activity_package_prices.end_date").orWhere("activity_package_prices.end_date", ">=", today)
+							})
+					})
+				})
 				.select("activity_package_prices.id", "activity_package_prices.activity_package_id", "activity_package_prices.main_price", "activity_package_prices.child_price", "activity_package_prices.currency_id", "currency_pivots.name", "currencies.code", "currencies.symbol")
 			const allactivityPackageHours = await knex("activity_package_hours").whereIn("activity_package_hours.activity_package_id", allactivityPackageIds).whereNull("activity_package_hours.deleted_at").select("activity_package_hours.*").orderBy("hour", "asc").orderBy("minute", "asc")
 
@@ -189,6 +203,8 @@ export default class ActivityController {
 					activity.total_price = totalPrice
 				}
 			})
+
+			activities = activities.filter((activity: any) => activity.activity_packages !== null)
 
 			if (min_price) {
 				activities = activities.filter((activity: any) => (activity.total_price || 0) >= min_price)
