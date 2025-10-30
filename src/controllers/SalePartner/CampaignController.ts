@@ -18,7 +18,7 @@ export default class CampaignController {
         language,
         page,
         limit,
-        service_type || ""
+        "sales_partner"
       );
 
       // Apply search filter if provided

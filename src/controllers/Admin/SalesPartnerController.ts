@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import knex from "../../db/knex";
 import SalesPartnerModel from "@/models/SalesPartnerModel";
 import PermissionModel from "@/models/PermissionModel";
+import SalesPartnerUserModel from "@/models/SalesPartnerUserModel";
 
 export default class SalesPartnerController {
   async findAll(req: FastifyRequest, res: FastifyReply) {
@@ -236,16 +237,27 @@ export default class SalesPartnerController {
       };
 
 
-      if(status&&admin_verified){
+      if(status && admin_verified){
         // bu satış partnera ait tüm kullanıcıların statusunu true yap
         await knex("sales_partner_users").where("sales_partner_id", id).whereNull("deleted_at").update({
           status: true,
           updated_at: new Date(),
         });
-
+        
+        // Manager kullanıcısına onay maili gönder
+        const managerUser = await new SalesPartnerUserModel().first({ sales_partner_id: id, type:"manager" });
+        if(managerUser) {
+          sendMailApplicationApproved(managerUser.email, managerUser.name_surname, req.t);
+        }
       }
-
-
+      
+      if(status === false || admin_verified === false){
+        // Manager kullanıcısına red maili gönder
+        const managerUser = await new SalesPartnerUserModel().first({ sales_partner_id: id, type:"manager" });
+        if(managerUser) {
+          sendMailApplicationRejected(managerUser.email, managerUser.name_surname, req.t);
+        }
+      }
 
       const updatedSalesPartner = await new SalesPartnerModel().update(id, body);
 
@@ -289,5 +301,51 @@ export default class SalesPartnerController {
         message: req.t("SALES_PARTNER.SALES_PARTNER_DELETED_ERROR"),
       });
     }
+  }
+}
+
+async function sendMailApplicationApproved(
+  email: string,
+  nameSurname: string,
+  t: (key: string) => string
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      "application_received_approval.html"
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    await sendMail(email, "Timhoty - Acente Başvurunuz Onaylandı", html);
+  } catch (error) {
+    console.error("Application approved email error:", error);
+  }
+}
+
+async function sendMailApplicationRejected(
+  email: string,
+  nameSurname: string,
+  t: (key: string) => string
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      "application_received_reject.html"
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    await sendMail(email, "Timhoty - Acente Başvurunuz Askıya Alındı", html);
+  } catch (error) {
+    console.error("Application rejected email error:", error);
   }
 }

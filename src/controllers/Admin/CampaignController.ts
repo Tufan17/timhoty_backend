@@ -101,6 +101,7 @@ export default class CampaignController {
         status?: boolean;
         highlight?: boolean;
       };
+      console.log(service_type);
 
       const campaign = await new CampaignModel().create({
         start_date,

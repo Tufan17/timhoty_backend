@@ -88,10 +88,9 @@ export default class AuthSalesPartnerService {
         expires_at: new Date(Date.now() + week),
       });
 
-      const permissions =
-        await new PermissionModel().getSalePartnerPermissions(
-          salesPartnerUser.sales_partner_id
-        );
+      const permissions = await new PermissionModel().getSalePartnerPermissions(
+        salesPartnerUser.sales_partner_id
+      );
 
       return {
         success: true,
@@ -256,11 +255,10 @@ export default class AuthSalesPartnerService {
           success: false,
           message: t("SALES_PARTNER.SALES_PARTNER_ALREADY_EXISTS"),
         };
-      } 
-
+      }
 
       const application_status = await new ApplicationStatusModel().create({
-        name: "Pending"
+        name: "Pending",
       });
 
       const salesPartner = await new SalesPartnerModel().create({
@@ -288,7 +286,7 @@ export default class AuthSalesPartnerService {
         language_code: language,
         status: false,
       });
-
+      sendMailApplicationReceived(email, nameSurname, t);
       return {
         success: true,
         message: t("SALES_PARTNER.REGISTER_SUCCESS"),
@@ -301,5 +299,29 @@ export default class AuthSalesPartnerService {
         message: t("SALES_PARTNER.REGISTER_ERROR"),
       };
     }
+  }
+}
+
+async function sendMailApplicationReceived(
+  email: string,
+  nameSurname: string,
+  t: (key: string) => string
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      "application_received.html"
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    html = html.replace(/\{\{name\}\}/g, nameSurname);
+    await sendMail(email, "Timhoty - Acente Başvurunuz Alındı", html);
+  } catch (error) {
+    console.error("Application received email error:", error);
   }
 }
