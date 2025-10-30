@@ -471,12 +471,12 @@ export default class UserController {
 				htmlContent = `
                 <!DOCTYPE html>
                 <html lang="en">
-                    <head>
+                <head>
                         <meta charset="UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>Cookie Preferences</title>
                         <script src="https://cdn.tailwindcss.com"></script>
-                    </head>
+                </head>
                     <body class="bg-gray-50 py-8">
                         <div class="bg-white border-1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4">
                             <div class="font-regular text-sm space-y-4">
@@ -535,9 +535,9 @@ export default class UserController {
                                 </div>
                             </div>
                         </div>
-                    </body>
-                </html>
-            `
+                </body>
+            </html>
+        `
 			}
 
 			return res.status(200).send({
@@ -665,12 +665,12 @@ export default class UserController {
 				htmlContent = `
                 <!DOCTYPE html>
                 <html lang="en">
-                    <head>
+                <head>
                         <meta charset="UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>Data Protection</title>
                         <script src="https://cdn.tailwindcss.com"></script>
-                    </head>
+                </head>
                     <body class="bg-gray-50 py-8">
                         <div class="bg-white border-1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4">
                             <div class="font-regular text-sm space-y-4">
@@ -762,9 +762,9 @@ export default class UserController {
                                 </div>
                             </div>
                         </div>
-                    </body>
-                </html>
-            `
+                </body>
+            </html>
+        `
 			}
 			return res.status(200).send({
 				success: true,
