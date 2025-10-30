@@ -241,6 +241,7 @@ export default class AuthUserService {
 
   async forgotPassword(email: string, t: (key: string) => string) {
     try {
+      console.log("email", email);
       const user = await new UserModel().first({ email });
       if (!user) {
         return {
@@ -250,11 +251,29 @@ export default class AuthUserService {
       }
       // 6 haneli rastgele bir sayı oluştur
       const verificationCode = Math.floor(100000 + Math.random() * 900000);
-      sendMail(
-        user.email,
-        t("AUTH.FORGOT_PASSWORD_SUCCESS"),
-        verificationCode.toString()
-      );
+      
+      // Send HTML email with template
+      try {
+        const path = require("path");
+        const fs = require("fs");
+        const emailTemplatePath = path.join(process.cwd(), "emails", "forgot_pass.html");
+        const emailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+
+        const uploadsUrl = process.env.UPLOADS_URL;
+        let html = emailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+        html = html.replace(/\{\{name\}\}/g, user.name_surname);
+        html = html.replace(/\{\{code\}\}/g, verificationCode.toString());
+
+        await sendMail(user.email, "Timhoty - Şifre Sıfırlama", html);
+      } catch (error) {
+        console.error("Forgot password email error:", error);
+        // Fallback to simple text email
+        sendMail(
+          user.email,
+          t("AUTH.FORGOT_PASSWORD_SUCCESS"),
+          verificationCode.toString()
+        );
+      }
 
       // 15 dakika sonra verification_code_expires_at'i null yap
       user.verification_code_expires_at = new Date(Date.now() + 15 * 60 * 1000);
