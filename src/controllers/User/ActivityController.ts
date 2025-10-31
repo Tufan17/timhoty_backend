@@ -306,7 +306,18 @@ export default class ActivityController {
 				.whereNull("city_pivots.deleted_at")
 
 				// Gallery bilgileri
-				.leftJoin("activity_galleries", "activities.id", "activity_galleries.activity_id")
+
+				// .leftJoin("activity_package_features", function () {
+				// 	this.on("activity_packages.id", "activity_package_features.activity_package_id").andOnNull("activity_package_features.deleted_at")
+				// })
+				// .leftJoin("activity_package_feature_pivots", function () {
+				// 	this.on("activity_package_features.id", "activity_package_feature_pivots.activity_package_feature_id")
+				// 		.andOn("activity_package_feature_pivots.language_code", knex.raw("?", [language]))
+				// 		.andOnNull("activity_package_feature_pivots.deleted_at")
+				// })
+				.leftJoin("activity_galleries", function () {
+					this.on("activities.id", "activity_galleries.activity_id").andOnNull("activity_galleries.deleted_at")
+				})
 				.leftJoin("activity_gallery_pivots", function () {
 					this.on("activity_galleries.id", "activity_gallery_pivots.activity_gallery_id")
 						.andOn("activity_gallery_pivots.language_code", knex.raw("?", [language]))

@@ -37,7 +37,8 @@ class BlogModel extends BaseModel {
 	}
 
 	async getBlogById(language: string, id: string): Promise<any> {
-		const query = knex("blogs").whereNull("blogs.deleted_at").where("blogs.id", id).innerJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id").where("blog_pivots.language_code", language).whereNull("blog_pivots.deleted_at").select("blogs.id", "blogs.created_at", "blog_pivots.title", "blog_pivots.description", "blogs.photo_url ").first()
+		// Title'a göre ara (URL formatını normalize et)
+		const query = knex("blogs").whereNull("blogs.deleted_at").innerJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id").where("blog_pivots.language_code", language).whereRaw("LOWER(REPLACE(blog_pivots.title, ' ', '-')) = ?", [id.toLowerCase()]).whereNull("blog_pivots.deleted_at").select("blogs.id", "blogs.created_at", "blog_pivots.title", "blog_pivots.description", "blogs.photo_url").first()
 		return query
 	}
 }
