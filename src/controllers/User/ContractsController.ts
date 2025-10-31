@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify"
 
 export default class UserController {
+
 	async termsOfService(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const htmlContent = `
@@ -780,3 +781,4 @@ export default class UserController {
 		}
 	}
 }
+
