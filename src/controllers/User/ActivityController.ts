@@ -82,6 +82,15 @@ export default class ActivityController {
 
 			// Get cover images (Kapak Resmi) for all activities
 			const activityIds = activities.map((activity: any) => activity.id)
+			const getCoverImageCategory = (lang: string) => {
+				const categories: Record<string, string> = {
+					tr: "Kapak Resmi",
+					en: "Cover Image",
+					ar: "صورة الغلاف",
+				}
+				return categories[lang] || "Kapak Resmi"
+			}
+			const coverImageCategory = getCoverImageCategory(language)
 			const mainImages = await knex.raw(
 				`
 				SELECT DISTINCT ON (activities.id)
@@ -91,7 +100,7 @@ export default class ActivityController {
 						 FROM activity_galleries ag
 						 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id
 						 WHERE ag.activity_id = activities.id
-						 AND agp.category = 'Kapak Resmi'
+						 AND agp.category = ?
 						 AND agp.language_code = ?
 						 AND ag.deleted_at IS NULL
 						 AND agp.deleted_at IS NULL
@@ -106,7 +115,7 @@ export default class ActivityController {
 				FROM activities
 				WHERE activities.id = ANY(?)
 			`,
-				[language, activityIds]
+				[coverImageCategory, language, activityIds]
 			)
 
 			activities.forEach((activity: any) => {
@@ -204,32 +213,35 @@ export default class ActivityController {
 				}
 			})
 
-			activities = activities.filter((activity: any) => activity.activity_packages !== null)
+			let filteredActivities = activities.filter((activity: any) => activity.activity_packages !== null)
+
+			// activities = activities.filter((activity: any) => activity.activity_packages !== null)
 
 			if (min_price) {
-				activities = activities.filter((activity: any) => (activity.total_price || 0) >= min_price)
+				filteredActivities = filteredActivities.filter((activity: any) => (activity.total_price || 0) >= min_price)
 			}
 			if (max_price) {
-				activities = activities.filter((activity: any) => (activity.total_price || 0) <= max_price)
+				filteredActivities = filteredActivities.filter((activity: any) => (activity.total_price || 0) <= max_price)
 			}
 
 			if (arrangement === "price_increasing") {
-				activities.sort((a: any, b: any) => (a.total_price || 0) - (b.total_price || 0))
+				filteredActivities.sort((a: any, b: any) => (a.total_price || 0) - (b.total_price || 0))
 			} else if (arrangement === "price_decreasing") {
-				activities.sort((a: any, b: any) => (b.total_price || 0) - (a.total_price || 0))
+				filteredActivities.sort((a: any, b: any) => (b.total_price || 0) - (a.total_price || 0))
 			} else if (arrangement === "rating_increasing") {
-				activities.sort((a: any, b: any) => a.average_rating - b.average_rating)
+				filteredActivities.sort((a: any, b: any) => a.average_rating - b.average_rating)
 			} else if (arrangement === "rating_decreasing") {
-				activities.sort((a: any, b: any) => b.average_rating - a.average_rating)
+				filteredActivities.sort((a: any, b: any) => b.average_rating - a.average_rating)
 			}
 
-			const total = await countQuery.first()
+			const total = filteredActivities.length
+
 			const totalPages = Math.ceil(total?.total ?? 0 / Number(limit))
 			return res.status(200).send({
 				success: true,
 				message: "activities fetched successfully",
-				data: activities,
-				total: Number(total?.total),
+				data: filteredActivities,
+				total: Number(filteredActivities.length),
 				totalPages: totalPages,
 			})
 		} catch (error) {
@@ -351,11 +363,12 @@ export default class ActivityController {
 				})
 
 				// Paket özellikleri
-				.leftJoin("activity_package_features", "activity_packages.id", "activity_package_features.activity_package_id")
+				.leftJoin("activity_package_features", function () {
+					this.on("activity_packages.id", "activity_package_features.activity_package_id").andOnNull("activity_package_features.deleted_at")
+				})
 				.leftJoin("activity_package_feature_pivots", function () {
 					this.on("activity_package_features.id", "activity_package_feature_pivots.activity_package_feature_id")
 						.andOn("activity_package_feature_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("activity_package_features.deleted_at")
 						.andOnNull("activity_package_feature_pivots.deleted_at")
 				})
 
