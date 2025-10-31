@@ -25,8 +25,8 @@ class CityModel extends BaseModel {
 			.leftJoin("hotels", function () {
 				this.on("hotels.location_id", "cities.id").andOnNull("hotels.deleted_at")
 			})
-			.leftJoin("tours", function () {
-				this.on("tours.location_id", "cities.id").andOnNull("tours.deleted_at")
+			.leftJoin("tour_locations", function () {
+				this.on("tour_locations.location_id", "cities.id").andOnNull("tour_locations.deleted_at")
 			})
 			.leftJoin("activities", function () {
 				this.on("activities.location_id", "cities.id").andOnNull("activities.deleted_at")
@@ -38,7 +38,7 @@ class CityModel extends BaseModel {
 				this.on("car_rentals.location_id", "cities.id").andOnNull("car_rentals.deleted_at")
 			})
 			.groupBy("cities.id", "cities.photo", "city_pivots.name")
-			.select("cities.id", "cities.photo", "city_pivots.name", knex.raw("COUNT(DISTINCT hotels.id) as hotels_count"), knex.raw("COUNT(DISTINCT tours.id) as tours_count"), knex.raw("COUNT(DISTINCT activities.id) as activities_count"), knex.raw("COUNT(DISTINCT visas.id) as visas_count"), knex.raw("COUNT(DISTINCT car_rentals.id) as car_rentals_count"))
+			.select("cities.id", "cities.photo", "city_pivots.name", knex.raw("COUNT(DISTINCT hotels.id) as hotels_count"), knex.raw("COUNT(DISTINCT tour_locations.id) as tour_locations_count"), knex.raw("COUNT(DISTINCT activities.id) as activities_count"), knex.raw("COUNT(DISTINCT visas.id) as visas_count"), knex.raw("COUNT(DISTINCT car_rentals.id) as car_rentals_count"))
 			.limit(4)
 
 		return cities
