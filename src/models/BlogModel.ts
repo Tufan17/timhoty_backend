@@ -1,5 +1,6 @@
 import BaseModel from "@/models/BaseModel"
 import knex from "@/db/knex"
+import { slugify } from "@/utils/slugify"
 
 class BlogModel extends BaseModel {
 	constructor() {
@@ -36,9 +37,39 @@ class BlogModel extends BaseModel {
 		return limit ? query.limit(limit) : query
 	}
 
-	async getBlogById(language: string, id: string): Promise<any> {
-		// Title'a göre ara (URL formatını normalize et)
-		const query = knex("blogs").whereNull("blogs.deleted_at").innerJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id").where("blog_pivots.language_code", language).whereRaw("LOWER(REPLACE(blog_pivots.title, ' ', '-')) = ?", [id.toLowerCase()]).whereNull("blog_pivots.deleted_at").select("blogs.id", "blogs.created_at", "blog_pivots.title", "blog_pivots.description", "blogs.photo_url").first()
+	async getBlogById(language: string, slug: string): Promise<any> {
+		const query = knex("blogs")
+			.whereNull("blogs.deleted_at")
+			.innerJoin("blog_pivots", "blogs.id", "blog_pivots.blog_id")
+			.where("blog_pivots.language_code", language)
+			.whereRaw(
+				`
+            LOWER(
+                TRIM(
+                    REGEXP_REPLACE(
+                        REGEXP_REPLACE(
+                            REGEXP_REPLACE(
+                                TRANSLATE(
+                                    blog_pivots.title,
+                                    'ğüşıöçĞÜŞİÖÇ',
+                                    'gusiocGUSIOC'
+                                ),
+                                '[^a-zA-Z0-9\\s-]', '', 'g'
+                            ),
+                            '\\s+', '-', 'g'
+                        ),
+                        '-+', '-', 'g'
+                    ),
+                    '-'
+                )
+            ) = ?
+        `,
+				[slug.toLowerCase().trim()]
+			)
+			.whereNull("blog_pivots.deleted_at")
+			.select("blogs.id", "blogs.created_at", "blog_pivots.title", "blog_pivots.description", "blogs.photo_url")
+			.first()
+
 		return query
 	}
 }
