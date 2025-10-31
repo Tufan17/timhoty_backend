@@ -9,7 +9,7 @@ class BlogModel extends BaseModel {
 
 	static columns = ["id", "photo_url", "service_type", "highlight", "status", "created_at", "updated_at", "deleted_at"]
 
-	async getDashboardBlogs(language: string, limit: number = 4, service_type: string = ""): Promise<any[]> {
+	async getDashboardBlogs(language: string, limit: number = 8, service_type: string = ""): Promise<any[]> {
 		try {
 			// Get highlighted blogs with priority
 			const highlightedBlogs = await this.getBlogsByHighlightStatus(language, true, undefined, service_type)

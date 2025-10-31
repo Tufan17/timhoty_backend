@@ -7,7 +7,7 @@ class VisaModel extends BaseModel {
 	}
 	static columns = ["id", "location_id", "refund_days", "approval_period", "status", "highlight", "solution_partner_id", "admin_approval", "comment_count", "average_rating", "created_at", "updated_at", "deleted_at"]
 
-	async getDashboardVisas(language: string, limit: number = 4): Promise<any[]> {
+	async getDashboardVisas(language: string, limit: number = 8): Promise<any[]> {
 		try {
 			// First get highlighted visas
 			const highlightedVisas = await this.getVisasByHighlightStatus(language, true)
