@@ -100,6 +100,24 @@ export default class VisaController {
         adult: number;
         child: number;
       };
+      const salesPartnerId = (req as any).user?.sales_partner_id;
+
+      // Fetch commission for this sales partner (service-specific first, then generic)
+      let commission: any = null;
+      if (salesPartnerId) {
+        commission = await knex("sales_partner_commissions")
+          .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+          .where("sales_partner_commissions.service_type", "visa")
+          .where("sales_partner_commissions.service_id", id)
+          .first();
+
+        if (!commission) {
+          commission = await knex("sales_partner_commissions")
+            .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+            .where("sales_partner_commissions.service_type", "visa")
+            .first();
+        }
+      }
 
 
       // Tek sorguda tüm veriyi çek
@@ -241,6 +259,23 @@ export default class VisaController {
       const packageMap = new Map();
       const now = new Date();
 
+      // helper for commission application
+      const applyCommissionToAmount = (amount: number): number => {
+        if (!commission) return amount;
+        const type = commission?.commission_type;
+        const value = Number(commission?.commission_value);
+        if (!type || isNaN(value)) return amount;
+        if (type === "percentage") {
+          const adjusted = amount - (amount * value) / 100;
+          return adjusted < 0 ? 0 : adjusted;
+        }
+        if (type === "fixed") {
+          const adjusted = amount - value;
+          return adjusted < 0 ? 0 : adjusted;
+        }
+        return amount;
+      };
+
       results.forEach((row: any) => {
         if (!row.package_id) return;
 
@@ -328,6 +363,13 @@ export default class VisaController {
           }
 
           if (selectedPrice) {
+            // Apply commission if currency matches (by currency code)
+            const commissionCurrencyCode = String(commission?.commission_currency || "").toUpperCase();
+            const priceCurrencyCode = String(selectedPrice.currency?.code || "").toUpperCase();
+            if (commission && commissionCurrencyCode && priceCurrencyCode && commissionCurrencyCode === priceCurrencyCode) {
+              selectedPrice.main_price = applyCommissionToAmount(Number(selectedPrice.main_price));
+              selectedPrice.child_price = applyCommissionToAmount(Number(selectedPrice.child_price));
+            }
             packageData.selectedPrice = selectedPrice;
           }
         }

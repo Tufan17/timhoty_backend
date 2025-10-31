@@ -15,7 +15,7 @@ const transporter: Transporter = nodemailer.createTransport({
   }
 });
 
-async function sendMail(to: string, subject: string, text?: string, html?: string, attachments?: string): Promise<any> {
+async function sendMail(to: string, subject: string, html?: string, attachments?: string): Promise<any> {
   console.log("Mail gönderiliyor:", to);
   
   try {
@@ -27,7 +27,6 @@ async function sendMail(to: string, subject: string, text?: string, html?: strin
         from: "timhoty.dev@gmail.com",
         to: to,
         subject: subject,
-        text: text !== "" ? text : undefined,
         html: html || undefined,
         attachments: attachments !== "" ? [{ path: attachments }] : undefined
       });
@@ -37,7 +36,6 @@ async function sendMail(to: string, subject: string, text?: string, html?: strin
         from: "timhoty.dev@gmail.com",
         to: to,
         subject: subject,
-        text: text !== "" ? text : undefined,
         html: html || undefined,
       });
     }

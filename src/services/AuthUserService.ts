@@ -134,6 +134,7 @@ export default class AuthUserService {
 
 	async register(name_surname: string, email: string, password: string, language: string, t: (key: string) => string) {
 		try {
+			console.log("language", language)
 			const existingUser = await new UserModel().exists({ email })
 			if (existingUser) {
 				return {
@@ -150,6 +151,10 @@ export default class AuthUserService {
 				avatar: "/uploads/avatar.png",
 			})
 
+			welcomeEmail(email, name_surname, language)
+
+			verificationEmail(email, name_surname, language)
+
 			const body = {
 				id: user.id,
 				name_surname: user.name_surname,
@@ -157,8 +162,6 @@ export default class AuthUserService {
 				email: user.email,
 				expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
 			}
-
-			sendMail(user.email, t("AUTH.REGISTER_SUCCESS"), t("AUTH.REGISTER_SUCCESS_DESCRIPTION"))
 
 			const ACCESS_TOKEN = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, {
 				expiresIn: "1d",
@@ -221,8 +224,9 @@ export default class AuthUserService {
 		}
 	}
 
-	async forgotPassword(email: string, t: (key: string) => string) {
+	async forgotPassword(email: string, language: string = "en", t: (key: string) => string) {
 		try {
+			console.log("email", email)
 			const user = await new UserModel().first({ email })
 			if (!user) {
 				return {
@@ -232,7 +236,28 @@ export default class AuthUserService {
 			}
 			// 6 haneli rastgele bir sayı oluştur
 			const verificationCode = Math.floor(100000 + Math.random() * 900000)
-			sendMail(user.email, t("AUTH.FORGOT_PASSWORD_SUCCESS"), verificationCode.toString())
+
+			// Send HTML email with template
+			try {
+				const path = require("path")
+				const fs = require("fs")
+				const templateFileName = language === "en" ? "forgot_pass-en.html" : "forgot_pass-tr.html"
+				const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+				const emailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+				const uploadsUrl = process.env.UPLOADS_URL
+				let html = emailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+				html = html.replace(/\{\{name\}\}/g, user.name_surname)
+				html = html.replace(/\{\{code\}\}/g, verificationCode.toString())
+
+				const emailSubject = language === "en" ? "Timhoty - Password Reset" : "Timhoty - Şifre Sıfırlama"
+
+				await sendMail(user.email, emailSubject, html)
+			} catch (error) {
+				console.error("Forgot password email error:", error)
+				// Fallback to simple text email
+				sendMail(user.email, t("AUTH.FORGOT_PASSWORD_SUCCESS"), verificationCode.toString())
+			}
 
 			// 15 dakika sonra verification_code_expires_at'i null yap
 			user.verification_code_expires_at = new Date(Date.now() + 15 * 60 * 1000)
@@ -319,6 +344,8 @@ export default class AuthUserService {
 					avatar: googlePicture,
 					email_verified: emailVerified,
 				})
+
+				welcomeEmail(googleEmail, googleName)
 			}
 
 			if (!user) {
@@ -412,6 +439,8 @@ export default class AuthUserService {
 					avatar: facebookPicture,
 					email_verified: true, // Facebook'tan gelen email'ler verify edilmiş kabul ediyoruz
 				})
+
+				welcomeEmail(facebookEmail, facebookName)
 			}
 
 			if (!user) {
@@ -471,5 +500,80 @@ export default class AuthUserService {
 				message: t("AUTH.FACEBOOK_LOGIN_ERROR"),
 			}
 		}
+	}
+}
+// async function welcomeEmail(email: string, name: string) {
+// 	try {
+// 		const sendMail = (await import("@/utils/mailer")).default
+// 		const path = require("path")
+// 		const fs = require("fs")
+// 		const emailTemplatePath = path.join(process.cwd(), "emails", "register.html")
+// 		const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+// 		const uploadsUrl = process.env.UPLOADS_URL
+// 		let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+
+// 		html = html.replace(/\{\{name\}\}/g, name)
+
+// 		await sendMail(email, "Timhoty'ye Hoş Geldiniz", html)
+// 	} catch (error) {
+// 		console.error("Register email error:", error)
+// 	}
+// }
+async function welcomeEmail(email: string, name: string, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
+
+		// Dil bazlı template dosyası seçimi
+		const templateFileName = language === "en" ? "register-en.html" : "register-tr.html"
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+		html = html.replace(/\{\{name\}\}/g, name)
+
+		// Dil bazlı email başlığı
+		const emailSubject = language === "en" ? "Welcome to Timhoty" : "Timhoty'ye Hoş Geldiniz"
+
+		await sendMail(email, emailSubject, html)
+	} catch (error) {
+		console.error("Register email error:", error)
+	}
+}
+
+async function verificationEmail(email: string, name: string, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
+		const templateFileName = language === "en" ? "email-verification-en.html" : "email-verification-tr.html"
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+
+		// Create JWT token for verification with 10 minute expiry
+		const verificationPayload = {
+			email: email,
+			purpose: "email_verification",
+			expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+		}
+
+		const verificationToken = jwt.sign(verificationPayload, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "10m" })
+
+		const verificationUrl = `${process.env.FRONTEND_URL}#${verificationToken}`
+		html = html.replace(/\{\{url\}\}/g, verificationUrl)
+		html = html.replace(/\{\{name\}\}/g, name)
+
+		console.log("Verification token created:", verificationToken.substring(0, 50) + "...")
+		console.log("Verification URL:", verificationUrl)
+		const emailSubject = language === "en" ? "Timhoty - Email Verification" : "Timhoty - E-posta Doğrulama"
+
+		await sendMail(email, emailSubject, html)
+	} catch (error) {
+		console.error("Verification email error:", error)
 	}
 }

@@ -20,6 +20,10 @@ export default async function salesPartnerCommissionRoutes(fastify: FastifyInsta
     preHandler: [authAdminMiddleware],
     handler: salesPartnerCommissionController.dataTable,
   });
+  fastify.get("/service/:type", {
+    preHandler: [authAdminMiddleware],
+    handler: salesPartnerCommissionController.service,
+  });
   fastify.get("/all/:id", {
     preHandler: [authAdminMiddleware],
     handler: salesPartnerCommissionController.findAll,

@@ -260,6 +260,72 @@ class UserController {
 			})
 		}
 	}
+
+	async verifyEmail(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { email_hash } = req.body as { email_hash: string }
+				const jwt = require("jsonwebtoken");
+			let decoded: any;
+			
+			try {
+				decoded = jwt.verify(email_hash, process.env.ACCESS_TOKEN_SECRET!);
+			} catch (jwtError: any) {
+				return res.status(200).send({
+					success: false,
+					message: req.t("AUTH.INVALID_TOKEN"),
+					error: jwtError.message,
+				})
+			}
+
+			// Verify this token is for email verification
+			if (!decoded || decoded.purpose !== 'email_verification') {
+				return res.status(200).send({
+					success: false,
+					message: req.t("AUTH.INVALID_TOKEN"),
+				})
+			}
+
+			// Check expiry
+			if (new Date(decoded.expires_at) < new Date()) {
+				return res.status(200).send({
+					success: false,
+					message: req.t("AUTH.TOKEN_EXPIRED"),
+				})
+			}
+
+			const user = await new UserModel().first({ email: decoded.email })
+
+			if (!user) {
+				return res.status(200).send({
+					success: false,
+					message: req.t("AUTH.USER_NOT_FOUND"),
+				})
+			}
+
+			if (user.email_verified) {
+				return res.status(200).send({
+					success: true,
+					message: req.t("AUTH.EMAIL_ALREADY_VERIFIED"),
+				})
+			}
+			await new UserModel().update(user.id, { email_verified: true })
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("AUTH.EMAIL_VERIFIED_SUCCESS"),
+				data: {
+					email: user.email,
+					name: user.name_surname
+				}
+			})
+		} catch (error: any) {
+			console.error("Verify email error:", error)
+			return res.status(500).send({
+				success: false,
+				message: error.message,
+			})
+		}
+	}
 }
 
 export default UserController

@@ -78,7 +78,24 @@ export default class CarRentalController {
         end_date: string;
         adult: number;
       };
+      const salesPartnerId = (req as any).user?.sales_partner_id;
 
+      // Fetch commission for this sales partner
+      let commission: any = null;
+      if (salesPartnerId) {
+        commission = await knex("sales_partner_commissions")
+          .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+          .where("sales_partner_commissions.service_type", "rental")
+          .where("sales_partner_commissions.service_id", id)
+          .first();
+
+        if (!commission) {
+          commission = await knex("sales_partner_commissions")
+            .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+            .where("sales_partner_commissions.service_type", "rental")
+            .first();
+        }
+      }
 
       const carRental = await knex("car_rentals")
         .where("car_rentals.id", id)
@@ -135,10 +152,20 @@ export default class CarRentalController {
                 "car_rental_package_prices.main_price",
                 "car_rental_package_prices.start_date",
                 "car_rental_package_prices.end_date",
+                "currencies.id as currency_id",
                 "currencies.code as currency_code",
                 "currencies.symbol as currency_symbol"
               )
               .first();
+            
+            // Apply commission if currency matches
+            if (commission && commission.commission_currency && prices && prices.currency_code === commission.commission_currency) {
+              if (commission.commission_percentage && commission.commission_percentage > 0) {
+                prices.main_price = prices.main_price * (1 - commission.commission_percentage / 100);
+              } else if (commission.commission_fixed && commission.commission_fixed > 0) {
+                prices.main_price = Math.max(0, prices.main_price - commission.commission_fixed);
+              }
+            }
             
             selectedPrice = prices;
           } else {
@@ -170,10 +197,20 @@ export default class CarRentalController {
                 "car_rental_package_prices.main_price",
                 "car_rental_package_prices.start_date",
                 "car_rental_package_prices.end_date",
+                "currencies.id as currency_id",
                 "currencies.code as currency_code",
                 "currencies.symbol as currency_symbol"
               )
               .first();
+
+            // Apply commission if currency matches
+            if (commission && commission.commission_currency && matchingPrice && matchingPrice.currency_code === commission.commission_currency) {
+              if (commission.commission_percentage && commission.commission_percentage > 0) {
+                matchingPrice.main_price = matchingPrice.main_price * (1 - commission.commission_percentage / 100);
+              } else if (commission.commission_fixed && commission.commission_fixed > 0) {
+                matchingPrice.main_price = Math.max(0, matchingPrice.main_price - commission.commission_fixed);
+              }
+            }
 
             selectedPrice = matchingPrice;
           }

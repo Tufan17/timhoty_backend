@@ -91,8 +91,8 @@ export default class UserAuthController {
 	// User forgot password
 	async forgotPassword(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { email } = req.body as { email: string }
-			const user = await new AuthUserService().forgotPassword(email, req.t)
+			const { email, language = "en" } = req.body as { email: string; language: string }
+			const user = await new AuthUserService().forgotPassword(email, language, req.t)
 			return user
 		} catch (error: any) {
 			return res.status(400).send(error.message)
@@ -190,6 +190,53 @@ export default class UserAuthController {
 			return user
 		} catch (error: any) {
 			return res.status(400).send(error.message)
+		}
+	}
+
+	// User verify email with hash
+	async verifyEmail(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { emailHash } = req.body as { emailHash: string }
+
+			// Find user by hashing all emails and comparing
+			const crypto = require("node:crypto")
+			const users = await new UserModel().getAll()
+
+			let foundUser = null
+			for (const user of users) {
+				const userEmailHash = crypto.createHash("sha256").update(user.email).digest("hex")
+				if (userEmailHash === emailHash) {
+					foundUser = user
+					break
+				}
+			}
+
+			if (!foundUser) {
+				return res.status(400).send({
+					success: false,
+					message: req.t("AUTH.USER_NOT_FOUND"),
+				})
+			}
+
+			// Update email_verified status
+			await new UserModel().update(foundUser.id, {
+				email_verified: true,
+			})
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("AUTH.EMAIL_VERIFIED_SUCCESS"),
+				data: {
+					email: foundUser.email,
+					name: foundUser.name_surname,
+				},
+			})
+		} catch (error: any) {
+			return res.status(400).send({
+				success: false,
+				message: error.message,
+				error: error,
+			})
 		}
 	}
 }

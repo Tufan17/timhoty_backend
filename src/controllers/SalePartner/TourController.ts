@@ -116,7 +116,8 @@ export default class TourController {
         date: string;
         period:string;
       };
-
+      const salesPartnerId = (req as any).user?.sales_partner_id;
+console.log("salesPartnerId",salesPartnerId);
 
       // Get tour info first
       const tour = await knex("tours")
@@ -131,6 +132,25 @@ export default class TourController {
           message: req.t("TOUR.TOUR_NOT_FOUND"),
         });
       }
+
+      // komisyonu getireceğiz bu satıcının bu tur için ayarladığı komisyonu
+      // First, check that salesPartnerId is defined to prevent "undefined binding" errors.
+      let commission = null;
+      if (salesPartnerId) {
+        commission = await knex("sales_partner_commissions")
+          .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+          .where("sales_partner_commissions.service_type", "tour")
+          .where("sales_partner_commissions.service_id", id)
+          .first();
+
+          if(!commission){
+            commission = await knex("sales_partner_commissions")
+            .where("sales_partner_commissions.sales_partner_id", salesPartnerId)
+            .where("sales_partner_commissions.service_type", "tour")
+            .first();
+          }
+      }
+
 
       // Get tour packages with pivot table data for names
       const tourPackages = await knex("tour_packages")
@@ -178,6 +198,7 @@ export default class TourController {
               "tour_package_prices.discount",
               "tour_package_prices.single",
               "tour_package_prices.total_tax_amount",
+              "currencies.id as currency_id",
               "currencies.code as currency_code",
               "currencies.symbol as currency_symbol"
             );
@@ -188,6 +209,41 @@ export default class TourController {
           }
 
           prices = await priceQuery.orderBy("tour_package_prices.date", "asc");
+
+          // Apply commission to prices if available and currency matches
+          const applyCommissionToAmount = (amount: number): number => {
+            if (!commission) return amount;
+            const type = (commission as any)?.commission_type;
+            const value = Number((commission as any)?.commission_value);
+            if (!type || isNaN(value)) return amount;
+            if (type === "percentage") {
+              const adjusted = amount - (amount * value) / 100;
+              return adjusted < 0 ? 0 : adjusted;
+            }
+            if (type === "fixed") {
+              const adjusted = amount - value;
+              return adjusted < 0 ? 0 : adjusted;
+            }
+            return amount;
+          };
+
+          if (commission && (commission as any)?.commission_currency) {
+            const commissionCurrencyCode = String((commission as any).commission_currency).toUpperCase();
+            prices = prices.map((p: any) => {
+              // Only apply commission when currencies match
+              const priceCurrencyCode = String(p.currency_code || "").toUpperCase();
+              if (commissionCurrencyCode && priceCurrencyCode && priceCurrencyCode === commissionCurrencyCode) {
+                return {
+                  ...p,
+                  main_price: applyCommissionToAmount(Number(p.main_price)),
+                  child_price: applyCommissionToAmount(Number(p.child_price)),
+                  baby_price: applyCommissionToAmount(Number(p.baby_price)),
+                  single: applyCommissionToAmount(Number(p.single)),
+                };
+              }
+              return p;
+            });
+          }
           return {
             ...pkg,
             prices: prices,
@@ -211,87 +267,5 @@ export default class TourController {
         message: req.t("TOUR.TOUR_FETCHED_ERROR"),
       });
     }
-  }
-
-  private static calculatePrice(priceData: any, packageData: any, adult: number, child: number, childAges: number[]) {
-    if (!priceData) return null;
- 
-    const mainPrice = parseFloat(priceData.main_price) || 0;
-    const childPrice = parseFloat(priceData.child_price) || 0;
-    const babyPrice = parseFloat(priceData.baby_price) || 0;
-    const discount = parseFloat(priceData.discount) || 0;
-    const totalTaxAmount = parseFloat(priceData.total_tax_amount) || 0;
-
-    // Yetişkin fiyatı hesapla
-    const adultTotal = mainPrice * adult;
-    
-    // Çocuk fiyatı hesapla - her çocuk için ayrı ayrı
-    let childTotal = 0;
-    let babyTotal = 0;
-    let paidChildren = 0;
-    let paidBabies = 0;
-    
-    if (child > 0 && childAges.length > 0) {
-      for (let i = 0; i < childAges.length && i < child; i++) {
-        const childAge = childAges[i];
-        
-        if (childAge < 2) {
-          // 2 yaş altı bebek fiyatı
-          babyTotal += babyPrice;
-          paidBabies++;
-        } else if (childAge < 12) {
-          // 12 yaş altı çocuk fiyatı
-          childTotal += childPrice;
-          paidChildren++;
-        } else {
-          // 12 yaş üstü yetişkin fiyatı
-          childTotal += mainPrice;
-          paidChildren++;
-        }
-      }
-    }
-    
-    // Toplam fiyat
-    const subtotal = adultTotal + childTotal + babyTotal;
-    
-    // İndirim hesapla
-    const discountAmount = (subtotal * discount) / 100;
-    const discountedSubtotal = subtotal - discountAmount;
-    
-    // Vergi hesapla
-    const taxAmount = (discountedSubtotal * totalTaxAmount) / 100;
-    
-    // Final fiyat
-    const finalPrice = discountedSubtotal;
-
-    return {
-      currency_code: priceData.currency_code,
-      currency_symbol: priceData.currency_symbol,
-      main_price: mainPrice,
-      child_price: childPrice,
-      baby_price: babyPrice,
-      adult_count: adult,
-      child_count: child,
-      child_ages: childAges,
-      paid_children: paidChildren,
-      paid_babies: paidBabies,
-      subtotal: subtotal,
-      discount_percentage: discount,
-      discount_amount: discountAmount,
-      discounted_subtotal: discountedSubtotal,
-      tax_percentage: totalTaxAmount,
-      tax_amount: taxAmount,
-      final_price: finalPrice,
-      price_breakdown: {
-        adult_total: adultTotal,
-        child_total: childTotal,
-        baby_total: babyTotal,
-        subtotal: subtotal,
-        discount_amount: discountAmount,
-        discounted_subtotal: discountedSubtotal,
-        tax_amount: taxAmount,
-        final_price: finalPrice
-      }
-    };
   }
 }

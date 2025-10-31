@@ -484,5 +484,6 @@
     "ACTIVITY_NOT_FOUND": "Aktivite bulunamadı",
     "ACTIVITY_PACKAGE_FETCHED_SUCCESS": "Aktivite paketleri başarıyla getirildi",
     "INVALID_DATE_FORMAT": "Geçersiz tarih formatı. Lütfen YYYY-MM-DD formatını kullanın"
-  }
+  },
+  "GENERAL": "Genel"
 }
