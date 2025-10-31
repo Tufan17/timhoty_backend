@@ -78,14 +78,15 @@ class VisaModel extends BaseModel {
 					this.on("visas.id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
 				.whereNull("visa_pivots.deleted_at")
-				.innerJoin("visa_galleries", "visas.id", "visa_galleries.visa_id")
-				.whereNull("visa_galleries.deleted_at")
-				.leftJoin("visa_gallery_pivot", function () {
-					this.on("visa_galleries.id", "=", "visa_gallery_pivot.visa_gallery_id")
-						.andOn("visa_gallery_pivot.language_code", "=", knex.raw("?", [language]))
-						.andOn("visa_gallery_pivot.category", "=", knex.raw("?", [coverImageCategory]))
+				.innerJoin("visa_gallery_pivot", function () {
+					this.on("visa_gallery_pivot.language_code", "=", knex.raw("?", [language])).andOn("visa_gallery_pivot.category", "=", knex.raw("?", [coverImageCategory]))
 				})
 				.whereNull("visa_gallery_pivot.deleted_at")
+
+				.innerJoin("visa_galleries", function () {
+					this.on("visas.id", "=", "visa_galleries.visa_id").andOn("visa_galleries.id", "=", "visa_gallery_pivot.visa_gallery_id")
+				})
+				.whereNull("visa_galleries.deleted_at")
 				.leftJoin("visa_packages", "visas.id", "visa_packages.visa_id")
 				.whereNull("visa_packages.deleted_at")
 				.leftJoin("visa_package_prices", "visa_packages.id", "visa_package_prices.visa_package_id")
