@@ -41,6 +41,7 @@ class VisaModel extends BaseModel {
 				return categories[lang] || "Kapak Resmi"
 			}
 			const coverImageCategory = getCoverImageCategory(language)
+			console.log(coverImageCategory)
 			const subquery = knex
 				.select(
 					"visas.id",
@@ -148,6 +149,7 @@ class VisaModel extends BaseModel {
 				.orderBy("created_at", "desc")
 
 			const result = limit ? await query.limit(limit) : await query
+			console.log(result)
 
 			// Paket fiyatlarını temizle ve sadece geçerli olanları al
 			return result.map(visa => {
