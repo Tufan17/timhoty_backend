@@ -31,6 +31,7 @@ export default class HotelReservationController {
 
 				.where("hotel_reservations.status", true)
 				.whereNull("hotels.deleted_at")
+				.leftJoin("sales_partners", "hotel_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("hotel_pivots", function () {
 					this.on("hotel_reservations.hotel_id", "=", "hotel_pivots.hotel_id").andOn("hotel_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -66,15 +67,30 @@ export default class HotelReservationController {
 			// Veri seçimi - misafir bilgileri ile birlikte
 			const data = await base
 				.clone()
-				.select("hotel_reservations.progress_id", "hotel_reservations.id", "hotel_reservations.status", "hotel_reservations.start_date", "hotel_reservations.end_date", "hotel_reservations.price", "hotel_reservations.currency_code", "hotel_reservations.check_in_date", "hotel_pivots.name as hotel_name", "city_pivots.name as hotel_city", "country_pivots.name as hotel_country")
+				.select(
+					"hotel_reservations.progress_id",
+					"hotel_reservations.id",
+					"hotel_reservations.status",
+					"hotel_reservations.start_date",
+					"hotel_reservations.end_date",
+					"hotel_reservations.price",
+					"hotel_reservations.currency_code",
+					"hotel_reservations.check_in_date",
+					"hotel_reservations.sales_partner_id",
+					"sales_partners.name as sales_partner_name",
+					"hotel_pivots.name as hotel_name",
+					"city_pivots.name as hotel_city",
+					"country_pivots.name as hotel_country"
+				)
 				// .leftJoin("hotel_reservation_users", "hotel_reservations.id", "hotel_reservation_users.hotel_reservation_id")
 				// .whereNull("hotel_reservation_users.deleted_at")
-				.groupBy("hotel_reservations.id", "hotel_pivots.name", "city_pivots.name", "country_pivots.name")
+				.groupBy("hotel_reservations.id", "hotel_pivots.name", "city_pivots.name", "country_pivots.name", "sales_partners.name")
 				.orderBy("hotel_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
 
 			const formattedData = data.map((item: any) => {
+				const { sales_partner_name, ...rest } = item
 				let locale = "en-US" // varsayılan
 				if (language === "en") {
 					locale = "en-US"
@@ -100,13 +116,14 @@ export default class HotelReservationController {
 					return formatter.format(cleanPrice)
 				}
 				return {
-					...item,
-					hotel_location: `${item.hotel_country || ""}, ${item.hotel_city || ""}`.trim(),
-					start_date_formatted: item.start_date ? new Date(item.start_date).toLocaleDateString(locale) : null,
-					end_date_formatted: item.end_date ? new Date(item.end_date).toLocaleDateString(locale) : null,
+					...rest,
+					sales_partner_name,
+					hotel_location: `${rest.hotel_country || ""}, ${rest.hotel_city || ""}`.trim(),
+					start_date_formatted: rest.start_date ? new Date(rest.start_date).toLocaleDateString(locale) : null,
+					end_date_formatted: rest.end_date ? new Date(rest.end_date).toLocaleDateString(locale) : null,
 					// Eğer check_in_date varsa onu da formatla
-					check_in_date_formatted: item.check_in_date ? new Date(item.check_in_date).toLocaleDateString(locale) : null,
-					price_formatted: formatPrice(item.price, item.currency_code),
+					check_in_date_formatted: rest.check_in_date ? new Date(rest.check_in_date).toLocaleDateString(locale) : null,
+					price_formatted: formatPrice(rest.price, rest.currency_code),
 				}
 			})
 
@@ -137,6 +154,7 @@ export default class HotelReservationController {
 			const reservation = await knex("hotel_reservations")
 				.select(
 					"hotel_reservations.*",
+					"sales_partners.name as sales_partner_name",
 					"hotel_pivots.name as hotel_name",
 					"city_pivots.name as hotel_city",
 					"country_pivots.name as hotel_country",
@@ -156,6 +174,7 @@ export default class HotelReservationController {
 				.leftJoin("hotels", "hotel_reservations.hotel_id", "hotels.id")
 
 				.whereNull("hotels.deleted_at")
+				.leftJoin("sales_partners", "hotel_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("hotel_pivots", function () {
 					this.on("hotel_reservations.hotel_id", "=", "hotel_pivots.hotel_id").andOn("hotel_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -169,7 +188,7 @@ export default class HotelReservationController {
 				})
 				.leftJoin("hotel_reservation_users", "hotel_reservations.id", "hotel_reservation_users.hotel_reservation_id")
 				.whereNull("hotel_reservation_users.deleted_at")
-				.groupBy("hotel_reservations.id", "hotel_pivots.name", "city_pivots.name", "country_pivots.name")
+				.groupBy("hotel_reservations.id", "hotel_pivots.name", "city_pivots.name", "country_pivots.name", "sales_partners.name")
 				.first()
 
 			if (!reservation) {
@@ -206,17 +225,26 @@ export default class HotelReservationController {
 			}
 
 			// Veriyi formatla
+			const { sales_partner_name, ...reservationRest } = reservation as any
+			const salesPartner = reservationRest.sales_partner_id
+				? {
+					id: reservationRest.sales_partner_id,
+					name: sales_partner_name,
+				}
+				: null
+
 			const formattedReservation = {
-				...reservation,
-				hotel_location: `${reservation.hotel_country || ""}, ${reservation.hotel_city || ""}`.trim(),
-				start_date_formatted: reservation.start_date ? new Date(reservation.start_date).toLocaleDateString(locale) : null,
-				end_date_formatted: reservation.end_date ? new Date(reservation.end_date).toLocaleDateString(locale) : null,
-				check_in_date_formatted: reservation.check_in_date ? new Date(reservation.check_in_date).toLocaleDateString(locale) : null,
-				price_formatted: formatPrice(reservation.price, reservation.currency_code),
-				guest_count: reservation.guests?.length || 0,
+				...reservationRest,
+				sales_partner: salesPartner,
+				hotel_location: `${reservationRest.hotel_country || ""}, ${reservationRest.hotel_city || ""}`.trim(),
+				start_date_formatted: reservationRest.start_date ? new Date(reservationRest.start_date).toLocaleDateString(locale) : null,
+				end_date_formatted: reservationRest.end_date ? new Date(reservationRest.end_date).toLocaleDateString(locale) : null,
+				check_in_date_formatted: reservationRest.check_in_date ? new Date(reservationRest.check_in_date).toLocaleDateString(locale) : null,
+				price_formatted: formatPrice(reservationRest.price, reservationRest.currency_code),
+				guest_count: reservationRest.guests?.length || 0,
 				// Ek formatlamalar
-				created_at_formatted: reservation.created_at ? new Date(reservation.created_at).toLocaleDateString(locale) : null,
-				updated_at_formatted: reservation.updated_at ? new Date(reservation.updated_at).toLocaleDateString(locale) : null,
+				created_at_formatted: reservationRest.created_at ? new Date(reservationRest.created_at).toLocaleDateString(locale) : null,
+				updated_at_formatted: reservationRest.updated_at ? new Date(reservationRest.updated_at).toLocaleDateString(locale) : null,
 			}
 
 			return res.status(200).send({

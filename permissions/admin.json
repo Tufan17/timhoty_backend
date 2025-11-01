@@ -43,5 +43,6 @@
 	"stations",
 	"pending-approval-stations",
 	"discount-codes",
-	"pending-approval-sale-partner"
+	"pending-approval-sale-partner",
+	"comments"
 ]

@@ -30,6 +30,7 @@ export default class TourReservationController {
 				.leftJoin("tours", "tour_reservations.tour_id", "tours.id")
 
 				.whereNull("tours.deleted_at")
+				.leftJoin("sales_partners", "tour_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("tour_pivots", function () {
 					this.on("tour_reservations.tour_id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -71,6 +72,7 @@ export default class TourReservationController {
 				.clone()
 				.select(
 					"tour_reservations.*",
+					"sales_partners.name as sales_partner_name",
 					"tour_pivots.title as tour_title",
 					"city_pivots.name as tour_city",
 					"country_pivots.name as tour_country",
@@ -85,7 +87,7 @@ export default class TourReservationController {
 					// 	LIMIT 1
 					// ) as tour_image`)
 				)
-				.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_package_pivots.name")
+				.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_package_pivots.name", "sales_partners.name")
 				.orderBy("tour_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
@@ -117,14 +119,16 @@ export default class TourReservationController {
 					return formatter.format(cleanPrice)
 				}
 
+				const { sales_partner_name, ...rest } = item as any
 				return {
-					...item,
-					tour_location: `${item.tour_country || ""}, ${item.tour_city || ""}`.trim(),
-					created_at_formatted: item.created_at ? new Date(item.created_at).toLocaleDateString(locale) : null,
-					start_date_formatted: item.start_date ? new Date(item.start_date).toLocaleDateString(locale) : null,
-					end_date_formatted: item.end_date ? new Date(item.end_date).toLocaleDateString(locale) : null,
-					price_formatted: formatPrice(item.price, item.currency_code),
-					tour_package_name: item.tour_package_name,
+					...rest,
+					sales_partner_name,
+					tour_location: `${rest.tour_country || ""}, ${rest.tour_city || ""}`.trim(),
+					created_at_formatted: rest.created_at ? new Date(rest.created_at).toLocaleDateString(locale) : null,
+					start_date_formatted: rest.start_date ? new Date(rest.start_date).toLocaleDateString(locale) : null,
+					end_date_formatted: rest.end_date ? new Date(rest.end_date).toLocaleDateString(locale) : null,
+					price_formatted: formatPrice(rest.price, rest.currency_code),
+					tour_package_name: rest.tour_package_name,
 				}
 			})
 
@@ -155,6 +159,7 @@ export default class TourReservationController {
 			const reservation = await knex("tour_reservations")
 				.select(
 					"tour_reservations.*",
+					"sales_partners.name as sales_partner_name",
 					"tour_pivots.title as tour_title",
 					"city_pivots.name as tour_city",
 					"country_pivots.name as tour_country",
@@ -176,6 +181,7 @@ export default class TourReservationController {
 				.leftJoin("tours", "tour_reservations.tour_id", "tours.id")
 
 				.whereNull("tours.deleted_at")
+				.leftJoin("sales_partners", "tour_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("tour_pivots", function () {
 					this.on("tour_reservations.tour_id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -193,7 +199,7 @@ export default class TourReservationController {
 					this.on("tour_packages.id", "=", "tour_package_pivots.tour_package_id").andOn("tour_package_pivots.language_code", "=", knex.raw("?", [language]))
 				})
 				.whereNull("tour_reservation_users.deleted_at")
-				.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_package_pivots.name")
+				.groupBy("tour_reservations.id", "tour_pivots.title", "city_pivots.name", "country_pivots.name", "tour_package_pivots.name", "sales_partners.name")
 				.first()
 			// console.log("reservation", reservation)
 
@@ -231,14 +237,23 @@ export default class TourReservationController {
 			}
 
 			// Veriyi formatla
+			const { sales_partner_name, ...reservationRest } = reservation as any
+			const salesPartner = reservationRest.sales_partner_id
+				? {
+					id: reservationRest.sales_partner_id,
+					name: sales_partner_name,
+				}
+				: null
+
 			const formattedReservation = {
-				...reservation,
-				tour_location: `${reservation.tour_country || ""}, ${reservation.tour_city || ""}`.trim(),
-				created_at_formatted: reservation.created_at ? new Date(reservation.created_at).toLocaleDateString(locale) : null,
-				start_date_formatted: reservation.start_date ? new Date(reservation.start_date).toLocaleDateString(locale) : null,
-				end_date_formatted: reservation.end_date ? new Date(reservation.end_date).toLocaleDateString(locale) : null,
-				price_formatted: formatPrice(reservation.price, reservation.currency_code),
-				guest_count: reservation.guests?.length || 0,
+				...reservationRest,
+				sales_partner: salesPartner,
+				tour_location: `${reservationRest.tour_country || ""}, ${reservationRest.tour_city || ""}`.trim(),
+				created_at_formatted: reservationRest.created_at ? new Date(reservationRest.created_at).toLocaleDateString(locale) : null,
+				start_date_formatted: reservationRest.start_date ? new Date(reservationRest.start_date).toLocaleDateString(locale) : null,
+				end_date_formatted: reservationRest.end_date ? new Date(reservationRest.end_date).toLocaleDateString(locale) : null,
+				price_formatted: formatPrice(reservationRest.price, reservationRest.currency_code),
+				guest_count: reservationRest.guests?.length || 0,
 			}
 
 			return res.status(200).send({

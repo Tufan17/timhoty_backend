@@ -50,6 +50,7 @@ import tourReservationRoutes from "./Admin/tourReservation"
 import stationRoutes from "./Admin/station"
 import discountCodeRoutes from "./Admin/discountCode"
 import discountProductRoutes from "./Admin/discountProduct"
+import adminCommentRoutes from "./Admin/comments"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -153,4 +154,9 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// DISCOUNT PRODUCT ROUTES
 	// ===========================================
 	fastify.register(discountProductRoutes, { prefix: "/discount-products" })
+
+	// ===========================================
+	// COMMENTS ROUTES
+	// ===========================================
+	fastify.register(adminCommentRoutes, { prefix: "/comments" })
 }
