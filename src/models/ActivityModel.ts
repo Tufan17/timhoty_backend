@@ -30,6 +30,15 @@ class ActivityModel extends BaseModel {
 			const today = now.toISOString().split("T")[0] // YYYY-MM-DD formatında bugünün tarihi
 
 			// Window function kullanarak her activity için en ucuz paketi seçiyoruz
+			const getCoverImageCategory = (lang: string) => {
+				const categories: Record<string, string> = {
+					tr: "Kapak Resmi",
+					en: "Cover Image",
+					ar: "صورة الغلاف",
+				}
+				return categories[lang] || "Kapak Resmi"
+			}
+			const coverImageCategory = getCoverImageCategory(language)
 			const subquery = knex
 				.select(
 					"activities.id",
@@ -66,7 +75,14 @@ class ActivityModel extends BaseModel {
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
 				.where("activity_pivots.language_code", language)
 				.whereNull("activity_pivots.deleted_at")
-				.innerJoin("activity_galleries", "activities.id", "activity_galleries.activity_id")
+				.innerJoin("activity_gallery_pivots", function () {
+					this.on("activity_gallery_pivots.language_code", "=", knex.raw("?", [language])).andOn("activity_gallery_pivots.category", "=", knex.raw("?", [coverImageCategory]))
+				})
+				.whereNull("activity_gallery_pivots.deleted_at")
+
+				.innerJoin("activity_galleries", function () {
+					this.on("activities.id", "=", "activity_galleries.activity_id").andOn("activity_galleries.id", "=", "activity_gallery_pivots.activity_gallery_id")
+				})
 				.whereNull("activity_galleries.deleted_at")
 				.leftJoin("activity_packages", "activities.id", "activity_packages.activity_id")
 				.whereNull("activity_packages.deleted_at")

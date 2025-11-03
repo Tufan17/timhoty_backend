@@ -312,6 +312,7 @@ class TourReservationModel extends BaseModel {
 				"tour_package_pivots.name as package_name",
 				"tour_package_pivots.description as package_description",
 				"tour_package_pivots.refund_policy as package_refund_policy",
+				"tour_package_opportunity_pivots.name as package_opportunity_name",
 				knex.raw(`(
               SELECT image_url
               FROM tour_galleries
@@ -397,6 +398,14 @@ class TourReservationModel extends BaseModel {
 			})
 			.leftJoin("tour_package_prices", function () {
 				this.on("tour_reservations.tour_package_price_id", "=", "tour_package_prices.id").andOnNull("tour_package_prices.deleted_at")
+			})
+			.leftJoin("tour_package_opportunities", function () {
+				this.on("tour_packages.id", "=", "tour_package_opportunities.tour_package_id").andOnNull("tour_package_opportunities.deleted_at")
+			})
+			.leftJoin("tour_package_opportunity_pivots", function () {
+				this.on("tour_package_opportunities.id", "=", "tour_package_opportunity_pivots.tour_package_opportunity_id")
+					.andOn("tour_package_opportunity_pivots.language_code", "=", knex.raw("?", [language]))
+					.andOnNull("tour_package_opportunity_pivots.deleted_at")
 			})
 			.first()
 
