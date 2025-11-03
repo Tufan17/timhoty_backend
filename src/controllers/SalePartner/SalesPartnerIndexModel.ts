@@ -89,14 +89,81 @@ export default class SalesPartnerIndexController {
         });
       }
 
+      const language = (req as any).language || "en";
+
       const commissions = await new SalesPartnerCommissionModel().getAll("", {
         sales_partner_id: id,
       });
 
+      // Her komisyon için service adını getir
+      const commissionsWithServiceName = await Promise.all(
+        commissions.map(async (commission: any) => {
+          let serviceName = req.t("GENERAL");
+
+          if (commission.service_id && commission.service_type) {
+            try {
+              if (commission.service_type === "hotel") {
+                const hotel = await knex("hotels")
+                  .leftJoin("hotel_pivots", "hotels.id", "hotel_pivots.hotel_id")
+                  .where("hotels.id", commission.service_id)
+                  .where("hotel_pivots.language_code", language)
+                  .whereNull("hotels.deleted_at")
+                  .select("hotel_pivots.name as name")
+                  .first();
+                serviceName = hotel?.name || req.t("GENERAL");
+              } else if (commission.service_type === "rental") {
+                const carRental = await knex("car_rentals")
+                  .leftJoin("car_rental_pivots", "car_rentals.id", "car_rental_pivots.car_rental_id")
+                  .where("car_rentals.id", commission.service_id)
+                  .where("car_rental_pivots.language_code", language)
+                  .whereNull("car_rentals.deleted_at")
+                  .select("car_rental_pivots.title as name")
+                  .first();
+                serviceName = carRental?.name || req.t("GENERAL");
+              } else if (commission.service_type === "activity") {
+                const activity = await knex("activities")
+                  .leftJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
+                  .where("activities.id", commission.service_id)
+                  .where("activity_pivots.language_code", language)
+                  .whereNull("activities.deleted_at")
+                  .select("activity_pivots.title as name")
+                  .first();
+                serviceName = activity?.name || req.t("GENERAL");
+              } else if (commission.service_type === "tour") {
+                const tour = await knex("tours")
+                  .leftJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
+                  .where("tours.id", commission.service_id)
+                  .where("tour_pivots.language_code", language)
+                  .whereNull("tours.deleted_at")
+                  .select("tour_pivots.title as name")
+                  .first();
+                serviceName = tour?.name || req.t("GENERAL");
+              } else if (commission.service_type === "visa") {
+                const visa = await knex("visas")
+                  .leftJoin("visa_pivots", "visas.id", "visa_pivots.visa_id")
+                  .where("visas.id", commission.service_id)
+                  .where("visa_pivots.language_code", language)
+                  .whereNull("visas.deleted_at")
+                  .select("visa_pivots.title as name")
+                  .first();
+                serviceName = visa?.name || req.t("GENERAL");
+              }
+            } catch (error) {
+              console.log(`Error fetching service name for ${commission.service_type}:`, error);
+            }
+          }
+
+          return {
+            ...commission,
+            service_name: serviceName,
+          };
+        })
+      );
+
       return res.status(200).send({
         success: true,
         message: req.t("SALES_PARTNER_INDEX.COMMISSIONS_FETCHED_SUCCESS"),
-        data: commissions,
+        data: commissionsWithServiceName,
       });
     } catch (error) {
       console.log(error);
