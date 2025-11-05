@@ -39,7 +39,7 @@ class ActivityModel extends BaseModel {
 				return categories[lang] || "Kapak Resmi"
 			}
 			const coverImageCategory = getCoverImageCategory(language)
-			console.log("coverImageCategory", coverImageCategory)
+
 			const subquery = knex
 				.select(
 					"activities.id",
