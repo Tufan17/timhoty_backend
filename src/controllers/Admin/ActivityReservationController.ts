@@ -33,6 +33,7 @@ export default class ActivityReservationController {
 
 				.where("activity_reservations.status", true)
 				.whereNull("activities.deleted_at")
+				.leftJoin("sales_partners", "activity_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("activity_pivots", function () {
 					this.on("activity_reservations.activity_id", "=", "activity_pivots.activity_id").andOn("activity_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -84,6 +85,8 @@ export default class ActivityReservationController {
 					"activity_reservations.created_at",
 					"activity_reservations.price",
 					"activity_reservations.currency_code",
+					"activity_reservations.sales_partner_id",
+					"sales_partners.name as sales_partner_name",
 					"activity_pivots.title as activity_title",
 					"city_pivots.name as activity_city",
 					"country_pivots.name as activity_country",
@@ -100,12 +103,13 @@ export default class ActivityReservationController {
 					// 	LIMIT 1
 					// ) as activity_image`)
 				)
-				.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute")
+				.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute", "sales_partners.name")
 				.orderBy("activity_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
 
 			const formattedData = data.map((item: any) => {
+				const { sales_partner_name, ...rest } = item
 				let locale = "en-US" // varsayılan
 				if (language === "en") {
 					locale = "en-US"
@@ -133,12 +137,13 @@ export default class ActivityReservationController {
 				}
 
 				return {
-					...item,
-					activity_location: `${item.activity_country || ""}, ${item.activity_city || ""}`.trim(),
-					date_formatted: item.date ? new Date(item.date).toLocaleDateString(locale) : null,
-					created_at_formatted: item.created_at ? new Date(item.created_at).toLocaleDateString(locale) : null,
-					activity_hour: item.activity_hour ? `${item.activity_hour}:${item.activity_minute}` : null,
-					price_formatted: formatPrice(item.price, item.currency_code),
+					...rest,
+					sales_partner_name,
+					activity_location: `${rest.activity_country || ""}, ${rest.activity_city || ""}`.trim(),
+					date_formatted: rest.date ? new Date(rest.date).toLocaleDateString(locale) : null,
+					created_at_formatted: rest.created_at ? new Date(rest.created_at).toLocaleDateString(locale) : null,
+					activity_hour: rest.activity_hour ? `${rest.activity_hour}:${rest.activity_minute}` : null,
+					price_formatted: formatPrice(rest.price, rest.currency_code),
 				}
 			})
 
@@ -169,6 +174,7 @@ export default class ActivityReservationController {
 			const reservation = await knex("activity_reservations")
 				.select(
 					"activity_reservations.*",
+					"sales_partners.name as sales_partner_name",
 					"activity_pivots.title as activity_title",
 					"city_pivots.name as activity_city",
 					"country_pivots.name as activity_country",
@@ -193,6 +199,7 @@ export default class ActivityReservationController {
 				.leftJoin("activities", "activity_reservations.activity_id", "activities.id")
 
 				.whereNull("activities.deleted_at")
+				.leftJoin("sales_partners", "activity_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("activity_pivots", function () {
 					this.on("activity_reservations.activity_id", "=", "activity_pivots.activity_id").andOn("activity_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -213,7 +220,7 @@ export default class ActivityReservationController {
 				.leftJoin("activity_package_hours", "activity_reservations.activity_package_hour_id", "activity_package_hours.id")
 				.leftJoin("activity_reservation_users", "activity_reservations.id", "activity_reservation_users.activity_reservation_id")
 				.whereNull("activity_reservation_users.deleted_at")
-				.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute")
+				.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute", "sales_partners.name")
 				.first()
 
 			if (!reservation) {
@@ -250,15 +257,24 @@ export default class ActivityReservationController {
 			}
 
 			// Veriyi formatla
+			const { sales_partner_name, ...reservationRest } = reservation as any
+			const salesPartner = reservationRest.sales_partner_id
+				? {
+					id: reservationRest.sales_partner_id,
+					name: sales_partner_name,
+				}
+				: null
+
 			const formattedReservation = {
-				...reservation,
-				activity_location: `${reservation.activity_country || ""}, ${reservation.activity_city || ""}`.trim(),
-				date_formatted: reservation.date ? new Date(reservation.date).toLocaleDateString(locale) : null,
-				created_at_formatted: reservation.created_at ? new Date(reservation.created_at).toLocaleDateString(locale) : null,
-				updated_at_formatted: reservation.updated_at ? new Date(reservation.updated_at).toLocaleDateString(locale) : null,
-				activity_hour: reservation.activity_hour ? `${reservation.activity_hour}:${reservation.activity_minute}` : null,
-				price_formatted: formatPrice(reservation.price, reservation.currency_code),
-				guest_count: reservation.guests?.length || 0,
+				...reservationRest,
+				sales_partner: salesPartner,
+				activity_location: `${reservationRest.activity_country || ""}, ${reservationRest.activity_city || ""}`.trim(),
+				date_formatted: reservationRest.date ? new Date(reservationRest.date).toLocaleDateString(locale) : null,
+				created_at_formatted: reservationRest.created_at ? new Date(reservationRest.created_at).toLocaleDateString(locale) : null,
+				updated_at_formatted: reservationRest.updated_at ? new Date(reservationRest.updated_at).toLocaleDateString(locale) : null,
+				activity_hour: reservationRest.activity_hour ? `${reservationRest.activity_hour}:${reservationRest.activity_minute}` : null,
+				price_formatted: formatPrice(reservationRest.price, reservationRest.currency_code),
+				guest_count: reservationRest.guests?.length || 0,
 			}
 
 			return res.status(200).send({

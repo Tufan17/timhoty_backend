@@ -24,7 +24,7 @@ async function sendMail(to: string, subject: string, html?: string, attachments?
     if (attachments) {
       // send mail with defined transport object
       mail = await transporter.sendMail({
-        from: "timhoty.dev@gmail.com",
+        from: '"Timhoty" <timhoty.dev@gmail.com>',
         to: to,
         subject: subject,
         html: html || undefined,
@@ -33,7 +33,7 @@ async function sendMail(to: string, subject: string, html?: string, attachments?
     } else {
       // send mail with defined transport object
       mail = await transporter.sendMail({
-        from: "timhoty.dev@gmail.com",
+        from: '"Timhoty" <timhoty.dev@gmail.com>',
         to: to,
         subject: subject,
         html: html || undefined,

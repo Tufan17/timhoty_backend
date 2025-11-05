@@ -68,7 +68,7 @@ export default async function app(fastify: FastifyInstance) {
   fastify.get("/test-email", async (request, reply) => {
     const sendMail = (await import("./utils/mailer")).default;
     const fs = require("fs");
-    const emailTemplatePath = path.join(process.cwd(), "emails", "register.html");
+    const emailTemplatePath = path.join(process.cwd(), "emails", "register-tr.html");
     const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
 
     const uploadsUrl = process.env.UPLOADS_URL;

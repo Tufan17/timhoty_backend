@@ -10,13 +10,12 @@ export default class SalesPartnerUserController {
 				page = 1,
 				limit = 10,
 				search = "",
-				sales_partner_id = "",
 			} = req.query as {
 				page: number
 				limit: number
 				search: string
-				sales_partner_id: string
 			}
+			const sales_partner_id = req.user?.sales_partner_id
 			// console.log(req.query)
 			const query = knex("sales_partner_users")
 				.whereNull("sales_partner_users.deleted_at")

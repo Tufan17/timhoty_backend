@@ -30,6 +30,7 @@ export default class VisaReservationController {
 
 				.where("visa_reservations.status", true)
 				.whereNull("visas.deleted_at")
+				.leftJoin("sales_partners", "visa_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("visa_pivots", function () {
 					this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -72,6 +73,8 @@ export default class VisaReservationController {
 					"visa_reservations.created_at",
 					"visa_reservations.price",
 					"visa_reservations.currency_code",
+					"visa_reservations.sales_partner_id",
+					"sales_partners.name as sales_partner_name",
 					"visa_pivots.title as visa_title",
 					"city_pivots.name as visa_city",
 					"country_pivots.name as visa_country"
@@ -85,12 +88,13 @@ export default class VisaReservationController {
 					//   LIMIT 1
 					// ) as visa_image`)
 				)
-				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
+				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name", "sales_partners.name")
 				.orderBy("visa_reservations.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
 
 			const formattedData = data.map((item: any) => {
+				const { sales_partner_name, ...rest } = item
 				let locale = "en-US" // varsayılan
 				if (language === "en") {
 					locale = "en-US"
@@ -116,10 +120,11 @@ export default class VisaReservationController {
 					return formatter.format(cleanPrice)
 				}
 				return {
-					...item,
-					visa_location: `${item.visa_country || ""}, ${item.visa_city || ""}`.trim(),
-					created_at_formatted: item.created_at ? new Date(item.created_at).toLocaleDateString(locale) : null,
-					price_formatted: formatPrice(item.price, item.currency_code),
+					...rest,
+					sales_partner_name,
+					visa_location: `${rest.visa_country || ""}, ${rest.visa_city || ""}`.trim(),
+					created_at_formatted: rest.created_at ? new Date(rest.created_at).toLocaleDateString(locale) : null,
+					price_formatted: formatPrice(rest.price, rest.currency_code),
 				}
 			})
 
@@ -150,6 +155,7 @@ export default class VisaReservationController {
 			const reservation = await knex("visa_reservations")
 				.select(
 					"visa_reservations.*",
+					"sales_partners.name as sales_partner_name",
 					"visa_pivots.title as visa_title",
 					"city_pivots.name as visa_city",
 					"country_pivots.name as visa_country",
@@ -169,6 +175,7 @@ export default class VisaReservationController {
 				.leftJoin("visas", "visa_reservations.visa_id", "visas.id")
 
 				.whereNull("visas.deleted_at")
+				.leftJoin("sales_partners", "visa_reservations.sales_partner_id", "sales_partners.id")
 				.leftJoin("visa_pivots", function () {
 					this.on("visa_reservations.visa_id", "=", "visa_pivots.visa_id").andOn("visa_pivots.language_code", "=", knex.raw("?", [language]))
 				})
@@ -182,7 +189,7 @@ export default class VisaReservationController {
 				})
 				.leftJoin("visa_reservation_users", "visa_reservations.id", "visa_reservation_users.visa_reservation_id")
 				.whereNull("visa_reservation_users.deleted_at")
-				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name")
+				.groupBy("visa_reservations.id", "visa_pivots.title", "city_pivots.name", "country_pivots.name", "sales_partners.name")
 				.first()
 
 			if (!reservation) {
@@ -219,12 +226,21 @@ export default class VisaReservationController {
 			}
 
 			// Veriyi formatla
+			const { sales_partner_name, ...reservationRest } = reservation as any
+			const salesPartner = reservationRest.sales_partner_id
+				? {
+					id: reservationRest.sales_partner_id,
+					name: sales_partner_name,
+				}
+				: null
+
 			const formattedReservation = {
-				...reservation,
-				visa_location: `${reservation.visa_country || ""}, ${reservation.visa_city || ""}`.trim(),
-				created_at_formatted: reservation.created_at ? new Date(reservation.created_at).toLocaleDateString(locale) : null,
-				price_formatted: formatPrice(reservation.price, reservation.currency_code),
-				guest_count: reservation.guests?.length || 0,
+				...reservationRest,
+				sales_partner: salesPartner,
+				visa_location: `${reservationRest.visa_country || ""}, ${reservationRest.visa_city || ""}`.trim(),
+				created_at_formatted: reservationRest.created_at ? new Date(reservationRest.created_at).toLocaleDateString(locale) : null,
+				price_formatted: formatPrice(reservationRest.price, reservationRest.currency_code),
+				guest_count: reservationRest.guests?.length || 0,
 			}
 
 			return res.status(200).send({

@@ -35,6 +35,16 @@ class TourModel extends BaseModel {
 			// console.log(isHighlighted)
 			// console.log(limit)
 			// Window function kullanarak her tur için en ucuz paketi seçiyoruz
+
+			const getCoverImageCategory = (lang: string) => {
+				const categories: Record<string, string> = {
+					tr: "Kapak Resmi",
+					en: "Cover Image",
+					ar: "صورة الغلاف",
+				}
+				return categories[lang] || "Kapak Resmi"
+			}
+			const coverImageCategory = getCoverImageCategory(language)
 			const subquery = knex
 				.select(
 					"tours.id",
@@ -70,7 +80,14 @@ class TourModel extends BaseModel {
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
 				.where("tour_pivots.language_code", language)
 				.whereNull("tour_pivots.deleted_at")
-				.innerJoin("tour_galleries", "tours.id", "tour_galleries.tour_id")
+				.innerJoin("tour_gallery_pivots", function () {
+					this.on("tour_gallery_pivots.language_code", "=", knex.raw("?", [language])).andOn("tour_gallery_pivots.category", "=", knex.raw("?", [coverImageCategory]))
+				})
+				.whereNull("tour_gallery_pivots.deleted_at")
+
+				.innerJoin("tour_galleries", function () {
+					this.on("tours.id", "=", "tour_galleries.tour_id").andOn("tour_galleries.id", "=", "tour_gallery_pivots.tour_gallery_id")
+				})
 				.whereNull("tour_galleries.deleted_at")
 				.leftJoin("tour_packages", "tours.id", "tour_packages.tour_id")
 				.whereNull("tour_packages.deleted_at")
