@@ -195,6 +195,7 @@ class ActivityReservationModel extends BaseModel {
 				"activity_packages.return_acceptance_period as package_return_acceptance_period",
 				"activity_package_pivots.description as package_description",
 				"activity_package_pivots.refund_policy as package_refund_policy",
+				"activity_package_opportunity_pivots.name as package_opportunity_name",
 				// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
 				knex.raw(`(
           SELECT image_url
@@ -240,7 +241,15 @@ class ActivityReservationModel extends BaseModel {
 			.leftJoin("activity_package_hours", "activity_reservations.activity_package_hour_id", "activity_package_hours.id")
 			.leftJoin("activity_reservation_users", "activity_reservations.id", "activity_reservation_users.activity_reservation_id")
 			.whereNull("activity_reservation_users.deleted_at")
-			.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute", "activity_packages.return_acceptance_period", "activity_package_pivots.description", "activity_package_pivots.refund_policy")
+			.leftJoin("activity_package_opportunities", function () {
+				this.on("activity_packages.id", "=", "activity_package_opportunities.activity_package_id").andOnNull("activity_package_opportunities.deleted_at")
+			})
+			.leftJoin("activity_package_opportunity_pivots", function () {
+				this.on("activity_package_opportunities.id", "=", "activity_package_opportunity_pivots.activity_package_opportunity_id")
+					.andOn("activity_package_opportunity_pivots.language_code", "=", knex.raw("?", [language]))
+					.andOnNull("activity_package_opportunity_pivots.deleted_at")
+			})
+			.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute", "activity_packages.return_acceptance_period", "activity_package_pivots.description", "activity_package_pivots.refund_policy", "activity_package_opportunity_pivots.name")
 			.orderBy("activity_reservations.created_at", "desc")
 			.first()
 	}
