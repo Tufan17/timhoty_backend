@@ -163,7 +163,7 @@ class ActivityModel extends BaseModel {
 							 FROM activity_galleries ag
 							 INNER JOIN activity_gallery_pivots agp ON ag.id = agp.activity_gallery_id
 							 WHERE ag.activity_id = activities.id
-							 AND agp.category = 'Kapak Resmi'
+							 AND agp.category = ?
 							 AND agp.language_code = ?
 							 AND ag.deleted_at IS NULL
 							 AND agp.deleted_at IS NULL
@@ -178,7 +178,7 @@ class ActivityModel extends BaseModel {
 					FROM activities
 					WHERE activities.id = ANY(?)
 				`,
-					[language, activityIds]
+					[coverImageCategory, language, activityIds]
 				)
 
 				// Add image_url to each activity
