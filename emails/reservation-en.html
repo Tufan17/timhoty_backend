@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Rezervasyon Onayı - Timhoty</title>
+		<title>Reservation Confirmation - Timhoty</title>
 		<style>
 			body {
 				margin: 0;
@@ -282,15 +282,15 @@
 
 			<!-- Main Content -->
 			<div class="content">
-				<div class="greeting">Merhaba {{name}},</div>
-				<p class="message">Rezervasyonunuz başarıyla oluşturuldu! 🎉 Detaylarınız aşağıda yer almaktadır.</p>
+				<div class="greeting">Hello {{name}},</div>
+				<p class="message">Your reservation has been successfully created! 🎉 Your details are below.</p>
 
 				<!-- Reservation Details -->
 				<div class="reservation-card">
-					<div class="card-title">📋 Rezervasyon Detayları</div>
+					<div class="card-title">📋 Reservation Details</div>
 
 					<div class="info-row">
-						<span class="info-label">Rezervasyon Tarihi</span>
+						<span class="info-label">Reservation Date</span>
 						<span class="info-value">{{date}}</span>
 					</div>
 
@@ -314,42 +314,43 @@
 						<span class="info-value">{{hour}}:{{minute}}</span>
 					</div>
 					<!-- {{HOUR_SECTION_END}} -->
+
 					<div class="info-row">
-						<span class="info-label">Kişi Sayısı</span>
-						<span class="info-value">{{guests}} Kişi</span>
+						<span class="info-label">Number of Guests</span>
+						<span class="info-value">{{guests}} Guest(s)</span>
 					</div>
 				</div>
 
 				<!-- Price Breakdown -->
 				<div class="price-section">
 					<div class="price-row">
-						<span class="price-label">Fiyat</span>
+						<span class="price-label"> Price</span>
 						<span class="price-value">{{price}} {{currency}}</span>
 					</div>
 					{{#if discount}}
 					<div class="price-row">
-						<span class="price-label discount">İndirim</span>
+						<span class="price-label discount">Discount</span>
 						<span class="price-value discount">-{{discount}} {{currency}}</span>
 					</div>
 					{{/if}}
 					<div class="total-row">
-						<span class="total-label">TOPLAM</span>
+						<span class="total-label"> TOTAL</span>
 						<span class="total-value">{{total}} {{currency}}</span>
 					</div>
 				</div>
 
-				<p class="message" style="margin-top: 30px; margin-bottom: 10px; color: #718096">Rezervasyon detaylarınızı görmek ve yönetmek için uygulamanızı ziyaret edebilirsiniz.</p>
+				<p class="message" style="margin-top: 30px; margin-bottom: 10px; color: #718096">You can visit your app to view and manage your reservation details.</p>
 			</div>
 
 			<!-- Footer -->
 			<div class="footer-section">
-				<p class="footer-title">Desteğe mi ihtiyacınız var?</p>
+				<p class="footer-title">Need help?</p>
 				<a href="mailto:support@timhoty.com" class="support-email">support@timhoty.com</a>
 			</div>
 
 			<!-- Social Media -->
 			<div class="social-section">
-				<p class="social-title">Hadi Bizi Takip Et!</p>
+				<p class="social-title">Follow Us!</p>
 				<div class="social-icons">
 					<a href="https://www.instagram.com/timhotycom" class="social-icon" target="_blank" aria-label="Instagram">
 						<img src="{{uploads_url}}/uploads/email/instagram.png" alt="Instagram" />
@@ -369,7 +370,7 @@
 			<!-- Bottom Footer -->
 			<div class="footer">
 				<div class="company-name">GLOBIVOY TOURISM L.L.C</div>
-				<div class="license">Lisans No: 1235153</div>
+				<div class="license">License No: 1235153</div>
 			</div>
 		</div>
 	</body>

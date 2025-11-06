@@ -6,6 +6,7 @@ import VisaReservationUserModel from "@/models/VisaReservationUserModel"
 import VisaReservationInvoiceModel from "@/models/VisaReservationInvoiceModel"
 import dotenv from "dotenv"
 import path from "path"
+import UserModel from "@/models/UserModel"
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") })
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
 
@@ -238,6 +239,18 @@ class UserVisaPayment {
 			// charge status CAPTURED ise rezervasyonu güncelle
 			if (charge.status === "CAPTURED") {
 				await reservationModel.update(reservation.id, { status: true })
+				const updatedReservation = await reservationModel.first({ id: reservation.id })
+
+				// Eğer status true ise email gönder
+				if (updatedReservation && updatedReservation.status === true) {
+					const user = await new UserModel().first({ id: updatedReservation.created_by })
+
+					if (user) {
+						const reservationDetails = await reservationModel.getReservationWithDetails(updatedReservation.id, user.language || "en")
+
+						await reservationConfirmationEmail(user.email, user.name_surname, reservationDetails || updatedReservation, user.language || "tr")
+					}
+				}
 			}
 
 			// rezervasyon bilgisini dön
@@ -349,6 +362,63 @@ class UserVisaPayment {
 				error: error.message,
 			})
 		}
+	}
+}
+async function reservationConfirmationEmail(email: string, name: string, reservationDetails: any, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
+
+		// Dil bazlı template dosyası seçimi
+		const templateFileName = language === "en" ? "reservation-en.html" : "reservation.html"
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const emailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = emailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+
+		html = html.replace(/\{\{name\}\}/g, name)
+		html = html.replace(/\{\{title\}\}/g, reservationDetails.visa_title || "")
+
+		html = html.replace(/\{\{country\}\}/g, reservationDetails.visa_country || "")
+
+		// Hero section - city kaldır, sadece country göster
+		html = html.replace(/<!-- \{\{CITY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{CITY_SECTION_END\}\} -->/g, "")
+		html = html.replace(/<!-- \{\{COUNTRY_ONLY_SECTION_START\}\} -->/g, "")
+		html = html.replace(/<!-- \{\{COUNTRY_ONLY_SECTION_END\}\} -->/g, "")
+
+		html = html.replace(/<!-- \{\{LOCATION_SECTION_START\}\} -->[\s\S]*?<!-- \{\{LOCATION_SECTION_END\}\} -->/g, "")
+		html = html.replace(/<!-- \{\{COUNTRY_LOCATION_SECTION_START\}\} -->/g, "")
+		html = html.replace(/<!-- \{\{COUNTRY_LOCATION_SECTION_END\}\} -->/g, "")
+
+		html = html.replace(/\{\{image\}\}/g, reservationDetails.visa_image ? `${uploadsUrl}${reservationDetails.visa_image}` : `${uploadsUrl}/uploads/no-file.png`)
+
+		html = html.replace(/\{\{date\}\}/g, reservationDetails.date || "")
+
+		if (reservationDetails.activity_hour) {
+			const minute = reservationDetails.activity_minute || "00"
+			html = html.replace(/\{\{hour\}\}/g, reservationDetails.activity_hour.toString())
+			html = html.replace(/\{\{minute\}\}/g, minute.toString())
+		} else {
+			html = html.replace(/<!-- \{\{HOUR_SECTION_START\}\} -->[\s\S]*?<!-- \{\{HOUR_SECTION_END\}\} -->/g, "")
+		}
+		const guestsCount = reservationDetails.guests ? (Array.isArray(reservationDetails.guests) ? reservationDetails.guests.length : 1) : 1
+		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
+
+		const priceInMainCurrency = reservationDetails.price.toFixed(2)
+		html = html.replace(/\{\{price\}\}/g, priceInMainCurrency)
+		html = html.replace(/\{\{total\}\}/g, priceInMainCurrency)
+		html = html.replace(/\{\{currency\}\}/g, reservationDetails.currency_code || "USD")
+
+		html = html.replace(/\{\{#if discount\}\}[\s\S]*?\{\{\/if\}\}/g, "")
+		html = html.replace(/\{\{discount\}\}/g, "0")
+
+		const emailSubject = language === "en" ? "Timhoty - Reservation Confirmation" : "Timhoty - Rezervasyon Onayı"
+
+		await sendMail(email, emailSubject, html)
+	} catch (error) {
+		console.error("Reservation confirmation email error:", error)
 	}
 }
 

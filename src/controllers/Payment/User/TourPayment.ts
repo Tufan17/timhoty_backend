@@ -5,6 +5,7 @@ import TourReservationModel from "@/models/TourReservationModel"
 import TourReservationInvoiceModel from "@/models/TourReservationInvoiceModel"
 import TourReservationUserModel from "@/models/TourReservationUserModel"
 import DiscountUserModel from "@/models/DiscountUserModel"
+import UserModel from "@/models/UserModel"
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
 
@@ -256,6 +257,17 @@ class UserTourPayment {
 						status: true,
 					})
 				}
+				const updatedReservation = await reservationModel.first({ id: reservation.id })
+
+				if (updatedReservation && updatedReservation.status === true) {
+					const user = await new UserModel().first({ id: updatedReservation.created_by })
+
+					if (user) {
+						const reservationDetails = await reservationModel.getReservationWithDetails(updatedReservation.id, user.language || "en")
+
+						await reservationConfirmationEmail(user.email, user.name_surname, reservationDetails || updatedReservation, user.language || "tr")
+					}
+				}
 			}
 			return res.status(200).send({
 				success: true,
@@ -365,6 +377,63 @@ class UserTourPayment {
 				error: error.message,
 			})
 		}
+	}
+}
+async function reservationConfirmationEmail(email: string, name: string, reservationDetails: any, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
+
+		// Dil bazlı template dosyası seçimi
+		const templateFileName = language === "en" ? "reservation-en.html" : "reservation.html"
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const emailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = emailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+
+		html = html.replace(/\{\{name\}\}/g, name)
+		html = html.replace(/\{\{title\}\}/g, reservationDetails.tour_title || "")
+
+		html = html.replace(/\{\{city\}\}/g, reservationDetails.tour_city || "")
+		html = html.replace(/\{\{country\}\}/g, reservationDetails.tour_country || "")
+
+		html = html.replace(/\{\{image\}\}/g, reservationDetails.tour_image ? `${uploadsUrl}${reservationDetails.tour_image}` : `${uploadsUrl}/uploads/no-file.png`)
+
+		const formattedDate = reservationDetails.package_date
+			? new Date(reservationDetails.package_date).toLocaleDateString(language === "en" ? "en-US" : "tr-TR", {
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+			  })
+			: ""
+
+		html = html.replace(/\{\{date\}\}/g, formattedDate)
+
+		if (reservationDetails.activity_hour) {
+			const minute = reservationDetails.activity_minute || "00"
+			html = html.replace(/\{\{hour\}\}/g, reservationDetails.activity_hour.toString())
+			html = html.replace(/\{\{minute\}\}/g, minute.toString())
+		} else {
+			html = html.replace(/<!-- \{\{HOUR_SECTION_START\}\} -->[\s\S]*?<!-- \{\{HOUR_SECTION_END\}\} -->/g, "")
+		}
+		const guestsCount = reservationDetails.guests ? (Array.isArray(reservationDetails.guests) ? reservationDetails.guests.length : 1) : 1
+		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
+
+		const priceInMainCurrency = (reservationDetails.price / 100).toFixed(2)
+		html = html.replace(/\{\{price\}\}/g, priceInMainCurrency)
+		html = html.replace(/\{\{total\}\}/g, priceInMainCurrency)
+		html = html.replace(/\{\{currency\}\}/g, reservationDetails.currency_code || "USD")
+
+		html = html.replace(/\{\{#if discount\}\}[\s\S]*?\{\{\/if\}\}/g, "")
+		html = html.replace(/\{\{discount\}\}/g, "0")
+
+		const emailSubject = language === "en" ? "Timhoty - Reservation Confirmation" : "Timhoty - Rezervasyon Onayı"
+
+		await sendMail(email, emailSubject, html)
+	} catch (error) {
+		console.error("Reservation confirmation email error:", error)
 	}
 }
 

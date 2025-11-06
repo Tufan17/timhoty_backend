@@ -46,22 +46,72 @@ class ActivityReservationModel extends BaseModel {
 		})
 	}
 
-	async getReservationWithDetails(reservationId: string) {
+	// async getReservationWithDetails(reservationId: string) {
+	// 	return await knex("activity_reservations")
+	// 		.leftJoin("activities", "activity_reservations.activity_id", "activities.id")
+	// 		.leftJoin("activity_pivots", function () {
+	// 			this.on("activities.id", "=", "activity_pivots.activity_id").andOn("activity_pivots.language_code", "=", "en")
+	// 		})
+	// 		.leftJoin("activity_packages", "activity_reservations.package_id", "activity_packages.id")
+	// 		.leftJoin("activity_package_pivots", function () {
+	// 			this.on("activity_packages.id", "=", "activity_package_pivots.activity_package_id").andOn("activity_package_pivots.language_code", "=", "en")
+	// 		})
+	// 		.leftJoin("activity_package_hours", "activity_reservations.activity_package_hour_id", "activity_package_hours.id")
+	// 		.leftJoin("users", "activity_reservations.created_by", "users.id")
+	// 		.leftJoin("sales_partners", "activity_reservations.sales_partner_id", "sales_partners.id")
+	// 		.select("activity_reservations.*", "activity_pivots.title as activity_title", "activity_package_pivots.name as package_name", "activity_package_hours.hour as activity_hour", "users.first_name", "users.last_name", "users.email as user_email", "sales_partners.company_name")
+	// 		.where("activity_reservations.id", reservationId)
+	// 		.whereNull("activity_reservations.deleted_at")
+	// 		.first()
+	// }
+	async getReservationWithDetails(reservationId: string, language: string = "en") {
 		return await knex("activity_reservations")
+			.select(
+				"activity_reservations.*",
+				"activity_pivots.title as activity_title",
+				"activity_package_pivots.name as package_name",
+				"activity_package_hours.hour as activity_hour",
+				"activity_package_hours.minute as activity_minute",
+				"users.name_surname",
+				"users.email as user_email",
+				"city_pivots.name as activity_city",
+				"country_pivots.name as activity_country",
+				knex.raw(`(
+					SELECT image_url
+					FROM activity_galleries
+					WHERE activity_galleries.activity_id = activity_reservations.activity_id
+					AND activity_galleries.deleted_at IS NULL
+					ORDER BY activity_galleries.created_at ASC
+					LIMIT 1
+				) as activity_image`),
+				knex.raw(
+					"COALESCE(json_agg(DISTINCT jsonb_build_object('id', activity_reservation_users.id, 'name', activity_reservation_users.name, 'surname', activity_reservation_users.surname, 'email', activity_reservation_users.email, 'phone', activity_reservation_users.phone, 'type', activity_reservation_users.type, 'age', activity_reservation_users.age)) FILTER (WHERE activity_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+				)
+			)
 			.leftJoin("activities", "activity_reservations.activity_id", "activities.id")
 			.leftJoin("activity_pivots", function () {
-				this.on("activities.id", "=", "activity_pivots.activity_id").andOn("activity_pivots.language_code", "=", "en")
+				this.on("activities.id", "=", "activity_pivots.activity_id").andOn("activity_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("activity_packages", "activity_reservations.package_id", "activity_packages.id")
 			.leftJoin("activity_package_pivots", function () {
-				this.on("activity_packages.id", "=", "activity_package_pivots.activity_package_id").andOn("activity_package_pivots.language_code", "=", "en")
+				this.on("activity_packages.id", "=", "activity_package_pivots.activity_package_id").andOn("activity_package_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("activity_package_hours", "activity_reservations.activity_package_hour_id", "activity_package_hours.id")
 			.leftJoin("users", "activity_reservations.created_by", "users.id")
 			.leftJoin("sales_partners", "activity_reservations.sales_partner_id", "sales_partners.id")
-			.select("activity_reservations.*", "activity_pivots.title as activity_title", "activity_package_pivots.name as package_name", "activity_package_hours.hour as activity_hour", "users.first_name", "users.last_name", "users.email as user_email", "sales_partners.company_name")
+			.leftJoin("cities", "activities.location_id", "cities.id")
+			.leftJoin("city_pivots", function () {
+				this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("countries", "cities.country_id", "countries.id")
+			.leftJoin("country_pivots", function () {
+				this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("activity_reservation_users", "activity_reservations.id", "activity_reservation_users.activity_reservation_id")
+			.whereNull("activity_reservation_users.deleted_at")
 			.where("activity_reservations.id", reservationId)
 			.whereNull("activity_reservations.deleted_at")
+			.groupBy("activity_reservations.id", "activity_pivots.title", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute", "users.name_surname", "users.email", "city_pivots.name", "country_pivots.name")
 			.first()
 	}
 
