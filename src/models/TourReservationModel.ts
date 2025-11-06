@@ -42,20 +42,96 @@ class TourReservationModel extends BaseModel {
 		})
 	}
 
-	async getReservationWithDetails(reservationId: string) {
+	// async getReservationWithDetails(reservationId: string, language: string = "en") {
+	// 	return await knex("tour_reservations")
+	// 		.leftJoin("tours", "tour_reservations.tour_id", "tours.id")
+	// 		.leftJoin("tour_pivots", function () {
+	// 			this.on("tours.id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", "en")
+	// 		})
+	// 		.leftJoin("tour_packages", "tour_reservations.package_id", "tour_packages.id")
+	// 		.leftJoin("tour_package_prices", "tour_packages.id", "tour_package_prices.tour_package_id")
+	// 		.leftJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
+	// 		.leftJoin("users", "tour_reservations.created_by", "users.id")
+	// 		.leftJoin("sales_partners", "tour_reservations.sales_partner_id", "sales_partners.id")
+	// 		.select("tour_reservations.*", "tour_pivots.title as tour_title", "tour_package_prices.price as package_price", "currencies.code as currency_code", "currencies.symbol as currency_symbol", "users.first_name", "users.last_name", "users.email as user_email", "sales_partners.company_name")
+	// 		.where("tour_reservations.id", reservationId)
+	// 		.whereNull("tour_reservations.deleted_at")
+	// 		.first()
+	// }
+	async getReservationWithDetails(reservationId: string, language: string = "en") {
 		return await knex("tour_reservations")
+			.select(
+				"tour_reservations.*",
+				"tour_pivots.title as tour_title",
+				"tour_package_pivots.name as package_name",
+				"tour_locations.location_id as tour_location_id",
+				"tour_packages.return_acceptance_period as package_return_acceptance_period",
+				"tour_package_prices.date as package_date",
+				"tour_package_prices.discount as package_discount",
+				"tour_package_prices.main_price as package_main_price", // ✅ Değişti
+				"tour_package_prices.child_price as package_child_price", // ✅ Eklendi
+				"tour_package_prices.baby_price as package_baby_price", // ✅ Eklendi
+				"currencies.code as currency_code",
+				"currencies.symbol as currency_symbol",
+				"users.name_surname",
+				"users.email as user_email",
+				"city_pivots.name as tour_city",
+				"country_pivots.name as tour_country",
+				knex.raw(`(
+					SELECT image_url
+					FROM tour_galleries
+					WHERE tour_galleries.tour_id = tour_reservations.tour_id
+					AND tour_galleries.deleted_at IS NULL
+					ORDER BY tour_galleries.created_at ASC
+					LIMIT 1
+				) as tour_image`),
+				knex.raw(
+					"COALESCE(json_agg(DISTINCT jsonb_build_object('id', tour_reservation_users.id, 'name', tour_reservation_users.name, 'surname', tour_reservation_users.surname, 'email', tour_reservation_users.email, 'phone', tour_reservation_users.phone, 'type', tour_reservation_users.type, 'age', tour_reservation_users.age, 'room', tour_reservation_users.room)) FILTER (WHERE tour_reservation_users.id IS NOT NULL), '[]'::json) as guests"
+				)
+			)
 			.leftJoin("tours", "tour_reservations.tour_id", "tours.id")
 			.leftJoin("tour_pivots", function () {
-				this.on("tours.id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", "en")
+				this.on("tours.id", "=", "tour_pivots.tour_id").andOn("tour_pivots.language_code", "=", knex.raw("?", [language]))
 			})
 			.leftJoin("tour_packages", "tour_reservations.package_id", "tour_packages.id")
+			.leftJoin("tour_package_pivots", function () {
+				this.on("tour_packages.id", "=", "tour_package_pivots.tour_package_id").andOn("tour_package_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("tour_locations", "tours.id", "tour_locations.tour_id")
 			.leftJoin("tour_package_prices", "tour_packages.id", "tour_package_prices.tour_package_id")
 			.leftJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
 			.leftJoin("users", "tour_reservations.created_by", "users.id")
 			.leftJoin("sales_partners", "tour_reservations.sales_partner_id", "sales_partners.id")
-			.select("tour_reservations.*", "tour_pivots.title as tour_title", "tour_package_prices.price as package_price", "currencies.code as currency_code", "currencies.symbol as currency_symbol", "users.first_name", "users.last_name", "users.email as user_email", "sales_partners.company_name")
+			.leftJoin("cities", "tour_locations.location_id", "cities.id")
+			.leftJoin("city_pivots", function () {
+				this.on("cities.id", "=", "city_pivots.city_id").andOn("city_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("countries", "cities.country_id", "countries.id")
+			.leftJoin("country_pivots", function () {
+				this.on("countries.id", "=", "country_pivots.country_id").andOn("country_pivots.language_code", "=", knex.raw("?", [language]))
+			})
+			.leftJoin("tour_reservation_users", "tour_reservations.id", "tour_reservation_users.tour_reservation_id")
+			.whereNull("tour_reservation_users.deleted_at")
 			.where("tour_reservations.id", reservationId)
 			.whereNull("tour_reservations.deleted_at")
+			.groupBy(
+				"tour_reservations.id",
+				"tour_pivots.title",
+				"tour_package_pivots.name",
+				"tour_locations.location_id",
+				"tour_packages.return_acceptance_period",
+				"tour_package_prices.date",
+				"tour_package_prices.discount",
+				"tour_package_prices.main_price",
+				"tour_package_prices.child_price",
+				"tour_package_prices.baby_price",
+				"currencies.code",
+				"currencies.symbol",
+				"users.name_surname",
+				"users.email",
+				"city_pivots.name",
+				"country_pivots.name"
+			)
 			.first()
 	}
 

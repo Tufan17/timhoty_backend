@@ -134,7 +134,6 @@ export default class AuthUserService {
 
 	async register(name_surname: string, email: string, password: string, language: string, t: (key: string) => string) {
 		try {
-			console.log("language", language)
 			const existingUser = await new UserModel().exists({ email })
 			if (existingUser) {
 				return {

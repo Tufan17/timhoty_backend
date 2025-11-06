@@ -6,6 +6,7 @@ import path from "path"
 import ActivityReservationModel from "@/models/ActivityReservationModel"
 import ActivityReservationUserModel from "@/models/ActivityReservationUserModel"
 import ActivityReservationInvoiceModel from "@/models/ActivityReservationInvoiceModel"
+import UserModel from "@/models/UserModel"
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") })
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
 
@@ -216,6 +217,7 @@ class UserVisaPayment {
 	/**
 	 * Get payment status
 	 */
+
 	async getPaymentStatus(req: FastifyRequest<{ Params: PaymentStatusRequest }>, res: FastifyReply) {
 		try {
 			const { charge_id } = req.params
@@ -254,6 +256,20 @@ class UserVisaPayment {
 			// // charge status CAPTURED ise rezervasyonu güncelle
 			if (charge.status === "CAPTURED") {
 				await reservationModel.update(reservation.id, { status: true })
+				const updatedReservation = await reservationModel.first({ id: reservation.id })
+
+				// Eğer status true ise email gönder
+				if (updatedReservation && updatedReservation.status === true) {
+					const user = await new UserModel().first({ id: updatedReservation.created_by })
+
+					if (user) {
+						const reservationDetails = await reservationModel.getReservationWithDetails(updatedReservation.id, user.language || "en")
+
+						console.log("reservationDetails", reservationDetails)
+
+						await reservationConfirmationEmail(user.email, user.name_surname, reservationDetails || updatedReservation, user.language || "tr")
+					}
+				}
 			}
 
 			// rezervasyon bilgisini dön
@@ -365,6 +381,66 @@ class UserVisaPayment {
 				error: error.message,
 			})
 		}
+	}
+}
+async function reservationConfirmationEmail(email: string, name: string, reservationDetails: any, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
+
+		// Dil bazlı template dosyası seçimi
+		const templateFileName = language === "en" ? "reservation-en.html" : "reservation.html"
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const emailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = emailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+
+		html = html.replace(/\{\{name\}\}/g, name)
+		html = html.replace(/\{\{title\}\}/g, reservationDetails.activity_title || "")
+
+		html = html.replace(/\{\{city\}\}/g, reservationDetails.activity_city || "")
+		html = html.replace(/\{\{country\}\}/g, reservationDetails.activity_country || "")
+
+		html = html.replace(/\{\{image\}\}/g, reservationDetails.activity_image ? `${uploadsUrl}${reservationDetails.activity_image}` : `${uploadsUrl}/uploads/no-file.png`)
+
+		html = html.replace(/\{\{date\}\}/g, reservationDetails.date || "")
+
+		if (reservationDetails.activity_hour) {
+			const minute = reservationDetails.activity_minute || "00"
+			html = html.replace(/\{\{hour\}\}/g, reservationDetails.activity_hour.toString())
+			html = html.replace(/\{\{minute\}\}/g, minute.toString())
+		} else {
+			html = html.replace(/<!-- \{\{HOUR_SECTION_START\}\} -->[\s\S]*?<!-- \{\{HOUR_SECTION_END\}\} -->/g, "")
+		}
+		const guestsCount = reservationDetails.guests ? (Array.isArray(reservationDetails.guests) ? reservationDetails.guests.length : 1) : 1
+		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
+
+		const priceInMainCurrency = (reservationDetails.price / 100).toFixed(2)
+		html = html.replace(/\{\{price\}\}/g, priceInMainCurrency)
+		html = html.replace(/\{\{total\}\}/g, priceInMainCurrency)
+		html = html.replace(/\{\{currency\}\}/g, reservationDetails.currency_code || "USD")
+
+		html = html.replace(/\{\{#if discount\}\}[\s\S]*?\{\{\/if\}\}/g, "")
+		html = html.replace(/\{\{discount\}\}/g, "0")
+
+		const emailSubject = language === "en" ? "Timhoty - Reservation Confirmation" : "Timhoty - Rezervasyon Onayı"
+
+		console.log("Sending email with data:", {
+			name,
+			activity_title: reservationDetails.activity_title,
+			city: reservationDetails.activity_city,
+			country: reservationDetails.activity_country,
+			date: reservationDetails.date,
+			guests: guestsCount,
+			price: priceInMainCurrency,
+		})
+
+		await sendMail(email, emailSubject, html)
+		console.log("Reservation confirmation email sent to:", email)
+	} catch (error) {
+		console.error("Reservation confirmation email error:", error)
 	}
 }
 
