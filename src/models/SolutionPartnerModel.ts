@@ -24,7 +24,7 @@ class SolutionPartnerModel extends BaseModel {
     'updated_at',
     'deleted_at',
   ];
-   
+
 }
 
 export default SolutionPartnerModel;
