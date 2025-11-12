@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Rezervasyon Onayı - Timhoty</title>
+		<title>New Reservation Notification - Timhoty</title>
 		<style>
 			body {
 				margin: 0;
@@ -81,6 +81,27 @@
 				line-height: 1.6;
 				margin-bottom: 30px;
 			}
+			.alert-box {
+				background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+				border-radius: 12px;
+				padding: 20px;
+				margin: 25px 0;
+				text-align: center;
+				color: #ffffff;
+			}
+			.alert-icon {
+				font-size: 48px;
+				margin-bottom: 10px;
+			}
+			.alert-title {
+				font-size: 20px;
+				font-weight: 700;
+				margin-bottom: 5px;
+			}
+			.alert-subtitle {
+				font-size: 14px;
+				opacity: 0.9;
+			}
 			.reservation-card {
 				background-color: #f7fafc;
 				border-radius: 12px;
@@ -115,6 +136,13 @@
 				font-size: 14px;
 				font-weight: 600;
 				text-align: right;
+			}
+			.customer-card {
+				background-color: #fff7ed;
+				border-radius: 12px;
+				padding: 25px;
+				margin: 25px 0;
+				border: 2px solid #ff6b35;
 			}
 			.price-section {
 				background: linear-gradient(135deg, #ff6b35 0%, #ff8c61 100%);
@@ -153,22 +181,6 @@
 			}
 			.discount {
 				color: #22c55e;
-			}
-			.badge {
-				display: inline-block;
-				padding: 4px 12px;
-				border-radius: 20px;
-				font-size: 12px;
-				font-weight: 600;
-				margin-left: 8px;
-			}
-			.badge-success {
-				background-color: #dcfce7;
-				color: #16a34a;
-			}
-			.badge-warning {
-				background-color: #fef3c7;
-				color: #d97706;
 			}
 			.footer-section {
 				padding: 30px 30px 20px;
@@ -237,6 +249,7 @@
 					padding: 25px 20px;
 				}
 				.reservation-card,
+				.customer-card,
 				.price-section {
 					padding: 20px;
 				}
@@ -282,15 +295,48 @@
 
 			<!-- Main Content -->
 			<div class="content">
-				<div class="greeting">Merhaba {{name}},</div>
-				<p class="message">Rezervasyonunuz başarıyla oluşturuldu! 🎉 Detaylarınız aşağıda yer almaktadır.</p>
+				<div class="greeting">Hello {{partner_name}},</div>
+
+				<!-- Alert Box -->
+				<div class="alert-box">
+					<div class="alert-icon">🎉</div>
+					<div class="alert-title">New Reservation!</div>
+					<div class="alert-subtitle">You have received a new reservation for your service</div>
+				</div>
+
+				<p class="message">Great news! A new reservation has been made for your service below. Please review the details and make necessary preparations.</p>
+
+				<!-- Customer Information -->
+				<div class="customer-card">
+					<div class="card-title">👤 Customer Information</div>
+
+					<div class="info-row">
+						<span class="info-label">Customer Name</span>
+						<span class="info-value">{{customer_name}}</span>
+					</div>
+
+					<div class="info-row">
+						<span class="info-label">Email</span>
+						<span class="info-value">{{customer_email}}</span>
+					</div>
+
+					<div class="info-row">
+						<span class="info-label">Phone</span>
+						<span class="info-value">{{customer_phone}}</span>
+					</div>
+				</div>
 
 				<!-- Reservation Details -->
 				<div class="reservation-card">
-					<div class="card-title">📋 Rezervasyon Detayları</div>
+					<div class="card-title">📋 Reservation Details</div>
 
 					<div class="info-row">
-						<span class="info-label">Rezervasyon Tarihi</span>
+						<span class="info-label">Reservation No</span>
+						<span class="info-value">#{{reservation_id}}</span>
+					</div>
+
+					<div class="info-row">
+						<span class="info-label">Reservation Date</span>
 						<span class="info-value">{{date}}</span>
 					</div>
 
@@ -310,46 +356,39 @@
 
 					<!-- {{HOUR_SECTION_START}} -->
 					<div class="info-row">
-						<span class="info-label">Hour</span>
+						<span class="info-label">Time</span>
 						<span class="info-value">{{hour}}:{{minute}}</span>
 					</div>
 					<!-- {{HOUR_SECTION_END}} -->
+
 					<div class="info-row">
-						<span class="info-label">Kişi Sayısı</span>
-						<span class="info-value">{{guests}} Kişi</span>
+						<span class="info-label">Number of Guests</span>
+						<span class="info-value">{{guests}} Guests</span>
 					</div>
 				</div>
 
 				<!-- Price Breakdown -->
 				<div class="price-section">
-					<div class="price-row">
-						<span class="price-label">Fiyat</span>
-						<span class="price-value">{{price}} {{currency}}</span>
-					</div>
-					{{#if discount}}
-					<div class="price-row">
-						<span class="price-label discount">İndirim</span>
-						<span class="price-value discount">-{{discount}} {{currency}}</span>
-					</div>
-					{{/if}}
 					<div class="total-row">
-						<span class="total-label">TOPLAM</span>
+						<span class="total-label">TOTAL AMOUNT</span>
 						<span class="total-value">{{total}} {{currency}}</span>
 					</div>
 				</div>
 
-				<p class="message" style="margin-top: 30px; margin-bottom: 10px; color: #718096">Rezervasyon detaylarınızı görmek ve yönetmek için uygulamanızı ziyaret edebilirsiniz.</p>
+				<p class="message" style="margin-top: 30px; margin-bottom: 10px; color: #718096">
+					You can visit your partner panel to view and manage reservation details.
+				</p>
 			</div>
 
 			<!-- Footer -->
 			<div class="footer-section">
-				<p class="footer-title">Desteğe mi ihtiyacınız var?</p>
+				<p class="footer-title">Need help?</p>
 				<a href="mailto:support@timhoty.com" class="support-email">support@timhoty.com</a>
 			</div>
 
 			<!-- Social Media -->
 			<div class="social-section">
-				<p class="social-title">Hadi Bizi Takip Et!</p>
+				<p class="social-title">Follow Us!</p>
 				<div class="social-icons">
 					<a href="https://www.instagram.com/timhotycom" class="social-icon" target="_blank" aria-label="Instagram">
 						<img src="{{uploads_url}}/uploads/email/instagram.png" alt="Instagram" />
@@ -369,7 +408,7 @@
 			<!-- Bottom Footer -->
 			<div class="footer">
 				<div class="company-name">GLOBIVOY TOURISM L.L.C</div>
-				<div class="license">Lisans No: 1235153</div>
+				<div class="license">License No: 1235153</div>
 			</div>
 		</div>
 	</body>

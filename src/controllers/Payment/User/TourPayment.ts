@@ -6,6 +6,7 @@ import TourReservationInvoiceModel from "@/models/TourReservationInvoiceModel"
 import TourReservationUserModel from "@/models/TourReservationUserModel"
 import DiscountUserModel from "@/models/DiscountUserModel"
 import UserModel from "@/models/UserModel"
+import TourModel from "@/models/TourModel"
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
 
@@ -266,6 +267,9 @@ class UserTourPayment {
 						const reservationDetails = await reservationModel.getReservationWithDetails(updatedReservation.id, user.language || "en")
 
 						await reservationConfirmationEmail(user.email, user.name_surname, reservationDetails || updatedReservation, user.language || "tr")
+						if (reservationDetails && reservationDetails.tour_id) {
+							await sendPartnerNotificationEmail(reservationDetails, user)
+						}
 					}
 				}
 			}
@@ -399,6 +403,18 @@ async function reservationConfirmationEmail(email: string, name: string, reserva
 		html = html.replace(/\{\{city\}\}/g, reservationDetails.tour_city || "")
 		html = html.replace(/\{\{country\}\}/g, reservationDetails.tour_country || "")
 
+// City varsa city+country section'ı göster, yoksa sadece country section'ı göster
+		if (reservationDetails.tour_city && reservationDetails.tour_city.trim() !== "") {
+			// City varsa: COUNTRY_ONLY_SECTION ve COUNTRY_LOCATION_SECTION'ı kaldır
+			html = html.replace(/<!-- \{\{COUNTRY_ONLY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{COUNTRY_ONLY_SECTION_END\}\} -->/g, "")
+			html = html.replace(/<!-- \{\{COUNTRY_LOCATION_SECTION_START\}\} -->[\s\S]*?<!-- \{\{COUNTRY_LOCATION_SECTION_END\}\} -->/g, "")
+		} else {
+			// City yoksa: CITY_SECTION ve LOCATION_SECTION'ı kaldır
+			html = html.replace(/<!-- \{\{CITY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{CITY_SECTION_END\}\} -->/g, "")
+			html = html.replace(/<!-- \{\{LOCATION_SECTION_START\}\} -->[\s\S]*?<!-- \{\{LOCATION_SECTION_END\}\} -->/g, "")
+		}
+
+
 		html = html.replace(/\{\{image\}\}/g, reservationDetails.tour_image ? `${uploadsUrl}${reservationDetails.tour_image}` : `${uploadsUrl}/uploads/no-file.png`)
 
 		const formattedDate = reservationDetails.package_date
@@ -421,7 +437,7 @@ async function reservationConfirmationEmail(email: string, name: string, reserva
 		const guestsCount = reservationDetails.guests ? (Array.isArray(reservationDetails.guests) ? reservationDetails.guests.length : 1) : 1
 		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
 
-		const priceInMainCurrency = (reservationDetails.price / 100).toFixed(2)
+		const priceInMainCurrency = (reservationDetails.price ).toFixed(2)
 		html = html.replace(/\{\{price\}\}/g, priceInMainCurrency)
 		html = html.replace(/\{\{total\}\}/g, priceInMainCurrency)
 		html = html.replace(/\{\{currency\}\}/g, reservationDetails.currency_code || "USD")
@@ -434,6 +450,119 @@ async function reservationConfirmationEmail(email: string, name: string, reserva
 		await sendMail(email, emailSubject, html)
 	} catch (error) {
 		console.error("Reservation confirmation email error:", error)
+	}
+}
+async function sendPartnerNotificationEmail(reservationDetails: any, customer: any) {
+	try {
+
+		const SolutionPartnerUserModel = (await import("@/models/SolutionPartnerUserModel")).default
+
+		const tour = await new TourModel().first({ id: reservationDetails.tour_id })
+
+		if (!tour || !tour.solution_partner_id) {
+			console.log("Tour has no solution partner")
+			return
+		}
+
+		// Solution partner'ın manager kullanıcısını bul
+		const managerUser = await new SolutionPartnerUserModel().first({
+			solution_partner_id: tour.solution_partner_id,
+			type: "manager"
+		})
+
+		if (!managerUser) {
+			console.log("Solution partner manager not found")
+			return
+		}
+
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
+
+		// Dil bazlı template dosyası seçimi
+		const language = managerUser.language_code || "tr"
+		const templateFileName = language === "en"
+			? "reservation_solution_en.html"
+			: "reservation_solution_tr.html"
+
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const emailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = emailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+
+		// Partner bilgileri
+		html = html.replace(/\{\{partner_name\}\}/g, managerUser.name_surname)
+
+		// Müşteri bilgileri
+		html = html.replace(/\{\{customer_name\}\}/g, customer.name_surname)
+		html = html.replace(/\{\{customer_email\}\}/g, customer.email)
+		html = html.replace(/\{\{customer_phone\}\}/g, customer.phone || "N/A")
+
+		// Rezervasyon bilgileri
+		html = html.replace(/\{\{reservation_id\}\}/g, reservationDetails.id || "")
+		html = html.replace(/\{\{title\}\}/g, reservationDetails.tour_title || "")
+		html = html.replace(/\{\{city\}\}/g, reservationDetails.tour_city || "")
+		html = html.replace(/\{\{country\}\}/g, reservationDetails.tour_country || "")
+
+// City varsa city+country section'ı göster, yoksa sadece country section'ı göster
+		if (reservationDetails.tour_city && reservationDetails.tour_city.trim() !== "") {
+			// City varsa: COUNTRY_ONLY_SECTION ve COUNTRY_LOCATION_SECTION'ı kaldır
+			html = html.replace(/<!-- \{\{COUNTRY_ONLY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{COUNTRY_ONLY_SECTION_END\}\} -->/g, "")
+			html = html.replace(/<!-- \{\{COUNTRY_LOCATION_SECTION_START\}\} -->[\s\S]*?<!-- \{\{COUNTRY_LOCATION_SECTION_END\}\} -->/g, "")
+		} else {
+			// City yoksa: CITY_SECTION ve LOCATION_SECTION'ı kaldır
+			html = html.replace(/<!-- \{\{CITY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{CITY_SECTION_END\}\} -->/g, "")
+			html = html.replace(/<!-- \{\{LOCATION_SECTION_START\}\} -->[\s\S]*?<!-- \{\{LOCATION_SECTION_END\}\} -->/g, "")
+		}
+
+
+		html = html.replace(/\{\{image\}\}/g, reservationDetails.tour_image ? `${uploadsUrl}${reservationDetails.tour_image}` : `${uploadsUrl}/uploads/no-file.png`)
+		const formattedDate = reservationDetails.package_date
+			? new Date(reservationDetails.package_date).toLocaleDateString(language === "en" ? "en-US" : "tr-TR", {
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+			  })
+			: ""
+
+		html = html.replace(/\{\{date\}\}/g, formattedDate)
+
+		// Saat bilgisi varsa
+		if (reservationDetails.tour_hour) {
+			const minute = reservationDetails.tour_minute || "00"
+			html = html.replace(/\{\{hour\}\}/g, reservationDetails.tour_hour.toString())
+			html = html.replace(/\{\{minute\}\}/g, minute.toString())
+		} else {
+			html = html.replace(/<!-- \{\{HOUR_SECTION_START\}\} -->[\s\S]*?<!-- \{\{HOUR_SECTION_END\}\} -->/g, "")
+		}
+
+		const guestsCount = reservationDetails.guests ? (Array.isArray(reservationDetails.guests) ? reservationDetails.guests.length : 1) : 1
+		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
+
+		// Fiyat bilgileri
+		const totalAmount = (reservationDetails.price).toFixed(2)
+
+		html = html.replace(/\{\{total\}\}/g, totalAmount)
+		html = html.replace(/\{\{currency\}\}/g, reservationDetails.currency_code || "USD")
+
+		// Lokasyon section'ları kontrol et
+		if (reservationDetails.tour_city) {
+			html = html.replace(/<!-- \{\{COUNTRY_ONLY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{COUNTRY_ONLY_SECTION_END\}\} -->/g, "")
+		} else {
+			html = html.replace(/<!-- \{\{CITY_SECTION_START\}\} -->[\s\S]*?<!-- \{\{CITY_SECTION_END\}\} -->/g, "")
+			html = html.replace(/<!-- \{\{LOCATION_SECTION_START\}\} -->[\s\S]*?<!-- \{\{LOCATION_SECTION_END\}\} -->/g, "")
+		}
+
+		// Email başlığı
+		const emailSubject = language === "en"
+			? "Timhoty - New Reservation Notification"
+			: "Timhoty - Yeni Rezervasyon Bildiriminiz"
+
+		await sendMail(managerUser.email, emailSubject, html)
+		console.log("Partner notification email sent to:", managerUser.email)
+	} catch (error) {
+		console.error("Partner notification email error:", error)
 	}
 }
 

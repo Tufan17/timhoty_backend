@@ -5,6 +5,7 @@ import VisaModel from "@/models/VisaModel"
 import { translateCreate, translateUpdate } from "@/helper/translate"
 import SolutionPartnerModel from "@/models/SolutionPartnerModel"
 import VisaPivotModel from "@/models/VisaPivotModel"
+import SolutionPartnerUserModel from "@/models/SolutionPartnerUserModel"
 export default class VisaController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
 		try {
@@ -238,6 +239,29 @@ export default class VisaController {
 				admin_approval: admin_approval,
 				status: status,
 			})
+			if (status && admin_approval) {
+				// Activity onaylandı - Manager kullanıcısına onay maili gönder
+				const managerUser = await new SolutionPartnerUserModel().first({
+					solution_partner_id: existingVisa.solution_partner_id,
+					type: "manager"
+				})
+				if (managerUser) {
+					const language = managerUser.language_code || "tr"
+					sendMailServiceApproved(managerUser.email, managerUser.name_surname, language)
+				}
+			}
+
+			if (status === false || admin_approval === false) {
+				// Activity reddedildi - Manager kullanıcısına red maili gönder
+				const managerUser = await new SolutionPartnerUserModel().first({
+					solution_partner_id: existingVisa.solution_partner_id,
+					type: "manager"
+				})
+				if (managerUser) {
+					const language = managerUser.language_code || "tr"
+					sendMailServiceRejected(managerUser.email, managerUser.name_surname, language)
+				}
+			}
 
 			const updatedVisa = await new VisaModel().oneToMany(id, "visa_pivots", "visa_id")
 			// console.log(updatedVisa)
@@ -255,4 +279,75 @@ export default class VisaController {
 			})
 		}
 	}
+}
+async function sendMailServiceApproved(
+  email: string,
+  nameSurname: string,
+  language: string = "tr"
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+
+    // Dil bazlı template dosyası seçimi
+    const templateFileName = language === "en"
+      ? "service_received_approval_solution_en.html"
+      : "service_received_approval_solution_tr.html";
+
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      templateFileName
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    html = html.replace(/\{\{name\}\}/g, nameSurname);
+
+    // Dil bazlı email başlığı
+    const emailSubject = language === "en"
+      ? "Timhoty - Your Service Approved"
+      : "Timhoty - Hizmetiniz Onaylandı";
+
+    await sendMail(email, emailSubject, html);
+  } catch (error) {
+    console.error("Service approved email error:", error);
+  }
+}
+
+async function sendMailServiceRejected(
+  email: string,
+  nameSurname: string,
+  language: string = "tr"
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+
+    // Dil bazlı template dosyası seçimi
+    const templateFileName = language === "en"
+      ? "service_received_reject_solution_en.html"
+      : "service_received_reject_solution_tr.html";
+
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      templateFileName
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    html = html.replace(/\{\{name\}\}/g, nameSurname);
+
+    // Dil bazlı email başlığı
+    const emailSubject = language === "en"
+      ? "Timhoty - Your Service Rejected"
+      : "Timhoty - Hizmetiniz Reddedildi";
+
+    await sendMail(email, emailSubject, html);
+  } catch (error) {
+    console.error("Service rejected email error:", error);
+  }
 }

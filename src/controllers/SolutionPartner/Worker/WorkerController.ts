@@ -197,7 +197,7 @@ export default class SolutionPartnerUserController {
 				email: email || existingSolutionPartnerUser.email,
 				password: password,
 				status: status !== undefined ? status : existingSolutionPartnerUser.status,
-				language_code: language_code.toLowerCase() || existingSolutionPartnerUser.language_code,
+				language_code: language_code ? language_code.toLowerCase() : existingSolutionPartnerUser.language_code,
 			}
 
 			const updatedSolutionPartnerUser = await new SolutionPartnerUserModel().update(id, body)

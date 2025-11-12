@@ -55,11 +55,15 @@ import activityReservationRoutes from "./SolutionPartner/Reservation/activityRes
 import carRentalReservationRoutes from "./SolutionPartner/Reservation/carRentalReservation"
 import tourReservationRoutes from "./SolutionPartner/Reservation/tourReservation"
 import tourGroupAskRoutes from "./SolutionPartner/Tour/tourGroupAsk"
+import solutionPartnerNotificationRoutes from "./SolutionPartner/notification"
+import solutionPartnerIndexRoutes from "./SolutionPartner/index"
+import solutionPartnerAccountingRoutes from "./SolutionPartner/accounting"
 
 export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	fastify.register(countryRoutes, { prefix: "/countries" })
 	fastify.register(cityRoutes, { prefix: "/cities" })
-
+	fastify.register(solutionPartnerIndexRoutes, { prefix: "/index" });
+	fastify.register(solutionPartnerAccountingRoutes, { prefix: "/accounting" });
 	fastify.register(currencyRoutes, { prefix: "/currencies" })
 
 	// ===========================================
@@ -139,6 +143,10 @@ export default async function solutionPartnerRoutes(fastify: FastifyInstance) {
 	// WORKER ROUTES
 	// ===========================================
 	fastify.register(workerRoutes, { prefix: "/workers" })
+	// ===========================================
+	// SOLUTION PARTNER NOTIFICATION ROUTES
+	// ===========================================
+	fastify.register(solutionPartnerNotificationRoutes, { prefix: "/notifications" })
 	// ===========================================
 	// HOTEL RESERVATION ROUTES
 	// ===========================================
