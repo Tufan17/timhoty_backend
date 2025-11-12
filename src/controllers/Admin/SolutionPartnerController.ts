@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "../../db/knex"
 import SolutionPartnerModel from "@/models/SolutionPartnerModel"
 import PermissionModel from "@/models/PermissionModel"
+import SolutionPartnerUserModel from "@/models/SolutionPartnerUserModel"
 
 export default class SolutionPartnerController {
 	async findAll(req: FastifyRequest, res: FastifyReply) {
@@ -184,15 +185,28 @@ export default class SolutionPartnerController {
 				admin_verified,
 			}
 
-			const updatedSolutionPartner = await new SolutionPartnerModel().update(id, body)
-			if (status !== undefined) {
-				const newUserStatus = status
+			console.log(status, admin_verified);
+			if (status  && admin_verified) {
+
 
 				await knex("solution_partner_users").where("solution_partner_id", id).whereNull("deleted_at").update({
-					status: newUserStatus,
+					status: true,
 					updated_at: new Date(),
 				})
+				const managerUser = await new SolutionPartnerUserModel().first({ solution_partner_id: id, type:"manager" });
+
+				if(managerUser) {
+
+					sendMailApplicationApproved(managerUser.email, managerUser.name_surname, managerUser.language_code);
+				}
 			}
+			if(status === false || admin_verified === false){
+				const managerUser = await new SolutionPartnerUserModel().first({ solution_partner_id: id, type:"manager" });
+				if(managerUser) {
+					sendMailApplicationRejected(managerUser.email, managerUser.name_surname, managerUser.language_code);
+				}
+			}
+			const updatedSolutionPartner = await new SolutionPartnerModel().update(id, body);
 
 			return res.status(200).send({
 				success: true,
@@ -235,4 +249,73 @@ export default class SolutionPartnerController {
 			})
 		}
 	}
+}
+async function sendMailApplicationApproved(
+  email: string,
+  nameSurname: string,
+  language: string = "tr"
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+
+    // Dil bazlı template dosyası seçimi
+    const templateFileName = language === "en"
+      ? "application_received_approval_solution_en.html"
+      : "application_received_approval_solution_tr.html";
+
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      templateFileName
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+
+    // Dil bazlı email başlığı
+    const emailSubject = language === "en"
+      ? "Timhoty - Your Solution Partner Application Approved"
+      : "Timhoty - Çözüm Ortağı Başvurunuz Onaylandı";
+
+    await sendMail(email, emailSubject, html);
+  } catch (error) {
+    console.error("Application approved email error:", error);
+  }
+}
+
+async function sendMailApplicationRejected(
+  email: string,
+  nameSurname: string,
+  language: string = "tr"
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+
+    // Dil bazlı template dosyası seçimi
+    const templateFileName = language === "en"
+      ? "application_received_reject_solution_en.html"
+      : "application_received_reject_solution_tr.html";
+
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      templateFileName
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+
+    // Dil bazlı email başlığı
+    const emailSubject = language === "en"
+      ? "Timhoty - Your Solution Partner Application Suspended"
+      : "Timhoty - Çözüm Ortağı Başvurunuz Askıya Alındı";
+
+    await sendMail(email, emailSubject, html);
+  } catch (error) {
+    console.error("Application rejected email error:", error);
+  }
 }

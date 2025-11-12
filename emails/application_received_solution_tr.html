@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acente Başvurunuz Alındı - Timhoty</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 20px 20px;
+            background-color: #ffffff;
+        }
+        .logo {
+            display: inline-block;
+            height: 50px;
+        }
+        .hero-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c61 50%, #ffa082 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-pattern {
+            width: 100%;
+            height: 100%;
+            background-image: url('{{uploads_url}}/uploads/email/main.png');
+            background-size: cover;
+            position: relative;
+        }
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+            background-color: #ffffff;
+        }
+        .message {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .support-section {
+            padding: 40px 30px 30px;
+            text-align: center;
+            background-color: #ffffff;
+        }
+        .support-title {
+            color: #4a5568;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .support-email {
+            color: #3182ce;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        .support-email:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            padding: 30px 20px;
+            text-align: center;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+        }
+        .company-name {
+            color: #3182ce;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .license {
+            color: #4a5568;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            .content, .support-section {
+                padding: 30px 20px;
+            }
+            .message {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <img src="{{uploads_url}}/uploads/email/logo.png" alt="Timhoty Logo" class="logo-image" height="50">
+            </div>
+        </div>
+
+        <!-- Hero Image -->
+        <div class="hero-image">
+            <div class="hero-pattern">
+
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2 style="color: #1a365d; font-size: 28px; font-weight: 700; margin-bottom: 20px; line-height: 1.3;">
+                Çözüm Ortağı Başvurunuz Alındı! 🎉
+            </h2>
+            <p class="message">
+                Çözüm Ortağı başvurunuz başarıyla kaydedilmiştir.
+            </p>
+            <p class="message" style="margin-bottom: 10px;">
+                Başvurunuz incelemeye alınmıştır. Değerlendirme sürecinde size geri dönüş yapacağız.
+            </p>
+            <p class="message">
+                İyi çalışmalar dileriz!
+            </p>
+        </div>
+
+        <!-- Support Section -->
+        <div class="support-section">
+            <p class="support-title">Desteğe mi ihtiyacınız var?</p>
+            <a href="mailto:support@timhoty.com" class="support-email">support@timhoty.com</a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="company-name">GLOBIVOY TOURISM L.L.C</div>
+            <div class="license">Lisans No: 1235153</div>
+        </div>
+    </div>
+</body>
+</html>
+

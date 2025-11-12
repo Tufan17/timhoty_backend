@@ -256,7 +256,7 @@ export default class AuthSolutionPartnerService {
           success: false,
           message: t("SOLUTION_PARTNER.SOLUTION_PARTNER_ALREADY_EXISTS"),
         };
-      } 
+      }
 
 
       const application_status = await new ApplicationStatusModel().create({
@@ -288,6 +288,7 @@ export default class AuthSolutionPartnerService {
         language_code: language,
         status: false,
       });
+      await sendMailApplicationReceived(email, nameSurname, language);
 
       return {
         success: true,
@@ -301,5 +302,41 @@ export default class AuthSolutionPartnerService {
         message: t("SOLUTION_PARTNER.REGISTER_ERROR"),
       };
     }
+  }
+}
+
+async function sendMailApplicationReceived(
+  email: string,
+  nameSurname: string,
+  language: string = "tr"
+) {
+  try {
+    const sendMail = (await import("@/utils/mailer")).default;
+    const path = require("path");
+    const fs = require("fs");
+
+    // Dil bazlı template dosyası seçimi
+    const templateFileName = language === "en"
+      ? "application_received_solution_en.html"
+      : "application_received_solution_tr.html";
+
+    const emailTemplatePath = path.join(
+      process.cwd(),
+      "emails",
+      templateFileName
+    );
+    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
+    const uploadsUrl = process.env.UPLOADS_URL;
+    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
+    html = html.replace(/\{\{name\}\}/g, nameSurname);
+
+
+    const emailSubject = language === "en"
+      ? "Timhoty - Solution Partner Application Received"
+      : "Timhoty - Çözüm Ortağı Başvurunuz Alındı";
+
+    await sendMail(email, emailSubject, html);
+  } catch (error) {
+    console.error("Application received email error:", error);
   }
 }
