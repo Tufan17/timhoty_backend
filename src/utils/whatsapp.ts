@@ -41,6 +41,16 @@ function handleWhatsAppError(err: any, to: string) {
     );
   }
   
+  // Format mismatch hatası - template formatı uyuşmazlığı
+  if (err.response?.data?.error?.code === 132012) {
+    const errorDetails = err.response?.data?.error?.error_data?.details || "";
+    throw new Error(
+      `WhatsApp template format uyuşmazlığı: ${errorDetails}. ` +
+      "Template'in header, body veya button component'leri için gerekli parametreler sağlanmamış. " +
+      "sendWhatsAppTemplate() fonksiyonuna components parametresi ekleyin."
+    );
+  }
+  
   throw err;
 }
 
@@ -95,10 +105,31 @@ async function sendWhatsAppMessage(to: string, message: string): Promise<any> {
 }
 
 // Template mesaj gönderme
+// components parametresi opsiyoneldir ve şu formatta olmalıdır:
+// {
+//   header?: Array<{ type: "image" | "video" | "document" | "text", image?: { link: string }, video?: { link: string }, document?: { link: string }, text?: string }>,
+//   body?: Array<{ type: "text", text: string }>,
+//   buttons?: Array<{ type: "url" | "quick_reply", url?: string, text?: string }>
+// }
 async function sendWhatsAppTemplate(
   to: string,
   templateName: string,
-  languageCode: string = "en_US"
+  languageCode: string = "en_US",
+  components?: {
+    header?: Array<{
+      type: "image" | "video" | "document" | "text";
+      image?: { link: string };
+      video?: { link: string };
+      document?: { link: string };
+      text?: string;
+    }>;
+    body?: Array<{ type: "text"; text: string }>;
+    buttons?: Array<{
+      type: "url" | "quick_reply";
+      url?: string;
+      text?: string;
+    }>;
+  }
 ): Promise<any> {
   console.log("WhatsApp template mesajı gönderiliyor:", to, templateName);
   
@@ -117,6 +148,100 @@ async function sendWhatsAppTemplate(
   // Telefon numarasını formatla
   const formattedPhoneNumber = formatPhoneNumber(to);
   
+  // Template payload'ını oluştur
+  const templatePayload: any = {
+    name: templateName,
+    language: {
+      code: languageCode,
+    },
+  };
+
+  // Components varsa ekle
+  if (components) {
+    const templateComponents: any[] = [];
+
+    // Header component
+    if (components.header && components.header.length > 0) {
+      templateComponents.push({
+        type: "header",
+        parameters: components.header.map((header) => {
+          if (header.type === "image" && header.image) {
+            return {
+              type: "image",
+              image: header.image,
+            };
+          } else if (header.type === "video" && header.video) {
+            return {
+              type: "video",
+              video: header.video,
+            };
+          } else if (header.type === "document" && header.document) {
+            return {
+              type: "document",
+              document: header.document,
+            };
+          } else if (header.type === "text" && header.text) {
+            return {
+              type: "text",
+              text: header.text,
+            };
+          }
+          return null;
+        }).filter(Boolean),
+      });
+    }
+
+    // Body component
+    if (components.body && components.body.length > 0) {
+      templateComponents.push({
+        type: "body",
+        parameters: components.body.map((body) => ({
+          type: "text",
+          text: body.text,
+        })),
+      });
+    }
+
+    // Buttons component
+    if (components.buttons && components.buttons.length > 0) {
+      templateComponents.push({
+        type: "button",
+        sub_type: "url",
+        index: "0",
+        parameters: components.buttons
+          .filter((btn) => btn.type === "url" && btn.url)
+          .map((btn) => ({
+            type: "text",
+            text: btn.url,
+          })),
+      });
+
+      // Quick reply buttons
+      const quickReplyButtons = components.buttons.filter(
+        (btn) => btn.type === "quick_reply" && btn.text
+      );
+      if (quickReplyButtons.length > 0) {
+        quickReplyButtons.forEach((btn, index) => {
+          templateComponents.push({
+            type: "button",
+            sub_type: "quick_reply",
+            index: index.toString(),
+            parameters: [
+              {
+                type: "payload",
+                payload: btn.text,
+              },
+            ],
+          });
+        });
+      }
+    }
+
+    if (templateComponents.length > 0) {
+      templatePayload.components = templateComponents;
+    }
+  }
+  
   try {
     const response = await axios.post(
       `https://graph.facebook.com/${API_VERSION}/${phoneNumberId}/messages`,
@@ -124,12 +249,7 @@ async function sendWhatsAppTemplate(
         messaging_product: "whatsapp",
         to: formattedPhoneNumber,
         type: "template",
-        template: {
-          name: templateName,
-          language: {
-            code: languageCode,
-          },
-        },
+        template: templatePayload,
       },
       {
         headers: {
