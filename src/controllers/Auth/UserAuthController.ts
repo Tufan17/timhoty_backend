@@ -193,6 +193,36 @@ export default class UserAuthController {
 		}
 	}
 
+	// User apple login
+	async appleLogin(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { identityToken, userIdentifier, email, givenName, familyName } = req.body as {
+				identityToken: string
+				userIdentifier: string
+				email?: string
+				givenName?: string
+				familyName?: string
+			}
+			const user = await new AuthUserService().appleLogin(
+				identityToken,
+				userIdentifier,
+				email,
+				givenName,
+				familyName,
+				req.t
+			)
+			if (!user.success) {
+				return res.status(400).send({
+					success: false,
+					message: user.message,
+				})
+			}
+			return user
+		} catch (error: any) {
+			return res.status(400).send(error.message)
+		}
+	}
+
 	// User verify email with hash
 	async verifyEmail(req: FastifyRequest, res: FastifyReply) {
 		try {

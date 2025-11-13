@@ -45,6 +45,9 @@ export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post("/user/facebook/login", {
     handler: userAuthController.facebookLogin,
   });
+  fastify.post("/user/apple/login", {
+    handler: userAuthController.appleLogin,
+  });
   
   fastify.post("/user/register", {
     preHandler: [AuthValidation.register],
