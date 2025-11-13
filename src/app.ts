@@ -94,7 +94,27 @@ export default async function app(fastify: FastifyInstance) {
   fastify.get("/test-whatsapp", async (request, reply) => {
     const { sendWhatsAppTemplate } = await import("./utils/whatsapp");
     // Test modunda sadece template mesajlar çalışır
-    await sendWhatsAppTemplate("905522855589", "hello_world", "en_US");
+    // Eğer template'in header'ında image varsa, components parametresi eklenmelidir
+    // Örnek kullanım:
+    // await sendWhatsAppTemplate("905522855589", "hello", "en", {
+    //   header: [
+    //     {
+    //       type: "image",
+    //       image: { link: "https://example.com/image.jpg" }
+    //     }
+    //   ]
+    // });
+    
+    // Template "hello" header'da image bekliyor, bu yüzden components ile gönderilmeli
+    // Not: Gerçek kullanımda image URL'i template'inizin beklediği formatta olmalı
+    await sendWhatsAppTemplate("905522855589", "hello", "en", {
+      header: [
+        {
+          type: "image",
+          image: { link: "https://via.placeholder.com/500x300" } // Bu URL'i template'inizin beklediği gerçek image URL'i ile değiştirin
+        }
+      ]
+    });
     return reply.send({ success: true, message: "Test WhatsApp template mesajı gönderildi" });
   });
 
