@@ -17,7 +17,7 @@ export default async function salesPartnerUserRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get("/", {
-    preHandler: [authAdminMiddleware],
+    // preHandler: [authAdminMiddleware],
     handler: salesPartnerUserController.findAll,
   });
   fastify.get("/:id", {

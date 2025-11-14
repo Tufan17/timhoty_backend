@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken"
 import UserTokensModel from "@/models/UserTokensModel"
 import { OAuth2Client } from "google-auth-library"
 import axios from "axios"
+const jwksClient = require("jwks-rsa")
 
 export default class AuthUserService {
 	async accessTokenRenew(refreshToken: string) {
@@ -406,12 +407,32 @@ export default class AuthUserService {
 		}
 	}
 
-	async facebookLogin(accessToken: string, userID: string, t: (key: string) => string) {
+	async facebookLogin(token: string, userID: string, t: (key: string) => string) {
 		try {
-			// Facebook Graph API'den kullanıcı bilgilerini al
-			const response = await axios.get(`https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`)
+			let email: string
+			let name: string
+			let picture: any
+			let id: string
 
-			const { id, name, email, picture } = response.data
+			// Token türünü kontrol et
+			if (token.startsWith('ey')) {
+				// JWT ID Token (Mobil) - OpenID Connect
+				console.log("Facebook JWT Token detected (Mobile)")
+				const payload = await verifyFacebookJWT(token) as any
+				email = payload.email
+				name = payload.name
+				id = payload.sub // JWT'de user ID 'sub' alanında
+				picture = null // JWT'de genellikle resim yok
+			} else {
+				// Access Token (Web) - Graph API
+				console.log("Facebook Access Token detected (Web)")
+				const response = await axios.get(`https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${token}`)
+				const data = response.data
+				id = data.id
+				name = data.name
+				email = data.email
+				picture = data.picture
+			}
 
 			if (!email) {
 				return {
@@ -500,6 +521,112 @@ export default class AuthUserService {
 			}
 		}
 	}
+
+	async appleLogin(
+		identityToken: string,
+		userIdentifier: string,
+		email?: string,
+		givenName?: string,
+		familyName?: string,
+		t?: (key: string) => string
+	) {
+		try {
+			// Apple JWT token'ını doğrula
+			const payload = await verifyAppleJWT(identityToken) as any
+
+			console.log("Apple JWT payload:", payload)
+
+			// Apple'dan gelen bilgiler
+			const appleEmail = email || payload.email
+			const appleName = givenName && familyName
+				? `${givenName} ${familyName}`
+				: givenName || familyName || "Apple User"
+			const appleUserId = payload.sub
+
+			if (!appleEmail) {
+				return {
+					success: false,
+					message: t ? t("AUTH.APPLE_EMAIL_REQUIRED") : "Email is required",
+				}
+			}
+
+			// Kullanıcı zaten kayıtlı mı kontrol et
+			let user = await new UserModel().first({ email: appleEmail })
+
+			if (!user) {
+				// Yeni kullanıcı oluştur
+				user = await new UserModel().create({
+					name_surname: appleName,
+					email: appleEmail,
+					password: HashPassword(Math.random().toString(36).substring(2, 15)), // Random password
+					language: "tr",
+					avatar: "/uploads/avatar.png",
+					email_verified: payload.email_verified || true, // Apple'dan gelen email'ler verify edilmiş
+				})
+
+				if (t) {
+					welcomeEmail(appleEmail, appleName, "tr")
+				}
+			}
+
+			if (!user) {
+				return {
+					success: false,
+					message: t ? t("AUTH.APPLE_LOGIN_ERROR") : "Apple login failed",
+				}
+			}
+
+			// JWT token oluştur
+			const body = {
+				id: user.id,
+				name_surname: user.name_surname,
+				language: user.language,
+				email: user.email,
+				expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+			}
+
+			const jwtAccessToken = jwt.sign(body, process.env.ACCESS_TOKEN_SECRET!, {
+				expiresIn: "1d",
+			})
+			const refreshToken = jwt.sign(body, process.env.REFRESH_TOKEN_SECRET!, {
+				expiresIn: "7d",
+			})
+
+			// Token kaydını güncelle veya oluştur
+			const existingToken = await new UserTokensModel().first({
+				user_id: user.id,
+			})
+
+			if (existingToken) {
+				await new UserTokensModel().update(existingToken.id, {
+					token_hash: refreshToken,
+					expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+					revoked_at: null,
+				})
+			} else {
+				await new UserTokensModel().create({
+					user_id: user.id,
+					token_hash: refreshToken,
+					expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+				})
+			}
+
+			user.access_token = jwtAccessToken
+			user.refresh_token = refreshToken
+
+			return {
+				success: true,
+				message: t ? t("AUTH.LOGIN_SUCCESS") : "Login successful",
+				data: user,
+			}
+		} catch (error) {
+			console.error("Apple login error:", error)
+			return {
+				success: false,
+				message: t ? t("AUTH.APPLE_LOGIN_ERROR") : "Apple login failed",
+			}
+		}
+	}
 }
 // async function welcomeEmail(email: string, name: string) {
 // 	try {
@@ -574,5 +701,75 @@ async function verificationEmail(email: string, name: string, language: string =
 		await sendMail(email, emailSubject, html)
 	} catch (error) {
 		console.error("Verification email error:", error)
+	}
+}
+
+// Facebook JWT doğrulama fonksiyonu
+const facebookIssuer = "https://www.facebook.com"
+const facebookJwksUri = `${facebookIssuer}/.well-known/oauth/openid/jwks/`
+
+async function verifyFacebookJWT(idToken: string) {
+	try {
+		const { data } = await axios.get(facebookJwksUri)
+		const decodedToken = jwt.decode(idToken, { complete: true })
+
+		if (!decodedToken || !decodedToken.header.kid) {
+			throw new Error("Invalid token structure")
+		}
+
+		const key = data.keys.find((k: any) => k.kid === decodedToken.header.kid)
+
+		if (!key) {
+			throw new Error("Signing key not found")
+		}
+
+		const client = jwksClient({ jwksUri: facebookJwksUri })
+		const signingKey = await client.getSigningKey(key.kid)
+		const publicKey = signingKey.getPublicKey()
+
+		const payload = jwt.verify(idToken, publicKey, {
+			algorithms: ["RS256"],
+			issuer: facebookIssuer,
+		})
+
+		return payload
+	} catch (error) {
+		console.error("Facebook JWT verification error:", error)
+		throw error
+	}
+}
+
+// Apple JWT doğrulama fonksiyonu
+const appleIssuer = "https://appleid.apple.com"
+const appleJwksUri = `${appleIssuer}/auth/keys`
+
+async function verifyAppleJWT(idToken: string) {
+	try {
+		const { data } = await axios.get(appleJwksUri)
+		const decodedToken = jwt.decode(idToken, { complete: true })
+
+		if (!decodedToken || !decodedToken.header.kid) {
+			throw new Error("Invalid token structure")
+		}
+
+		const key = data.keys.find((k: any) => k.kid === decodedToken.header.kid)
+
+		if (!key) {
+			throw new Error("Signing key not found")
+		}
+
+		const client = jwksClient({ jwksUri: appleJwksUri })
+		const signingKey = await client.getSigningKey(key.kid)
+		const publicKey = signingKey.getPublicKey()
+
+		const payload = jwt.verify(idToken, publicKey, {
+			algorithms: ["RS256"],
+			issuer: appleIssuer,
+		})
+
+		return payload
+	} catch (error) {
+		console.error("Apple JWT verification error:", error)
+		throw error
 	}
 }
