@@ -19,6 +19,7 @@ export default class SalesPartnerUserController {
         sales_partner_id: string;
         status: boolean;
       };
+      console.log(sales_partner_id);
       const query = knex("sales_partner_users")
         .whereNull("sales_partner_users.deleted_at")
         .where("sales_partner_users.status", status)
@@ -26,8 +27,16 @@ export default class SalesPartnerUserController {
           "sales_partners",
           "sales_partners.id",
           "sales_partner_users.sales_partner_id"
-        )
-        .where(function () {
+        );
+
+      // sales_partner_id filtresini callback dışına taşıdık (AND koşulu olmalı)
+      if (sales_partner_id) {
+        query.where("sales_partner_users.sales_partner_id", sales_partner_id);
+      }
+
+      // Search koşulları sadece search dolu olduğunda uygulanmalı
+      if (search) {
+        query.where(function () {
           this.where(
             "sales_partner_users.name_surname",
             "ilike",
@@ -43,15 +52,17 @@ export default class SalesPartnerUserController {
           ) {
             this.orWhere("sales_partner_users.status", search.toLowerCase() === "true");
           }
-          if (sales_partner_id) {
-            this.where("sales_partner_users.sales_partner_id", sales_partner_id);
-          }
-        })
+        });
+      }
+
+      query
         .select(
           "sales_partner_users.*",
           "sales_partners.name as sales_partner_name"
         )
         .groupBy("sales_partner_users.id", "sales_partners.name");
+
+
       const countResult = await query.clone().count("* as total").first();
       const total = Number(countResult?.total ?? 0);
       const totalPages = Math.ceil(total / Number(limit));

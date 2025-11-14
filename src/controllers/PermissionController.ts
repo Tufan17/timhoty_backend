@@ -76,6 +76,8 @@ class PermissionController {
 				user = await new AdminModel().first({ id: user_id })
 			} else if (target === "solution_partner") {
 				user = await new SolutionPartnerModel().first({ id: user_id })
+			}else if (target === "sale_partner") {
+				user = await new SalesPartnerModel().first({ id: user_id })
 			}
 
 			if (!user) {
