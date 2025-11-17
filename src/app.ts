@@ -10,6 +10,7 @@ import { languageMiddleware } from "./middlewares/languageMiddleware";
 import authRoutes from "./routes/auth";
 import solutionPartnerMainRoutes from "./routes/solutionPartner";
 import salesPartnerMainRoutes from "./routes/salesPartner";
+import forceUpdateRoutes from "./routes/User/forceUpdate";
 
 // Admin Management Routes (All admin routes grouped together)
 import adminMainRoutes from "./routes/admin";
@@ -61,6 +62,12 @@ export default async function app(fastify: FastifyInstance) {
   // PAYMENT ROUTES
   // ===========================================
   fastify.register(paymentRoutes, { prefix: "/payment" });
+
+
+  // ===========================================
+  // FORCE UPDATE ROUTES
+  // ===========================================
+  fastify.register(forceUpdateRoutes, { prefix: "/force-update" });
 
   // ===========================================
   // TEST EMAIL ROUTE
