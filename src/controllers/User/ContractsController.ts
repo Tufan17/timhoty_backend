@@ -397,8 +397,8 @@ export default class UserController {
 		try {
 			const language = (req as any).language
 			let htmlContent = ""
-			if (language === "tr") {
-				htmlContent = `
+            if (language === "tr") {
+                htmlContent = `
                 <!DOCTYPE html>
                 <html lang="tr">
                     <head>
@@ -410,52 +410,57 @@ export default class UserController {
                     <body class="bg-gray-50 py-8">
                         <div class="bg-white border-1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4">
                             <div class="font-regular text-sm space-y-4">
-                                <p>Bu bölüm, web sitemiz ve Timhoty uygulamalarında kullanılan çerezleri, izleme teknolojilerini, YGK'ları ve diğer sistemleri etkinleştirmenizi veya devre dışı bırakmanız açısından bilgi sağlar.</p>
-                                <p>Farklı teknoloji grupları arasında gezinerek her bir grup hakkında ayrıntılı bilgi edinebilir ve Timhoty'nin verilerinizi paylaşabileceği üçüncü taraflar konusunda detaylı bilgilere ulaşabilirsiniz.</p>
-                                <p>Tercihleriniz tüm cihazlar ve platformlar (web sitesi ve uygulamalar) genelinde hatırlanır. Örneğin, web sitemizde bu araç üzerinden zorunlu olmayan teknolojileri kabul ettiğinizde veya reddettiğinizde, bu seçim özgün bir tanımlayıcı aracılığıyla kaydedilir. Böylece Timhoty uygulamasına giriş yaptığınızda tercihleriniz otomatik olarak uygulanır.</p>
-                                <p>Dilediğiniz zaman web sitemizde "Hesabım" veya mobil uygulama menüsündeki "Hesabım" bölümünden bu aracı yeniden açarak tercihlerinizi değiştirebilirsiniz.</p>
+                                <p>Bu bölüm, web sitemiz ve Timhoty uygulamalarında kullanılan çerezleri, izleme dışı anonim analitikleri ve diğer sistemleri etkinleştirmeniz veya devre dışı bırakmanız açısından bilgi sağlar.</p>
+                                <p>Farklı teknoloji grupları arasında gezinerek her bir grup hakkında ayrıntılı bilgi edinebilir ve verilerinizin nasıl işlendiğine dair net bilgilere ulaşabilirsiniz.</p>
+                                <p>Tercihleriniz tüm cihazlar ve platformlar genelinde hatırlanır. Tercihlerinizi dilediğiniz zaman web sitemizde veya mobil uygulamadaki "Hesabım" bölümünden güncelleyebilirsiniz.</p>
                             </div>
-
+            
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-[#FF6B00] mb-3">Kesinlikle Gerekli Teknolojiler</h3>
-                                <p class="font-regular text-sm mb-4">Bu teknolojiler, platformlarımızın temel işlevleri için zorunludur.</p>
+                                <p class="font-regular text-sm mb-4">Bu teknolojiler platformlarımızın temel işlevleri için zorunludur.</p>
                                 <ul class="list-disc list-inside space-y-2 mb-4">
                                     <li class="text-sm">Hesap oluşturma, oturum açma</li>
                                     <li class="text-sm">Gizlilik izinlerinin kaydedilmesi</li>
                                     <li class="text-sm">Rezervasyon işlemlerinin yönetimi</li>
                                     <li class="text-sm">Dil, para birimi ve tercihlerin hatırlanması</li>
-                                    <li class="text-sm">Güvenlik, erişilebilirlik, dolandırıcılık ve bot koruması</li>
+                                    <li class="text-sm">Güvenlik, erişilebilirlik ve bot koruması</li>
                                 </ul>
-                                <p class="font-semibold text-sm text-gray-700">Bu teknolojiler olmadan web sitelerimiz ve uygulamalarımız düzgün çalışmaz.</p>
+                                <p class="font-semibold text-sm text-gray-700">Bu teknolojiler olmadan platformlarımız doğru şekilde çalışmaz.</p>
                             </div>
-
+            
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-[#FF6B00] mb-3">Pazarlama Teknolojileri</h3>
-                                <p class="font-regular text-sm mb-4">Timhoty ve güvenilir iş ortaklarımız, sizlere ilgi alanlarınıza uygun sponsorlu içerik ve reklamlar sunmak için bu teknolojileri kullanır.</p>
+                                <p class="font-regular text-sm mb-4">
+                                    Timhoty yalnızca kullanıcı deneyimini geliştirmek amacıyla sınırlı pazarlama teknolojileri kullanır.
+                                    Bu teknolojiler kişisel veri takibi, reklam amaçlı profilleme veya herhangi bir üçüncü tarafla veri paylaşımı için kullanılmaz.
+                                </p>
                                 <ul class="list-disc list-inside space-y-2">
-                                    <li class="text-sm">Sitedeki gezinme ve rezervasyon bilgileri işlenir.</li>
-                                    <li class="text-sm">E-posta adresiniz (şifrelenmiş), cihaz bilgileriniz veya müşteri tanımlayıcıları üçüncü taraflarla (ör. Facebook, Google) paylaşılabilir.</li>
-                                    <li class="text-sm">Farklı cihazlar arasında bağlantı kurulabilir.</li>
-                                    <li class="text-sm">Reklam performansı ölçülür ve pazarlama stratejileri geliştirilir.</li>
+                                    <li class="text-sm">Gösterilen içeriklerin genel etkileşimi anonim olarak ölçülebilir.</li>
+                                    <li class="text-sm">Herhangi bir kişisel veri üçüncü taraflarla paylaşılmaz.</li>
+                                    <li class="text-sm">Cihazlar arası eşleştirme, reklam takibi veya kişiselleştirilmiş reklam gösterimi yapılmaz.</li>
+                                    <li class="text-sm">Tüm veriler yalnızca anonim toplu istatistiklerde değerlendirilir.</li>
                                 </ul>
                             </div>
-
+            
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-[#FF6B00] mb-3">Analitik Teknolojiler</h3>
-                                <p class="font-regular text-sm mb-4">Analitik teknolojiler, platformlarımızın nasıl kullanıldığını anlamamıza yardımcı olur.</p>
+                                <p class="font-regular text-sm mb-4">
+                                    Bu teknolojiler, platformlarımızın performansını anlamamıza ve geliştirmemize yardımcı olur.
+                                    Analitik veriler anonimdir; kullanıcı takibi, profilleme veya reklam amaçlı kullanılmaz.
+                                </p>
                                 <ul class="list-disc list-inside space-y-2">
-                                    <li class="text-sm">Kullanıcı davranışları ve etkileşimleri izlenir.</li>
-                                    <li class="text-sm">Hangi özelliklerin ilgi gördüğü ve geliştirilmesi gereken alanlar belirlenir.</li>
-                                    <li class="text-sm">Hizmetlerimizin performansı ve kullanıcı deneyimi iyileştirilir.</li>
-                                    <li class="text-sm">Pazarlama kampanyalarının etkinliği ölçülür.</li>
+                                    <li class="text-sm">Uygulama performansı, hız ve hata oranları anonim olarak ölçülür.</li>
+                                    <li class="text-sm">En sık kullanılan özellikler belirlenir.</li>
+                                    <li class="text-sm">Kullanıcı deneyimini iyileştirmek için iç analiz yapılır.</li>
+                                    <li class="text-sm">Kişisel veriler üçüncü taraflara aktarılmaz.</li>
                                 </ul>
                             </div>
-
+            
                             <div class="mt-6 pt-4 border-t border-gray-200">
-                                <p class="font-regular text-sm mb-2">Timhoty, bu bilgilerde değişiklik yapma hakkını saklı tutar. Dilediği zaman güncelleme yapabilir.</p>
+                                <p class="font-regular text-sm mb-2">Timhoty, bu bilgileri zaman zaman güncelleyebilir.</p>
                                 <p class="font-regular text-sm text-gray-600">YGK: Yönetilebilir Gizlilik Konsolu</p>
                             </div>
-
+            
                             <div class="mt-6 pt-4 border-t border-gray-200">
                                 <div class="font-semibold text-sm text-[#1173DB] mb-2">GLOBIVOY TOURISM L.L.C</div>
                                 <div class="space-y-1 text-sm">
@@ -467,66 +472,72 @@ export default class UserController {
                         </div>
                     </body>
                 </html>
-            `
-			} else if (language === "en") {
-				htmlContent = `
+                `
+            } else if (language === "en") {
+                htmlContent = `
                 <!DOCTYPE html>
                 <html lang="en">
-                <head>
+                    <head>
                         <meta charset="UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>Cookie Preferences</title>
                         <script src="https://cdn.tailwindcss.com"></script>
-                </head>
+                    </head>
                     <body class="bg-gray-50 py-8">
                         <div class="bg-white border-1 rounded-[24px] max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-[20px] px-4">
+            
                             <div class="font-regular text-sm space-y-4">
-                                <p>This section provides information about enabling or disabling cookies, tracking technologies, MPCs, and other systems used on our website and Timhoty applications.</p>
-                                <p>You can navigate through different technology groups to learn detailed information about each group and access detailed information about third parties with whom Timhoty may share your data.</p>
-                                <p>Your preferences are remembered across all devices and platforms (website and applications). For example, when you accept or reject non-essential technologies through this tool on our website, this choice is saved through a unique identifier. Thus, when you log into the Timhoty application, your preferences are automatically applied.</p>
-                                <p>You can change your preferences at any time by reopening this tool from the "My Account" section on our website or from the "My Account" section in the mobile application menu.</p>
+                                <p>This section provides information about enabling or disabling cookies, non-tracking anonymous analytics, and other systems used on our website and Timhoty applications.</p>
+                                <p>You can explore different technology groups and learn how your data is processed in a transparent way.</p>
+                                <p>Your preferences are remembered across devices and platforms. You can update them anytime through the “My Account” section.</p>
                             </div>
-
+            
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-[#FF6B00] mb-3">Strictly Necessary Technologies</h3>
-                                <p class="font-regular text-sm mb-4">These technologies are essential for the basic functions of our platforms.</p>
+                                <p class="font-regular text-sm mb-4">These technologies are essential for the core functions of our platforms.</p>
                                 <ul class="list-disc list-inside space-y-2 mb-4">
-                                    <li class="text-sm">Account creation, login</li>
+                                    <li class="text-sm">Account creation and login</li>
                                     <li class="text-sm">Saving privacy permissions</li>
                                     <li class="text-sm">Managing reservation processes</li>
-                                    <li class="text-sm">Remembering language, currency, and preferences</li>
-                                    <li class="text-sm">Security, accessibility, fraud and bot protection</li>
+                                    <li class="text-sm">Remembering language, currency and preferences</li>
+                                    <li class="text-sm">Security, accessibility and bot protection</li>
                                 </ul>
-                                <p class="font-semibold text-sm text-gray-700">Our websites and applications cannot function properly without these technologies.</p>
+                                <p class="font-semibold text-sm text-gray-700">Our platforms cannot function properly without these technologies.</p>
                             </div>
-
+            
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-[#FF6B00] mb-3">Marketing Technologies</h3>
-                                <p class="font-regular text-sm mb-4">Timhoty and our trusted business partners use these technologies to provide you with sponsored content and advertisements that match your interests.</p>
+                                <p class="font-regular text-sm mb-4">
+                                    Timhoty uses limited marketing technologies only to improve user experience.
+                                    These technologies are not used for personal data tracking, advertising profiling, or sharing any information with third parties.
+                                </p>
                                 <ul class="list-disc list-inside space-y-2">
-                                    <li class="text-sm">Navigation and reservation information on the site is processed.</li>
-                                    <li class="text-sm">Your email address (encrypted), device information, or customer identifiers may be shared with third parties (e.g., Facebook, Google).</li>
-                                    <li class="text-sm">Connections can be established between different devices.</li>
-                                    <li class="text-sm">Ad performance is measured and marketing strategies are developed.</li>
+                                    <li class="text-sm">General engagement with displayed content may be measured anonymously.</li>
+                                    <li class="text-sm">No personal data is shared with any third-party companies.</li>
+                                    <li class="text-sm">No device linking, advertising tracking, or personalized ads are performed.</li>
+                                    <li class="text-sm">All data is evaluated only as anonymous aggregated statistics.</li>
                                 </ul>
                             </div>
-
+            
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-[#FF6B00] mb-3">Analytics Technologies</h3>
-                                <p class="font-regular text-sm mb-4">Analytics technologies help us understand how our platforms are used.</p>
+                                <p class="font-regular text-sm mb-4">
+                                    Analytics technologies help us understand how our platforms perform. 
+                                    These analytics are anonymous and are not used for tracking, profiling or advertising.
+                                </p>
                                 <ul class="list-disc list-inside space-y-2">
-                                    <li class="text-sm">User behaviors and interactions are tracked.</li>
-                                    <li class="text-sm">Which features are popular and areas that need improvement are identified.</li>
-                                    <li class="text-sm">The performance of our services and user experience are improved.</li>
-                                    <li class="text-sm">The effectiveness of marketing campaigns is measured.</li>
+                                    <li class="text-sm">App speed, performance and error rates are measured anonymously.</li>
+                                    <li class="text-sm">Frequently used features are identified.</li>
+                                    <li class="text-sm">User experience improvements are made based on anonymous insights.</li>
+                                    <li class="text-sm">No personal data is shared with third-party services.</li>
                                 </ul>
                             </div>
-
+            
                             <div class="mt-6 pt-4 border-t border-gray-200">
-                                <p class="font-regular text-sm mb-2">Timhoty reserves the right to make changes to this information. It may update at any time.</p>
+                                <p class="font-regular text-sm mb-2">Timhoty may update this information at any time.</p>
                                 <p class="font-regular text-sm text-gray-600">MPC: Manageable Privacy Console</p>
                             </div>
-
+            
                             <div class="mt-6 pt-4 border-t border-gray-200">
                                 <div class="font-semibold text-sm text-[#1173DB] mb-2">GLOBIVOY TOURISM L.L.C</div>
                                 <div class="space-y-1 text-sm">
@@ -536,10 +547,11 @@ export default class UserController {
                                 </div>
                             </div>
                         </div>
-                </body>
-            </html>
-        `
-			}
+                    </body>
+                </html>
+                `
+            }
+            
 
 			return res.status(200).send({
 				success: true,
