@@ -200,6 +200,7 @@ export default class TourController {
 					const allPackagePrices = await knex("tour_package_prices")
 						.whereIn("tour_package_prices.tour_package_id", packageIds)
 						.whereNull("tour_package_prices.deleted_at")
+						.where("tour_package_prices.date", ">=", now)
 						.leftJoin("currencies", "tour_package_prices.currency_id", "currencies.id")
 						.leftJoin("currency_pivots", function () {
 							this.on("currencies.id", "currency_pivots.currency_id").andOn("currency_pivots.language_code", knex.raw("?", [language]))
@@ -385,12 +386,16 @@ export default class TourController {
 						.andOnNull("tour_gallery_pivots.deleted_at")
 				})
 
-				// Tour özellikleri
-				.leftJoin("tour_features", function () {
-					this.on("tours.id", "tour_features.tour_id").andOnNull("tour_features.deleted_at")
+				// Tour özellikleri (services_included_excluded tablosundan - type: normal)
+				.leftJoin("services_included_excluded as tour_features", function () {
+					this.on("tours.id", "tour_features.service_id")
+						.andOn("tour_features.service_type", knex.raw("?", ["tour"]))
+						.andOn("tour_features.type", knex.raw("?", ["normal"]))
+						.andOnNull("tour_features.deleted_at")
 				})
-				.leftJoin("tour_feature_pivots", function () {
-					this.on("tour_features.id", "tour_feature_pivots.tour_feature_id")
+				.leftJoin("included_excluded as tour_feature_ie", "tour_features.included_excluded_id", "tour_feature_ie.id")
+				.leftJoin("included_excluded_pivot as tour_feature_pivots", function () {
+					this.on("tour_feature_ie.id", "tour_feature_pivots.included_excluded_id")
 						.andOn("tour_feature_pivots.language_code", knex.raw("?", [language]))
 						.andOnNull("tour_feature_pivots.deleted_at")
 				})
@@ -431,12 +436,16 @@ export default class TourController {
 						.andOnNull("tour_package_opportunity_pivots.deleted_at")
 				})
 
-				// Paket özellikleri
-				.leftJoin("tour_package_features", function () {
-					this.on("tour_packages.id", "tour_package_features.tour_package_id").andOnNull("tour_package_features.deleted_at")
+				// Paket özellikleri (services_included_excluded tablosundan - type: package)
+				.leftJoin("services_included_excluded as tour_package_features", function () {
+					this.on("tour_packages.id", "tour_package_features.service_id")
+						.andOn("tour_package_features.service_type", knex.raw("?", ["tour"]))
+						.andOn("tour_package_features.type", knex.raw("?", ["package"]))
+						.andOnNull("tour_package_features.deleted_at")
 				})
-				.leftJoin("tour_package_feature_pivots", function () {
-					this.on("tour_package_features.id", "tour_package_feature_pivots.tour_package_feature_id")
+				.leftJoin("included_excluded as package_feature_ie", "tour_package_features.included_excluded_id", "package_feature_ie.id")
+				.leftJoin("included_excluded_pivot as tour_package_feature_pivots", function () {
+					this.on("package_feature_ie.id", "tour_package_feature_pivots.included_excluded_id")
 						.andOn("tour_package_feature_pivots.language_code", knex.raw("?", [language]))
 						.andOnNull("tour_package_feature_pivots.deleted_at")
 				})

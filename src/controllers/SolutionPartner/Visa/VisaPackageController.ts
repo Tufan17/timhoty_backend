@@ -175,7 +175,18 @@ export class VisaPackageController {
 			const visaPackageImages = await knex("visa_package_images").where("visa_package_images.visa_package_id", id).whereNull("visa_package_images.deleted_at").select("visa_package_images.*")
 			packageModel.visa_package_images = visaPackageImages
 
-			const visaPackageFeatures = await knex("visa_package_features").where("visa_package_features.visa_package_id", id).innerJoin("visa_package_feature_pivots", "visa_package_features.id", "visa_package_feature_pivots.visa_package_feature_id").where("visa_package_feature_pivots.language_code", req.language).whereNull("visa_package_features.deleted_at").select("visa_package_features.*", "visa_package_feature_pivots.name")
+			// VisaPackage için dahil/hariç özelliklerini getir (yeni yapı)
+			const visaPackageFeatures = await knex("services_included_excluded")
+				.where("services_included_excluded.service_id", id)
+				.where("services_included_excluded.service_type", "visa")
+				.where("services_included_excluded.type", "package")
+				.whereNull("services_included_excluded.deleted_at")
+				.innerJoin("included_excluded", "services_included_excluded.included_excluded_id", "included_excluded.id")
+				.innerJoin("included_excluded_pivot", function () {
+					this.on("included_excluded.id", "included_excluded_pivot.included_excluded_id").andOn("included_excluded_pivot.language_code", knex.raw("?", [req.language]))
+				})
+				.whereNull("included_excluded_pivot.deleted_at")
+				.select("services_included_excluded.id", "services_included_excluded.included_excluded_id", "services_included_excluded.type", "services_included_excluded.status", "included_excluded_pivot.name")
 
 			packageModel.visa_package_features = visaPackageFeatures
 

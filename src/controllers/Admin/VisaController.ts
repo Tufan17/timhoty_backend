@@ -181,7 +181,18 @@ export default class VisaController {
 				visa.country_id = country.country_id
 			}
 
-			const visaFeatures = await knex("visa_features").where("visa_features.visa_id", id).whereNull("visa_features.deleted_at").innerJoin("visa_feature_pivots", "visa_features.id", "visa_feature_pivots.visa_feature_id").where("visa_feature_pivots.language_code", req.language).select("visa_features.*", "visa_feature_pivots.name")
+			// Visa özellikleri (services_included_excluded tablosundan)
+			const visaFeatures = await knex("services_included_excluded")
+				.where("services_included_excluded.service_id", id)
+				.where("services_included_excluded.service_type", "visa")
+				.where("services_included_excluded.type", "normal")
+				.whereNull("services_included_excluded.deleted_at")
+				.innerJoin("included_excluded", "services_included_excluded.included_excluded_id", "included_excluded.id")
+				.innerJoin("included_excluded_pivot", function () {
+					this.on("included_excluded.id", "included_excluded_pivot.included_excluded_id").andOn("included_excluded_pivot.language_code", knex.raw("?", [req.language]))
+				})
+				.whereNull("included_excluded_pivot.deleted_at")
+				.select("services_included_excluded.id", "services_included_excluded.included_excluded_id", "services_included_excluded.type", "services_included_excluded.status", "included_excluded_pivot.name")
 			visa.visa_features = visaFeatures
 
 			const visaGalleries = await knex("visa_galleries").where("visa_galleries.visa_id", id).whereNull("visa_galleries.deleted_at").leftJoin("visa_gallery_pivot", "visa_galleries.id", "visa_gallery_pivot.visa_gallery_id").where("visa_gallery_pivot.language_code", req.language).whereNull("visa_gallery_pivot.deleted_at").select("visa_galleries.*", "visa_gallery_pivot.category")
@@ -243,7 +254,7 @@ export default class VisaController {
 				// Activity onaylandı - Manager kullanıcısına onay maili gönder
 				const managerUser = await new SolutionPartnerUserModel().first({
 					solution_partner_id: existingVisa.solution_partner_id,
-					type: "manager"
+					type: "manager",
 				})
 				if (managerUser) {
 					const language = managerUser.language_code || "tr"
@@ -255,7 +266,7 @@ export default class VisaController {
 				// Activity reddedildi - Manager kullanıcısına red maili gönder
 				const managerUser = await new SolutionPartnerUserModel().first({
 					solution_partner_id: existingVisa.solution_partner_id,
-					type: "manager"
+					type: "manager",
 				})
 				if (managerUser) {
 					const language = managerUser.language_code || "tr"
@@ -280,74 +291,50 @@ export default class VisaController {
 		}
 	}
 }
-async function sendMailServiceApproved(
-  email: string,
-  nameSurname: string,
-  language: string = "tr"
-) {
-  try {
-    const sendMail = (await import("@/utils/mailer")).default;
-    const path = require("path");
-    const fs = require("fs");
+async function sendMailServiceApproved(email: string, nameSurname: string, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
 
-    // Dil bazlı template dosyası seçimi
-    const templateFileName = language === "en"
-      ? "service_received_approval_solution_en.html"
-      : "service_received_approval_solution_tr.html";
+		// Dil bazlı template dosyası seçimi
+		const templateFileName = language === "en" ? "service_received_approval_solution_en.html" : "service_received_approval_solution_tr.html"
 
-    const emailTemplatePath = path.join(
-      process.cwd(),
-      "emails",
-      templateFileName
-    );
-    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
-    const uploadsUrl = process.env.UPLOADS_URL;
-    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
-    html = html.replace(/\{\{name\}\}/g, nameSurname);
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+		html = html.replace(/\{\{name\}\}/g, nameSurname)
 
-    // Dil bazlı email başlığı
-    const emailSubject = language === "en"
-      ? "Timhoty - Your Service Approved"
-      : "Timhoty - Hizmetiniz Onaylandı";
+		// Dil bazlı email başlığı
+		const emailSubject = language === "en" ? "Timhoty - Your Service Approved" : "Timhoty - Hizmetiniz Onaylandı"
 
-    await sendMail(email, emailSubject, html);
-  } catch (error) {
-    console.error("Service approved email error:", error);
-  }
+		await sendMail(email, emailSubject, html)
+	} catch (error) {
+		console.error("Service approved email error:", error)
+	}
 }
 
-async function sendMailServiceRejected(
-  email: string,
-  nameSurname: string,
-  language: string = "tr"
-) {
-  try {
-    const sendMail = (await import("@/utils/mailer")).default;
-    const path = require("path");
-    const fs = require("fs");
+async function sendMailServiceRejected(email: string, nameSurname: string, language: string = "tr") {
+	try {
+		const sendMail = (await import("@/utils/mailer")).default
+		const path = require("path")
+		const fs = require("fs")
 
-    // Dil bazlı template dosyası seçimi
-    const templateFileName = language === "en"
-      ? "service_received_reject_solution_en.html"
-      : "service_received_reject_solution_tr.html";
+		// Dil bazlı template dosyası seçimi
+		const templateFileName = language === "en" ? "service_received_reject_solution_en.html" : "service_received_reject_solution_tr.html"
 
-    const emailTemplatePath = path.join(
-      process.cwd(),
-      "emails",
-      templateFileName
-    );
-    const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8");
-    const uploadsUrl = process.env.UPLOADS_URL;
-    let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl);
-    html = html.replace(/\{\{name\}\}/g, nameSurname);
+		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
+		const testEmailHtml = fs.readFileSync(emailTemplatePath, "utf8")
+		const uploadsUrl = process.env.UPLOADS_URL
+		let html = testEmailHtml.replace(/\{\{uploads_url\}\}/g, uploadsUrl)
+		html = html.replace(/\{\{name\}\}/g, nameSurname)
 
-    // Dil bazlı email başlığı
-    const emailSubject = language === "en"
-      ? "Timhoty - Your Service Rejected"
-      : "Timhoty - Hizmetiniz Reddedildi";
+		// Dil bazlı email başlığı
+		const emailSubject = language === "en" ? "Timhoty - Your Service Rejected" : "Timhoty - Hizmetiniz Reddedildi"
 
-    await sendMail(email, emailSubject, html);
-  } catch (error) {
-    console.error("Service rejected email error:", error);
-  }
+		await sendMail(email, emailSubject, html)
+	} catch (error) {
+		console.error("Service rejected email error:", error)
+	}
 }
