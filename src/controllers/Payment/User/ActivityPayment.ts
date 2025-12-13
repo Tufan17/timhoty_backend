@@ -1,13 +1,12 @@
 import { FastifyReply } from "fastify"
 import { FastifyRequest } from "fastify"
 import { tapPaymentsService } from "@/services/Payment"
-import dotenv from "dotenv"
-import path from "path"
 import ActivityReservationModel from "@/models/ActivityReservationModel"
 import ActivityReservationUserModel from "@/models/ActivityReservationUserModel"
 import ActivityReservationInvoiceModel from "@/models/ActivityReservationInvoiceModel"
 import UserModel from "@/models/UserModel"
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") })
+import ActivityFreeServiceModel from "@/models/ActivityFreeServiceModel"
+
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
 
 interface CreatePaymentRequest {
@@ -47,6 +46,12 @@ interface CreatePaymentRequest {
 	different_invoice?: boolean
 	package_id?: string
 	hour_id?: string
+	pickup_location?: {
+		name: string
+		address: string
+		lat: number
+		lng: number
+	}
 }
 
 interface PaymentStatusRequest {
@@ -66,7 +71,7 @@ class UserVisaPayment {
 	 */
 	async createPaymentIntent(req: FastifyRequest<{ Body: CreatePaymentRequest }>, res: FastifyReply) {
 		try {
-			const { amount, currency = "USD", customer, activity_id, booking_id, description, date, users, different_invoice, package_id, hour_id } = req.body
+			const { amount, currency = "USD", customer, activity_id, booking_id, description, date, users, different_invoice, package_id, hour_id, pickup_location } = req.body
 
 			const user = (req as any).user
 			// Validate required fields
@@ -109,6 +114,12 @@ class UserVisaPayment {
 				return res.status(400).send({
 					success: false,
 					message: "Hour ID is required",
+				})
+			}
+			if (!pickup_location) {
+				return res.status(400).send({
+					success: false,
+					message: "Pickup location is required",
 				})
 			}
 
@@ -188,6 +199,19 @@ class UserVisaPayment {
 						const userModel = new ActivityReservationUserModel()
 						await userModel.create(body_user)
 					}
+				}
+				if (pickup_location) {
+					const body_free_service = {
+						activity_reservation_id: reservation.id,
+						user_id: user.id,
+						activity_id: activity_id,
+						lat: pickup_location.lat,
+						lng: pickup_location.lng,
+						address: pickup_location.address,
+						address_name: pickup_location.name,
+					}
+					const freeServiceModel = new ActivityFreeServiceModel()
+					await freeServiceModel.create(body_free_service)
 				}
 			}
 
@@ -426,7 +450,7 @@ async function reservationConfirmationEmail(email: string, name: string, reserva
 		const guestsCount = reservationDetails.guests ? (Array.isArray(reservationDetails.guests) ? reservationDetails.guests.length : 1) : 1
 		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
 
-		const priceInMainCurrency = (reservationDetails.price).toFixed(2)
+		const priceInMainCurrency = reservationDetails.price.toFixed(2)
 		html = html.replace(/\{\{price\}\}/g, priceInMainCurrency)
 		html = html.replace(/\{\{total\}\}/g, priceInMainCurrency)
 		html = html.replace(/\{\{currency\}\}/g, reservationDetails.currency_code || "USD")
@@ -435,8 +459,6 @@ async function reservationConfirmationEmail(email: string, name: string, reserva
 		html = html.replace(/\{\{discount\}\}/g, "0")
 
 		const emailSubject = language === "en" ? "Timhoty - Reservation Confirmation" : "Timhoty - Rezervasyon Onayı"
-
-
 
 		await sendMail(email, emailSubject, html)
 		console.log("Reservation confirmation email sent to:", email)
@@ -460,7 +482,7 @@ async function sendPartnerNotificationEmail(reservationDetails: any, customer: a
 		// Solution partner'ın manager kullanıcısını bul
 		const managerUser = await new SolutionPartnerUserModel().first({
 			solution_partner_id: activity.solution_partner_id,
-			type: "manager"
+			type: "manager",
 		})
 
 		if (!managerUser) {
@@ -474,9 +496,7 @@ async function sendPartnerNotificationEmail(reservationDetails: any, customer: a
 
 		// Dil bazlı template dosyası seçimi
 		const language = managerUser.language_code || "tr"
-		const templateFileName = language === "en"
-			? "reservation_solution_en.html"
-			: "reservation_solution_tr.html"
+		const templateFileName = language === "en" ? "reservation_solution_en.html" : "reservation_solution_tr.html"
 
 		const emailTemplatePath = path.join(process.cwd(), "emails", templateFileName)
 		const emailHtml = fs.readFileSync(emailTemplatePath, "utf8")
@@ -522,8 +542,7 @@ async function sendPartnerNotificationEmail(reservationDetails: any, customer: a
 		html = html.replace(/\{\{guests\}\}/g, guestsCount.toString())
 
 		// Fiyat bilgileri
-		const totalAmount = (reservationDetails.price ).toFixed(2)
-
+		const totalAmount = reservationDetails.price.toFixed(2)
 
 		html = html.replace(/\{\{total\}\}/g, totalAmount)
 
@@ -538,9 +557,7 @@ async function sendPartnerNotificationEmail(reservationDetails: any, customer: a
 		}
 
 		// Email başlığı
-		const emailSubject = language === "en"
-			? "Timhoty - New Reservation Notification"
-			: "Timhoty - Yeni Rezervasyon Bildiriminiz"
+		const emailSubject = language === "en" ? "Timhoty - New Reservation Notification" : "Timhoty - Yeni Rezervasyon Bildiriminiz"
 
 		await sendMail(managerUser.email, emailSubject, html)
 		console.log("Partner notification email sent to:", managerUser.email)
