@@ -77,7 +77,8 @@ export default class ActivityController {
 					"activities.comment_count",
 					"activities.duration",
 					"activities.map_location",
-					"activities.approval_period"
+					"activities.approval_period",
+					"activities.free_purchase"
 				)
 
 			// Get cover images (Kapak Resmi) for all activities

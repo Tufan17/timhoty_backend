@@ -26,6 +26,15 @@ class TourModel extends BaseModel {
 		}
 	}
 
+	async getDashboardToursCount(): Promise<number> {
+		const result = await knex("tours")
+			.whereNull("tours.deleted_at")
+			.where("tours.status", true)
+			.where("tours.admin_approval", true)
+			.countDistinct("tours.id as count")
+			.first()
+		return result?.count ? Number(result?.count) : 0
+	}
 	private async getToursByHighlightStatus(language: string, isHighlighted: boolean, limit?: number): Promise<any[]> {
 		try {
 			const now = new Date()
