@@ -1,6 +1,9 @@
 import type { Knex } from "knex"
 
 export async function up(knex: Knex): Promise<void> {
+	const exists = await knex.schema.hasTable("activity_free_service")
+	if (exists) return
+
 	return knex.schema.createTable("activity_free_service", table => {
 		table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"))
 		table.uuid("activity_reservation_id").nullable().references("id").inTable("activity_reservations").onDelete("CASCADE")
