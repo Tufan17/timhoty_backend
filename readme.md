@@ -1,4 +1,4 @@
-# Uygunsec
+# Timhoty
 
 Bu proje, PostgreSQL veritabanı ile birlikte Knex.js kullanılarak geliştirilmiştir. Aşağıda veritabanı kurulumu, migration işlemleri ve temel komutlar yer almaktadır.
 
