@@ -8,7 +8,6 @@ export default class TourController {
 			const language = (req as any).language
 
 			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, period, departure_point_id } = req.query as any
-
 			// Toplam sayıyı al (groupBy olmadan)
 			const countResult = await knex("tours")
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
