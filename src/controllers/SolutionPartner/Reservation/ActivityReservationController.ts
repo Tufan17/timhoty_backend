@@ -152,6 +152,8 @@ export default class ActivityReservationController {
 				}
 			})
 
+			console.log(formattedData)
+
 			return res.status(200).send({
 				success: true,
 				message: req.t("RESERVATION.RESERVATIONS_FETCHED_SUCCESS") || "Rezervasyonlar başarıyla getirildi",
@@ -194,6 +196,12 @@ export default class ActivityReservationController {
 					"activity_package_pivots.name as package_name",
 					"activity_package_hours.hour as activity_hour",
 					"activity_package_hours.minute as activity_minute",
+					"activity_free_service.address as pickup_address",
+					"activity_free_service.address_name as pickup_address_name",
+					"activity_free_service.lat as pickup_lat",
+					"activity_free_service.lng as pickup_lng",
+					"users.name_surname as pickup_user_name_surname",
+
 					// 1 tane fotoğraf gelsin: subquery ile ilk fotoğrafı alıyoruz
 					knex.raw(`(
 						SELECT image_url
@@ -230,9 +238,13 @@ export default class ActivityReservationController {
 				})
 				// Package hour bilgileri için join
 				.leftJoin("activity_package_hours", "activity_reservations.activity_package_hour_id", "activity_package_hours.id")
+				.leftJoin("activity_free_service", function () {
+					this.on("activity_reservations.id", "=", "activity_free_service.activity_reservation_id").andOnNull("activity_free_service.deleted_at")
+				})
+				.leftJoin("users", "activity_free_service.user_id", "users.id")
 				.leftJoin("activity_reservation_users", "activity_reservations.id", "activity_reservation_users.activity_reservation_id")
 				.whereNull("activity_reservation_users.deleted_at")
-				.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute")
+				.groupBy("activity_reservations.id", "activity_pivots.title", "city_pivots.name", "country_pivots.name", "activity_package_pivots.name", "activity_package_hours.hour", "activity_package_hours.minute", "activity_free_service.address", "activity_free_service.address_name", "activity_free_service.lat", "activity_free_service.lng", "users.name_surname")
 				.first()
 
 			if (!reservation) {

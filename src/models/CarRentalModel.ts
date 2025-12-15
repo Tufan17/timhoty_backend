@@ -27,6 +27,16 @@ class CarRentalModel extends BaseModel {
 		}
 	}
 
+	async getDashboardCarRentalsCount(): Promise<number> {
+		const result = await knex("car_rentals")
+			.whereNull("car_rentals.deleted_at")
+			.where("car_rentals.status", true)
+			.where("car_rentals.admin_approval", true)
+			.countDistinct("car_rentals.id as count")
+			.first()
+		return result?.count ? Number(result?.count) : 0
+	}
+
 	private async getCarRentalsByHighlightStatus(language: string, isHighlighted: boolean, limit?: number): Promise<any[]> {
 		try {
 			const now = new Date()

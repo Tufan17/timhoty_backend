@@ -12,6 +12,7 @@ import VisaPackagePriceModel from "@/models/VisaPackagePriceModel"
 import VisaPackageImageModel from "@/models/VisaPackageImageModel"
 import VisaPackageFeatureModel from "@/models/VisaPackageFeatureModel"
 import CountryModel from "@/models/CountryModel"
+import ServiceIncludedExcludedModel from "@/models/ServiceIncludedExcludedModal"
 export default class VisaController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
 		try {
@@ -161,7 +162,18 @@ export default class VisaController {
 				visa.country_id = country.country_id
 			}
 
-			const visaFeatures = await knex("visa_features").where("visa_features.visa_id", id).whereNull("visa_features.deleted_at").innerJoin("visa_feature_pivots", "visa_features.id", "visa_feature_pivots.visa_feature_id").where("visa_feature_pivots.language_code", req.language).select("visa_features.*", "visa_feature_pivots.name")
+			// Visa için dahil/hariç özelliklerini getir (yeni yapı)
+			const visaFeatures = await knex("services_included_excluded")
+				.where("services_included_excluded.service_id", id)
+				.where("services_included_excluded.service_type", "visa")
+				.where("services_included_excluded.type", "normal")
+				.whereNull("services_included_excluded.deleted_at")
+				.innerJoin("included_excluded", "services_included_excluded.included_excluded_id", "included_excluded.id")
+				.innerJoin("included_excluded_pivot", function () {
+					this.on("included_excluded.id", "included_excluded_pivot.included_excluded_id").andOn("included_excluded_pivot.language_code", knex.raw("?", [req.language]))
+				})
+				.whereNull("included_excluded_pivot.deleted_at")
+				.select("services_included_excluded.id", "services_included_excluded.included_excluded_id", "services_included_excluded.type", "services_included_excluded.status", "included_excluded_pivot.name")
 			visa.visa_features = visaFeatures
 
 			const visaGalleries = await knex("visa_galleries").where("visa_galleries.visa_id", id).whereNull("visa_galleries.deleted_at").leftJoin("visa_gallery_pivot", "visa_galleries.id", "visa_gallery_pivot.visa_gallery_id").where("visa_gallery_pivot.language_code", req.language).whereNull("visa_gallery_pivot.deleted_at").select("visa_galleries.*", "visa_gallery_pivot.category")
@@ -400,15 +412,21 @@ export default class VisaController {
 			})
 
 			// console.log("activityPackageOpportunities", activityPackageOpportunities)
-			let visaFeatures = await new VisaFeatureModel().exists({
-				visa_id: id,
+			// Visa özellikleri kontrolü (services_included_excluded tablosundan)
+			let visaFeatures = await new ServiceIncludedExcludedModel().exists({
+				service_id: id,
+				service_type: "visa",
+				type: "normal",
 			})
 
 			let visaPackagesImages = await new VisaPackageImageModel().exists({
 				visa_package_id: visaPackages?.id,
 			})
-			let visaPackageFeatures = await new VisaPackageFeatureModel().exists({
-				visa_package_id: visaPackages?.id,
+			// Package özellikleri kontrolü (services_included_excluded tablosundan)
+			let visaPackageFeatures = await new ServiceIncludedExcludedModel().exists({
+				service_id: visaPackages?.id,
+				service_type: "visa",
+				type: "package",
 			})
 
 			let visaPackagesPrices = await new VisaPackagePriceModel().exists({

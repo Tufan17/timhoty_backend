@@ -51,6 +51,7 @@ import stationRoutes from "./Admin/station"
 import discountCodeRoutes from "./Admin/discountCode"
 import discountProductRoutes from "./Admin/discountProduct"
 import adminCommentRoutes from "./Admin/comments"
+import includedExcludedRoutes from "./Admin/includedExcluded"
 
 export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// ===========================================
@@ -159,4 +160,8 @@ export default async function adminMainRoutes(fastify: FastifyInstance) {
 	// COMMENTS ROUTES
 	// ===========================================
 	fastify.register(adminCommentRoutes, { prefix: "/comments" })
+	// ===========================================
+	// INCLUDED EXCLUDED ROUTES
+	// ===========================================
+	fastify.register(includedExcludedRoutes, { prefix: "/included-excluded" })
 }

@@ -202,12 +202,18 @@ export class ActivityPackageController {
 				})
 			}
 
-			const activityPackageFeatures = await knex("activity_package_features")
-				.where("activity_package_features.activity_package_id", id)
-				.whereNull("activity_package_features.deleted_at")
-				.innerJoin("activity_package_feature_pivots", "activity_package_features.id", "activity_package_feature_pivots.activity_package_feature_id")
-				.where("activity_package_feature_pivots.language_code", (req as any).language)
-				.select("activity_package_features.*", "activity_package_feature_pivots.name")
+			// ActivityPackage için dahil/hariç özelliklerini getir (yeni yapı)
+			const activityPackageFeatures = await knex("services_included_excluded")
+				.where("services_included_excluded.service_id", id)
+				.where("services_included_excluded.service_type", "activity")
+				.where("services_included_excluded.type", "package")
+				.whereNull("services_included_excluded.deleted_at")
+				.innerJoin("included_excluded", "services_included_excluded.included_excluded_id", "included_excluded.id")
+				.innerJoin("included_excluded_pivot", function () {
+					this.on("included_excluded.id", "included_excluded_pivot.included_excluded_id").andOn("included_excluded_pivot.language_code", knex.raw("?", [(req as any).language]))
+				})
+				.whereNull("included_excluded_pivot.deleted_at")
+				.select("services_included_excluded.id", "services_included_excluded.included_excluded_id", "services_included_excluded.type", "services_included_excluded.status", "included_excluded_pivot.name")
 			packageModel.activity_package_features = activityPackageFeatures
 
 			const activityPackageImages = await knex("activity_package_images").where("activity_package_images.activity_package_id", id).whereNull("activity_package_images.deleted_at").select("activity_package_images.*")

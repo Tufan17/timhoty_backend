@@ -14,6 +14,7 @@ import TourPackageFeatureModel from "@/models/TourPackageFeatureModel"
 import TourPackageModel from "@/models/TourPackageModel"
 import TourPackagePriceModel from "@/models/TourPackagePriceModel"
 import TourPackagePivotModel from "@/models/TourPackagePivotModel"
+import ServiceIncludedExcludedModel from "@/models/ServiceIncludedExcludedModal"
 
 export default class TourController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -138,13 +139,18 @@ export default class TourController {
 
 			tour.tour_galleries = tourGalleries
 
-			const tourFeatures = await knex("tour_features")
-				.where("tour_features.tour_id", id)
-				.whereNull("tour_features.deleted_at")
-				.innerJoin("tour_feature_pivots", "tour_features.id", "tour_feature_pivots.tour_feature_id")
-				.where("tour_feature_pivots.language_code", (req as any).language)
-				.whereNull("tour_feature_pivots.deleted_at")
-				.select("tour_features.*", "tour_feature_pivots.name")
+			// Tour için dahil/hariç özelliklerini getir (yeni yapı)
+			const tourFeatures = await knex("services_included_excluded")
+				.where("services_included_excluded.service_id", id)
+				.where("services_included_excluded.service_type", "tour")
+				.where("services_included_excluded.type", "normal")
+				.whereNull("services_included_excluded.deleted_at")
+				.innerJoin("included_excluded", "services_included_excluded.included_excluded_id", "included_excluded.id")
+				.innerJoin("included_excluded_pivot", function () {
+					this.on("included_excluded.id", "included_excluded_pivot.included_excluded_id").andOn("included_excluded_pivot.language_code", knex.raw("?", [(req as any).language]))
+				})
+				.whereNull("included_excluded_pivot.deleted_at")
+				.select("services_included_excluded.id", "services_included_excluded.included_excluded_id", "services_included_excluded.type", "services_included_excluded.status", "included_excluded_pivot.name")
 			tour.tour_features = tourFeatures
 
 			const tourPrograms = await knex("tour_programs")
@@ -453,9 +459,13 @@ export default class TourController {
 				tour_id: id,
 			})
 
-			let tourFeatures = await new TourFeatureModel().exists({
-				tour_id: id,
+			// Tour özellikleri kontrolü (services_included_excluded tablosundan)
+			let tourFeatures = await new ServiceIncludedExcludedModel().exists({
+				service_id: id,
+				service_type: "tour",
+				type: "normal",
 			})
+
 			let tourLocations = await new TourLocationModel().exists({
 				tour_id: id,
 			})
@@ -471,8 +481,12 @@ export default class TourController {
 			let tourDeparturePoints = await new TourDeparturePointModel().exists({
 				tour_id: id,
 			})
-			let tourPackageFeatures = await new TourPackageFeatureModel().exists({
-				tour_package_id: tourPackages?.id,
+
+			// Package özellikleri kontrolü (services_included_excluded tablosundan)
+			let tourPackageFeatures = await new ServiceIncludedExcludedModel().exists({
+				service_id: tourPackages?.id,
+				service_type: "tour",
+				type: "package",
 			})
 			let tourPackageOpportunities = await new TourPackageOpportunityModel().exists({
 				tour_package_id: tourPackages?.id,

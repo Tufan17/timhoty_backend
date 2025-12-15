@@ -77,7 +77,8 @@ export default class ActivityController {
 					"activities.comment_count",
 					"activities.duration",
 					"activities.map_location",
-					"activities.approval_period"
+					"activities.approval_period",
+					"activities.free_purchase"
 				)
 
 			// Get cover images (Kapak Resmi) for all activities
@@ -325,12 +326,17 @@ export default class ActivityController {
 						.andOnNull("activity_gallery_pivots.deleted_at")
 				})
 
-				// Activity özellikleri
-				.leftJoin("activity_features", "activities.id", "activity_features.activity_id")
-				.leftJoin("activity_feature_pivots", function () {
-					this.on("activity_features.id", "activity_feature_pivots.activity_feature_id")
-						.andOn("activity_feature_pivots.language_code", knex.raw("?", [language]))
+				// Activity özellikleri (services_included_excluded tablosundan - type: normal)
+				.leftJoin("services_included_excluded as activity_features", function () {
+					this.on("activities.id", "activity_features.service_id")
+						.andOn("activity_features.service_type", knex.raw("?", ["activity"]))
+						.andOn("activity_features.type", knex.raw("?", ["normal"]))
 						.andOnNull("activity_features.deleted_at")
+				})
+				.leftJoin("included_excluded as activity_feature_ie", "activity_features.included_excluded_id", "activity_feature_ie.id")
+				.leftJoin("included_excluded_pivot as activity_feature_pivots", function () {
+					this.on("activity_feature_ie.id", "activity_feature_pivots.included_excluded_id")
+						.andOn("activity_feature_pivots.language_code", knex.raw("?", [language]))
 						.andOnNull("activity_feature_pivots.deleted_at")
 				})
 
@@ -373,12 +379,16 @@ export default class ActivityController {
 						.andOnNull("activity_package_opportunity_pivots.deleted_at")
 				})
 
-				// Paket özellikleri
-				.leftJoin("activity_package_features", function () {
-					this.on("activity_packages.id", "activity_package_features.activity_package_id").andOnNull("activity_package_features.deleted_at")
+				// Paket özellikleri (services_included_excluded tablosundan - type: package)
+				.leftJoin("services_included_excluded as activity_package_features", function () {
+					this.on("activity_packages.id", "activity_package_features.service_id")
+						.andOn("activity_package_features.service_type", knex.raw("?", ["activity"]))
+						.andOn("activity_package_features.type", knex.raw("?", ["package"]))
+						.andOnNull("activity_package_features.deleted_at")
 				})
-				.leftJoin("activity_package_feature_pivots", function () {
-					this.on("activity_package_features.id", "activity_package_feature_pivots.activity_package_feature_id")
+				.leftJoin("included_excluded as package_feature_ie", "activity_package_features.included_excluded_id", "package_feature_ie.id")
+				.leftJoin("included_excluded_pivot as activity_package_feature_pivots", function () {
+					this.on("package_feature_ie.id", "activity_package_feature_pivots.included_excluded_id")
 						.andOn("activity_package_feature_pivots.language_code", knex.raw("?", [language]))
 						.andOnNull("activity_package_feature_pivots.deleted_at")
 				})

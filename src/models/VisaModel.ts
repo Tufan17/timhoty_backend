@@ -26,6 +26,16 @@ class VisaModel extends BaseModel {
 		}
 	}
 
+	async getDashboardVisasCount(): Promise<number> {
+		const result = await knex("visas")
+			.whereNull("visas.deleted_at")
+			.where("visas.status", true)
+			.where("visas.admin_approval", true)
+			.countDistinct("visas.id as count")
+			.first()
+		return result?.count ? Number(result?.count) : 0
+	}
+
 	private async getVisasByHighlightStatus(language: string, isHighlighted: boolean, limit?: number): Promise<any[]> {
 		try {
 			const now = new Date()

@@ -254,12 +254,16 @@ export default class VisaController {
 						.andOnNull("visa_gallery_pivot.deleted_at")
 				})
 
-				// Visa özellikleri
-				.leftJoin("visa_features", function () {
-					this.on("visas.id", "visa_features.visa_id").andOnNull("visa_features.deleted_at")
+				// Visa özellikleri (services_included_excluded tablosundan - type: normal)
+				.leftJoin("services_included_excluded as visa_features", function () {
+					this.on("visas.id", "visa_features.service_id")
+						.andOn("visa_features.service_type", knex.raw("?", ["visa"]))
+						.andOn("visa_features.type", knex.raw("?", ["normal"]))
+						.andOnNull("visa_features.deleted_at")
 				})
-				.leftJoin("visa_feature_pivots", function () {
-					this.on("visa_features.id", "visa_feature_pivots.visa_feature_id")
+				.leftJoin("included_excluded as visa_feature_ie", "visa_features.included_excluded_id", "visa_feature_ie.id")
+				.leftJoin("included_excluded_pivot as visa_feature_pivots", function () {
+					this.on("visa_feature_ie.id", "visa_feature_pivots.included_excluded_id")
 						.andOn("visa_feature_pivots.language_code", knex.raw("?", [language]))
 						.andOnNull("visa_feature_pivots.deleted_at")
 				})
@@ -299,12 +303,16 @@ export default class VisaController {
 					this.on("visa_packages.id", "visa_package_images.visa_package_id").andOnNull("visa_package_images.deleted_at")
 				})
 
-				// Paket özellikleri
-				.leftJoin("visa_package_features", function () {
-					this.on("visa_packages.id", "visa_package_features.visa_package_id").andOnNull("visa_package_features.deleted_at")
+				// Paket özellikleri (services_included_excluded tablosundan - type: package)
+				.leftJoin("services_included_excluded as visa_package_features", function () {
+					this.on("visa_packages.id", "visa_package_features.service_id")
+						.andOn("visa_package_features.service_type", knex.raw("?", ["visa"]))
+						.andOn("visa_package_features.type", knex.raw("?", ["package"]))
+						.andOnNull("visa_package_features.deleted_at")
 				})
-				.leftJoin("visa_package_feature_pivots", function () {
-					this.on("visa_package_features.id", "visa_package_feature_pivots.visa_package_feature_id")
+				.leftJoin("included_excluded as package_feature_ie", "visa_package_features.included_excluded_id", "package_feature_ie.id")
+				.leftJoin("included_excluded_pivot as visa_package_feature_pivots", function () {
+					this.on("package_feature_ie.id", "visa_package_feature_pivots.included_excluded_id")
 						.andOn("visa_package_feature_pivots.language_code", knex.raw("?", [language]))
 						.andOnNull("visa_package_feature_pivots.deleted_at")
 				})

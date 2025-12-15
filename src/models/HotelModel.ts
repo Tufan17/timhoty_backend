@@ -27,6 +27,16 @@ class HotelModel extends BaseModel {
 		}
 	}
 
+	async getDashboardHotelsCount(): Promise<number> {
+		const result = await knex("hotels")
+			.whereNull("hotels.deleted_at")
+			.where("hotels.status", true)
+			.where("hotels.admin_approval", true)
+			.countDistinct("hotels.id as count")
+			.first()
+		return result?.count ? Number(result.count) : 0
+	}
+
 	private async getHotelsByHighlightStatus(language: string, isHighlighted: boolean, limit?: number): Promise<any[]> {
 		try {
 			const now = new Date()

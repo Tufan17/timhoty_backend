@@ -64,6 +64,66 @@ export default class DashboardController {
 		}
 	}
 
+	async mobile(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const language = (req as any).language || "en"
+
+			const campaignModel = new CampaignModel()
+			const blogModel = new BlogModel()
+			const locationModel = new CityModel()
+			const hotelModel = new HotelModel()
+			const tourModel = new TourModel()
+			const carRentalModel = new CarRentalModel()
+			const visaModel = new VisaModel()
+			const faqModel = new FaqModel()
+			const activityModel = new ActivityModel()
+
+			const [campaigns, blogs, locations, hotels, hotelCount, tours, tourCount, carRentals, carRentalCount, visas, visaCount, faqs, activities, activityCount] = await Promise.all([
+				campaignModel.getDashboardCampaigns(language),
+				blogModel.getDashboardBlogs(language),
+				locationModel.getDashboardCities(language),
+				hotelModel.getDashboardHotels(language),
+				hotelModel.getDashboardHotelsCount(),
+				tourModel.getDashboardTours(language),
+				tourModel.getDashboardToursCount(),
+				carRentalModel.getDashboardCarRentals(language),
+				carRentalModel.getDashboardCarRentalsCount(),
+				visaModel.getDashboardVisas(language),
+				visaModel.getDashboardVisasCount(),
+				faqModel.getDashboardFaqs(language),
+				activityModel.getDashboardActivities(language),
+				activityModel.getDashboardActivitiesCount(),
+			]);
+
+			return res.status(200).send({
+				success: true,
+				message: "Dashboard data fetched successfully",
+				data: {
+					campaigns,
+					blogs,
+					locations,
+					hotels,
+					tours,
+					carRentals,
+					visas,
+					faqs,
+					activities,
+					hotelCount,
+					tourCount,
+					carRentalCount,
+					visaCount,
+					activityCount,
+				},
+			})
+		} catch (error) {
+			console.error("Dashboard error:", error)
+			return res.status(500).send({
+				success: false,
+				message: "Dashboard data fetch failed",
+			})
+		}
+	}
+
 	async campaigns(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const language = (req as any).language

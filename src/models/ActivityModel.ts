@@ -24,6 +24,15 @@ class ActivityModel extends BaseModel {
 			return []
 		}
 	}
+	async getDashboardActivitiesCount(): Promise<number> {
+		const result = await knex("activities")
+			.whereNull("activities.deleted_at")
+			.where("activities.status", true)
+			.where("activities.admin_approval", true)
+			.countDistinct("activities.id as count")
+			.first()
+		return result?.count ? Number(result?.count) : 0
+	}
 	private async getActivitiesByHighlightStatus(language: string, isHighlighted: boolean, limit?: number): Promise<any[]> {
 		try {
 			const now = new Date()

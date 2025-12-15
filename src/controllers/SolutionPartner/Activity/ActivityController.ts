@@ -13,6 +13,7 @@ import ActivityPackageHourModel from "@/models/ActivityPackageHourModel"
 import ActivityPackageImageModel from "@/models/ActivityPackageImageModel"
 import ActivityPackageModel from "@/models/ActivityPackageModel"
 import ActivityPackagePriceModel from "@/models/ActivityPackagePriceModel"
+import ServiceIncludedExcludedModel from "@/models/ServiceIncludedExcludedModal"
 
 export default class ActivityController {
 	async dataTable(req: FastifyRequest, res: FastifyReply) {
@@ -187,7 +188,18 @@ export default class ActivityController {
 				const activityType = await knex("activity_types").where("activity_types.id", activity.activity_type_id).innerJoin("activities_type_pivots", "activity_types.id", "activities_type_pivots.activity_type_id").where("activities_type_pivots.language_code", req.language).select("activity_types.*", "activities_type_pivots.name as activity_type_name").first()
 				activity.activity_type = activityType
 			}
-			const activityFeatures = await knex("activity_features").where("activity_features.activity_id", id).innerJoin("activity_feature_pivots", "activity_features.id", "activity_feature_pivots.activity_feature_id").where("activity_feature_pivots.language_code", req.language).whereNull("activity_features.deleted_at").select("activity_features.*", "activity_feature_pivots.name")
+			// Activity için dahil/hariç özelliklerini getir (yeni yapı)
+			const activityFeatures = await knex("services_included_excluded")
+				.where("services_included_excluded.service_id", id)
+				.where("services_included_excluded.service_type", "activity")
+				.where("services_included_excluded.type", "normal")
+				.whereNull("services_included_excluded.deleted_at")
+				.innerJoin("included_excluded", "services_included_excluded.included_excluded_id", "included_excluded.id")
+				.innerJoin("included_excluded_pivot", function () {
+					this.on("included_excluded.id", "included_excluded_pivot.included_excluded_id").andOn("included_excluded_pivot.language_code", knex.raw("?", [req.language]))
+				})
+				.whereNull("included_excluded_pivot.deleted_at")
+				.select("services_included_excluded.id", "services_included_excluded.included_excluded_id", "services_included_excluded.type", "services_included_excluded.status", "included_excluded_pivot.name")
 
 			activity.activity_features = activityFeatures
 			const activityGalleries = await knex("activity_galleries")
@@ -490,8 +502,11 @@ export default class ActivityController {
 			let activityGalleries = await new ActivityGalleryModel().exists({
 				activity_id: id,
 			})
-			let activityFeatures = await new ActivityFeatureModel().exists({
-				activity_id: id,
+			// Activity özellikleri kontrolü (services_included_excluded tablosundan)
+			let activityFeatures = await new ServiceIncludedExcludedModel().exists({
+				service_id: id,
+				service_type: "activity",
+				type: "normal",
 			})
 
 			// Tüm paketler için kontrol
@@ -502,8 +517,11 @@ export default class ActivityController {
 				const hasOpportunities = await new ActivityPackageOpportunityModel().exists({
 					activity_package_id: packageId,
 				})
-				const hasFeatures = await new ActivityPackageFeatureModel().exists({
-					activity_package_id: packageId,
+				// Package özellikleri kontrolü (services_included_excluded tablosundan)
+				const hasFeatures = await new ServiceIncludedExcludedModel().exists({
+					service_id: packageId,
+					service_type: "activity",
+					type: "package",
 				})
 				const hasHours = await new ActivityPackageHourModel().exists({
 					activity_package_id: packageId,
