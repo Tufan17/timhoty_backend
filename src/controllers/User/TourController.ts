@@ -9,6 +9,8 @@ export default class TourController {
 
 			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, period, departure_point_id } = req.query as any
 			// Toplam sayıyı al (groupBy olmadan)
+			// Sadece paket fiyatı olan turları say (zamanı geçmemiş fiyatları olan)
+			const now = new Date()
 			const countResult = await knex("tours")
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
 				.where("tours.status", true)
@@ -31,6 +33,15 @@ export default class TourController {
 					)
 				)
 				.whereNotNull("tour_gallery.image_url")
+				// Sadece paket fiyatı olan turları say (geçerli tarihteki fiyatları olan)
+				.whereIn("tours.id", function () {
+					this.select("tp.tour_id")
+						.from("tour_packages as tp")
+						.innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id")
+						.where("tpp.date", ">=", now)
+						.whereNull("tp.deleted_at")
+						.whereNull("tpp.deleted_at")
+				})
 
 				.modify(function (queryBuilder) {
 					if (guest_rating) {
@@ -45,7 +56,7 @@ export default class TourController {
 					if (period) {
 						// Sadece belirtilen period'a sahip fiyatları olan turları filtrele
 						queryBuilder.whereIn("tours.id", function () {
-							this.select("tp.tour_id").from("tour_packages as tp").innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id").where("tpp.period", period).whereNull("tp.deleted_at").whereNull("tpp.deleted_at")
+							this.select("tp.tour_id").from("tour_packages as tp").innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id").where("tpp.period", period).where("tpp.date", ">=", now).whereNull("tp.deleted_at").whereNull("tpp.deleted_at")
 						})
 					}
 				})
@@ -56,6 +67,8 @@ export default class TourController {
 			const totalPages = Math.ceil(total / limit)
 
 			// Tours ve ilk fotoğrafı tek sorguda al (LATERAL JOIN ile)
+			// Sadece paket fiyatı olan turları getir (geçerli tarihteki fiyatları olan)
+			const tourNow = new Date()
 			const tours = await knex("tours")
 				.innerJoin("tour_pivots", function () {
 					this.on("tours.id", "tour_pivots.tour_id").andOn("tour_pivots.language_code", knex.raw("?", [language]))
@@ -64,6 +77,15 @@ export default class TourController {
 				.where("tours.status", true)
 				.where("tours.admin_approval", true)
 				.whereNull("tours.deleted_at")
+				// Sadece paket fiyatı olan turları getir (geçerli tarihteki fiyatları olan)
+				.whereIn("tours.id", function () {
+					this.select("tp.tour_id")
+						.from("tour_packages as tp")
+						.innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id")
+						.where("tpp.date", ">=", tourNow)
+						.whereNull("tp.deleted_at")
+						.whereNull("tpp.deleted_at")
+				})
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.whereIn("tours.id", function () {
@@ -81,7 +103,13 @@ export default class TourController {
 					if (period) {
 						// Sadece belirtilen period'a sahip fiyatları olan turları filtrele
 						queryBuilder.whereIn("tours.id", function () {
-							this.select("tp.tour_id").from("tour_packages as tp").innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id").where("tpp.period", period).whereNull("tp.deleted_at").whereNull("tpp.deleted_at")
+							this.select("tp.tour_id")
+								.from("tour_packages as tp")
+								.innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id")
+								.where("tpp.period", period)
+								.where("tpp.date", ">=", tourNow)
+								.whereNull("tp.deleted_at")
+								.whereNull("tpp.deleted_at")
 						})
 					}
 				})
@@ -101,7 +129,10 @@ export default class TourController {
 					)
 				)
 				.whereNotNull("tour_gallery.image_url")
-				.limit(limit)
+				// Limit'i filtrelemeden önce uygulamıyoruz, çünkü JavaScript'te fiyat filtrelemesi yapılıyor
+				// Bunun yerine daha fazla kayıt çekip filtreleme sonrası limit uygulayacağız
+				// min_price veya max_price filtresi varsa daha fazla kayıt çek
+				.limit((min_price || max_price) ? limit * 5 : limit)
 				.offset((page - 1) * limit)
 				.select(
 					"tours.id",
@@ -292,7 +323,8 @@ export default class TourController {
 				}
 			}
 
-			// Fiyat filtrelemeleri uygula
+			// Fiyat filtrelemeleri uygula (min_price ve max_price için JavaScript filtrelemesi gerekli çünkü total_price JavaScript'te hesaplanıyor)
+			// tour_packages null kontrolü artık veritabanında yapılıyor, burada sadece fiyat filtreleri uygulanıyor
 			let filteredTours = tours
 
 			if (isAvailable) {
@@ -318,10 +350,13 @@ export default class TourController {
 				filteredTours.sort((a: any, b: any) => b.average_rating - a.average_rating)
 			}
 
+			// Filtreleme sonrası limit uygula
+			const paginatedTours = filteredTours.slice(0, limit)
+
 			return res.status(200).send({
 				success: true,
 				message: "Tours fetched successfully",
-				data: filteredTours,
+				data: paginatedTours,
 				limit: limit,
 				total: total,
 				currentPage: Number(page),

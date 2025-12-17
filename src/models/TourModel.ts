@@ -27,10 +27,20 @@ class TourModel extends BaseModel {
 	}
 
 	async getDashboardToursCount(): Promise<number> {
+		const now = new Date()
 		const result = await knex("tours")
 			.whereNull("tours.deleted_at")
 			.where("tours.status", true)
 			.where("tours.admin_approval", true)
+			// Sadece paket fiyatı olan turları say (geçerli tarihteki fiyatları olan)
+			.whereIn("tours.id", function () {
+				this.select("tp.tour_id")
+					.from("tour_packages as tp")
+					.innerJoin("tour_package_prices as tpp", "tp.id", "tpp.tour_package_id")
+					.where("tpp.date", ">=", now)
+					.whereNull("tp.deleted_at")
+					.whereNull("tpp.deleted_at")
+			})
 			.countDistinct("tours.id as count")
 			.first()
 		return result?.count ? Number(result?.count) : 0
