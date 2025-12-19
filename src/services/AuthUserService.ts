@@ -133,7 +133,7 @@ export default class AuthUserService {
 		}
 	}
 
-	async register(name_surname: string, email: string, password: string, language: string, t: (key: string) => string) {
+async register(name_surname: string, email: string, password: string, language: string, deviceId: string | null, t: (key: string) => string) {
 		try {
 			const existingUser = await new UserModel().exists({ email })
 			if (existingUser) {
@@ -149,6 +149,7 @@ export default class AuthUserService {
 				password: password,
 				language,
 				avatar: "/uploads/avatar.png",
+				device_id: deviceId,
 			})
 
 			welcomeEmail(email, name_surname, language)
@@ -305,7 +306,7 @@ export default class AuthUserService {
 		}
 	}
 
-	async googleLogin(credential: string, t: (key: string) => string) {
+async googleLogin(credential: string, deviceId: string | null, t: (key: string) => string) {
 		try {
 			// Google OAuth2Client oluştur
 			const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
@@ -343,6 +344,7 @@ export default class AuthUserService {
 					language: "tr",
 					avatar: googlePicture,
 					email_verified: emailVerified,
+					device_id: deviceId,
 				})
 
 				welcomeEmail(googleEmail, googleName)
@@ -407,7 +409,7 @@ export default class AuthUserService {
 		}
 	}
 
-	async facebookLogin(token: string, userID: string, t: (key: string) => string) {
+	async facebookLogin(token: string, userID: string, deviceId: string | null, t: (key: string) => string) {
 		try {
 			let email: string
 			let name: string
@@ -458,6 +460,7 @@ export default class AuthUserService {
 					language: "tr",
 					avatar: facebookPicture,
 					email_verified: true, // Facebook'tan gelen email'ler verify edilmiş kabul ediyoruz
+					device_id: deviceId,
 				})
 
 				welcomeEmail(facebookEmail, facebookName)
@@ -525,6 +528,7 @@ export default class AuthUserService {
 	async appleLogin(
 		identityToken: string,
 		userIdentifier: string,
+		deviceId: string | null = null,
 		email?: string,
 		givenName?: string,
 		familyName?: string,
@@ -562,6 +566,7 @@ export default class AuthUserService {
 					language: "tr",
 					avatar: "/uploads/avatar.png",
 					email_verified: payload.email_verified || true, // Apple'dan gelen email'ler verify edilmiş
+					device_id: deviceId,
 				})
 
 				if (t) {

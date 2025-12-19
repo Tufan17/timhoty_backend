@@ -55,13 +55,15 @@ export default class UserAuthController {
 				email,
 				password,
 				language = "en",
+				deviceId
 			} = req.body as {
 				name_surname: string
 				email: string
 				password: string
 				language: string
+				deviceId: string | null
 			}
-			const user = await new AuthUserService().register(name_surname, email, password, language, req.t)
+			const user = await new AuthUserService().register(name_surname, email, password, language, deviceId, req.t)
 			if (!user.success) {
 				return res.status(400).send({
 					success: false,
@@ -162,8 +164,8 @@ export default class UserAuthController {
 	// User google login
 	async googleLogin(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { credential } = req.body as { credential: string }
-			const user = await new AuthUserService().googleLogin(credential, req.t)
+			const { credential,deviceId } = req.body as { credential: string; deviceId: string }
+			const user = await new AuthUserService().googleLogin(credential, deviceId, req.t)
 			if (!user.success) {
 				return res.status(400).send({
 					success: false,
@@ -179,8 +181,8 @@ export default class UserAuthController {
 	// User facebook login
 	async facebookLogin(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { accessToken, userID } = req.body as { accessToken: string; userID: string }
-			const user = await new AuthUserService().facebookLogin(accessToken, userID, req.t)
+			const { accessToken, userID, deviceId } = req.body as { accessToken: string; userID: string; deviceId: string }
+			const user = await new AuthUserService().facebookLogin(accessToken, userID, deviceId, req.t)
 			if (!user.success) {
 				return res.status(400).send({
 					success: false,
@@ -196,12 +198,13 @@ export default class UserAuthController {
 	// User apple login
 	async appleLogin(req: FastifyRequest, res: FastifyReply) {
 		try {
-			const { identityToken, userIdentifier, email, givenName, familyName } = req.body as {
+			const { identityToken, userIdentifier, email, givenName, familyName, deviceId } = req.body as {
 				identityToken: string
 				userIdentifier: string
 				email?: string
 				givenName?: string
 				familyName?: string
+				deviceId?: string | null
 			}
 			const user = await new AuthUserService().appleLogin(
 				identityToken,
@@ -209,6 +212,7 @@ export default class UserAuthController {
 				email,
 				givenName,
 				familyName,
+				deviceId,
 				req.t
 			)
 			if (!user.success) {

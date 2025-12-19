@@ -53,7 +53,7 @@ export default class SalesPartnerUserController {
             this.orWhere("sales_partner_users.status", search.toLowerCase() === "true");
           }
         });
-      }
+          }
 
       query
         .select(

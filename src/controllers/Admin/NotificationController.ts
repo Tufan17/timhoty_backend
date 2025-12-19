@@ -3,6 +3,7 @@ import knex from "../../db/knex";
 import NotificationModel from "@/models/NotificationModel";
 import UserNotificationModel from "@/models/UserNotificationModel";
 import { translateCreate } from "@/helper/translate";
+import { sendNotification } from "@/utils/pushNotification";
 
 export default class NotificationController {
   async findAll(req: FastifyRequest, res: FastifyReply) {
@@ -287,6 +288,14 @@ export default class NotificationController {
 
       const userNotificationModel = new UserNotificationModel();
       const createdNotifications = [];
+
+      if (target_type === "users") {
+        const users = await knex("users").whereIn("id", target_ids).whereNotNull("device_id");
+console.log(users);
+        for (const user of users) {
+          await sendNotification(user.device_id, notificationWithPivot?.title || null, notificationWithPivot?.description || null);
+        }
+      }
 
       // Create user notifications for each target_id
       for (const target_id of target_ids) {
