@@ -198,21 +198,22 @@ export default class UserAuthController {
 	// User apple login
 	async appleLogin(req: FastifyRequest, res: FastifyReply) {
 		try {
+
 			const { identityToken, userIdentifier, email, givenName, familyName, deviceId } = req.body as {
 				identityToken: string
 				userIdentifier: string
-				email?: string
-				givenName?: string
-				familyName?: string
-				deviceId?: string | null
+				email: string
+				givenName: string
+				familyName: string
+				deviceId: string | null
 			}
 			const user = await new AuthUserService().appleLogin(
 				identityToken,
 				userIdentifier,
+				deviceId??"",
 				email,
 				givenName,
 				familyName,
-				deviceId,
 				req.t
 			)
 			if (!user.success) {

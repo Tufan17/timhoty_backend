@@ -528,10 +528,10 @@ async googleLogin(credential: string, deviceId: string | null, t: (key: string) 
 	async appleLogin(
 		identityToken: string,
 		userIdentifier: string,
-		deviceId: string | null = null,
-		email?: string,
-		givenName?: string,
-		familyName?: string,
+		deviceId: string | null,
+		email: string,
+		givenName: string,
+		familyName: string,
 		t?: (key: string) => string
 	) {
 		try {
