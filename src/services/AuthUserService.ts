@@ -348,6 +348,10 @@ async googleLogin(credential: string, device_id: string | null, t: (key: string)
 				})
 
 				welcomeEmail(googleEmail, googleName)
+			}else{
+				await new UserModel().update(user.id, {
+					device_id: device_id,
+				});
 			}
 
 			if (!user) {
@@ -464,6 +468,10 @@ async googleLogin(credential: string, device_id: string | null, t: (key: string)
 				})
 
 				welcomeEmail(facebookEmail, facebookName)
+			}else{
+				await new UserModel().update(user.id, {
+					device_id: device_id,
+				});
 			}
 
 			if (!user) {
@@ -572,6 +580,10 @@ async googleLogin(credential: string, device_id: string | null, t: (key: string)
 				if (t) {
 					welcomeEmail(appleEmail, appleName, "tr")
 				}
+			}else{
+				await new UserModel().update(user.id, {
+					device_id: device_id,
+				});
 			}
 
 			if (!user) {
