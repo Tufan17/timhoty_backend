@@ -133,7 +133,7 @@ export default class AuthUserService {
 		}
 	}
 
-async register(name_surname: string, email: string, password: string, language: string, deviceId: string | null, t: (key: string) => string) {
+async register(name_surname: string, email: string, password: string, language: string, device_id: string | null, t: (key: string) => string) {
 		try {
 			const existingUser = await new UserModel().exists({ email })
 			if (existingUser) {
@@ -149,7 +149,7 @@ async register(name_surname: string, email: string, password: string, language: 
 				password: password,
 				language,
 				avatar: "/uploads/avatar.png",
-				device_id: deviceId,
+				device_id: device_id,
 			})
 
 			welcomeEmail(email, name_surname, language)
@@ -306,7 +306,7 @@ async register(name_surname: string, email: string, password: string, language: 
 		}
 	}
 
-async googleLogin(credential: string, deviceId: string | null, t: (key: string) => string) {
+async googleLogin(credential: string, device_id: string | null, t: (key: string) => string) {
 		try {
 			// Google OAuth2Client oluştur
 			const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
@@ -344,7 +344,7 @@ async googleLogin(credential: string, deviceId: string | null, t: (key: string) 
 					language: "tr",
 					avatar: googlePicture,
 					email_verified: emailVerified,
-					device_id: deviceId,
+					device_id: device_id,
 				})
 
 				welcomeEmail(googleEmail, googleName)
@@ -409,7 +409,7 @@ async googleLogin(credential: string, deviceId: string | null, t: (key: string) 
 		}
 	}
 
-	async facebookLogin(token: string, userID: string, deviceId: string | null, t: (key: string) => string) {
+	async facebookLogin(token: string, userID: string, device_id: string | null, t: (key: string) => string) {
 		try {
 			let email: string
 			let name: string
@@ -460,7 +460,7 @@ async googleLogin(credential: string, deviceId: string | null, t: (key: string) 
 					language: "tr",
 					avatar: facebookPicture,
 					email_verified: true, // Facebook'tan gelen email'ler verify edilmiş kabul ediyoruz
-					device_id: deviceId,
+					device_id: device_id,
 				})
 
 				welcomeEmail(facebookEmail, facebookName)
@@ -528,7 +528,7 @@ async googleLogin(credential: string, deviceId: string | null, t: (key: string) 
 	async appleLogin(
 		identityToken: string,
 		userIdentifier: string,
-		deviceId: string | null,
+		device_id: string | null,
 		email: string,
 		givenName: string,
 		familyName: string,
@@ -566,7 +566,7 @@ async googleLogin(credential: string, deviceId: string | null, t: (key: string) 
 					language: "tr",
 					avatar: "/uploads/avatar.png",
 					email_verified: payload.email_verified || true, // Apple'dan gelen email'ler verify edilmiş
-					device_id: deviceId,
+					device_id: device_id,
 				})
 
 				if (t) {

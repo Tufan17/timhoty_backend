@@ -33,10 +33,10 @@ export class AuthValidation {
                     'string.max': 'Password should have a maximum length of {#limit}',
                     'any.required': 'password field is required (String)',
                 }),
-                deviceId: Joi.string().trim().optional().messages({
+                device_id: Joi.string().trim().optional().messages({
                     'string.empty': 'Device ID is required',
                     'string.base': 'Device ID should be a string',
-                    'any.required': 'deviceId field is required (String)',
+                    'any.required': 'device_id field is required (String)',
                 }),
             });
             await schema.validateAsync(req.body);
