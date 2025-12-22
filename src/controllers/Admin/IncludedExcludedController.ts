@@ -10,7 +10,8 @@ export default class IncludedExcludedController {
 
 			const language = req.language
 
-			const query = knex("included_excluded")
+			// Base query with JOINs (no select, no groupBy)
+			const base = knex("included_excluded")
 				.whereNull("included_excluded.deleted_at")
 				.innerJoin("included_excluded_pivot", "included_excluded.id", "included_excluded_pivot.included_excluded_id")
 				.where("included_excluded_pivot.language_code", language)
@@ -18,14 +19,16 @@ export default class IncludedExcludedController {
 					this.where("included_excluded_pivot.name", "ilike", `%${search}%`)
 					this.orWhere("included_excluded.service_type", "ilike", `%${search}%`)
 				})
-				.select("included_excluded.*", "included_excluded_pivot.name as name")
-				.groupBy("included_excluded.id", "included_excluded_pivot.name")
 
-			const countResult = await query.clone().count("* as total").first()
+			// Total count
+			const countResult = await base.clone().clearSelect().clearOrder().countDistinct<{ total: string }>("included_excluded.id as total").first()
 			const total = Number(countResult?.total ?? 0)
 			const totalPages = Math.ceil(total / Number(limit))
-			const data = await query
+
+			// Get data with pagination
+			const data = await base
 				.clone()
+				.select("included_excluded.*", "included_excluded_pivot.name as name")
 				.orderBy("included_excluded.created_at", "desc")
 				.limit(Number(limit))
 				.offset((Number(page) - 1) * Number(limit))
