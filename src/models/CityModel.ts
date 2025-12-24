@@ -25,12 +25,6 @@ class CityModel extends BaseModel {
 			.leftJoin("hotels", function () {
 				this.on("hotels.location_id", "cities.id").andOnNull("hotels.deleted_at").andOnVal("hotels.status", "=", true).andOnVal("hotels.admin_approval", "=", true)
 			})
-			.leftJoin("tour_locations", function () {
-				this.on("tour_locations.location_id", "cities.id").andOnNull("tour_locations.deleted_at")
-			})
-			.leftJoin("tours", function () {
-				this.on("tours.id", "tour_locations.tour_id").andOnNull("tours.deleted_at").andOnVal("tours.status", "=", true).andOnVal("tours.admin_approval", "=", true)
-			})
 			.leftJoin("activities", function () {
 				this.on("activities.location_id", "cities.id").andOnNull("activities.deleted_at").andOnVal("activities.status", "=", true).andOnVal("activities.admin_approval", "=", true)
 			})
@@ -41,7 +35,30 @@ class CityModel extends BaseModel {
 				this.on("car_rentals.location_id", "cities.id").andOnNull("car_rentals.deleted_at").andOnVal("car_rentals.status", "=", true).andOnVal("car_rentals.admin_approval", "=", true)
 			})
 			.groupBy("cities.id", "cities.photo", "city_pivots.name")
-			.select("cities.id", "cities.photo", "city_pivots.name", knex.raw("COUNT(DISTINCT hotels.id) as hotels_count"), knex.raw("COUNT(DISTINCT tours.id) as tour_locations_count"), knex.raw("COUNT(DISTINCT activities.id) as activities_count"), knex.raw("COUNT(DISTINCT visas.id) as visas_count"), knex.raw("COUNT(DISTINCT car_rentals.id) as car_rentals_count"))
+			.select(
+				"cities.id",
+				"cities.photo",
+				"city_pivots.name",
+				knex.raw("COUNT(DISTINCT hotels.id) as hotels_count"),
+				knex.raw(`(
+					SELECT COUNT(DISTINCT t.id)
+					FROM tour_locations tl
+					INNER JOIN tours t ON t.id = tl.tour_id
+					INNER JOIN tour_packages tp ON tp.tour_id = t.id
+					INNER JOIN tour_package_prices tpp ON tpp.tour_package_id = tp.id
+					WHERE tl.location_id = cities.id
+					AND tl.deleted_at IS NULL
+					AND t.deleted_at IS NULL
+					AND t.status = true
+					AND t.admin_approval = true
+					AND tp.deleted_at IS NULL
+					AND tpp.deleted_at IS NULL
+					AND tpp.date >= CURRENT_DATE
+				) as tour_locations_count`),
+				knex.raw("COUNT(DISTINCT activities.id) as activities_count"),
+				knex.raw("COUNT(DISTINCT visas.id) as visas_count"),
+				knex.raw("COUNT(DISTINCT car_rentals.id) as car_rentals_count")
+			)
 			.limit(4)
 
 		return cities
