@@ -16,9 +16,64 @@ export default class ActivityController {
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
 				.where("activities.status", true)
 				.where("activities.admin_approval", true)
-
 				.whereNull("activities.deleted_at")
 				.where("activity_pivots.language_code", language)
+				// Paketi ve fiyatı olan aktiviteleri filtrele (en düşük fiyata göre)
+				.whereExists(function () {
+					this.select(knex.raw(1))
+						.from("activity_packages")
+						.innerJoin("activity_package_pivots", "activity_packages.id", "activity_package_pivots.activity_package_id")
+						.innerJoin("activity_package_prices", "activity_packages.id", "activity_package_prices.activity_package_id")
+						.whereRaw("activity_packages.activity_id = activities.id")
+						.whereNull("activity_packages.deleted_at")
+						.whereNull("activity_package_prices.deleted_at")
+						.where("activity_package_pivots.language_code", language)
+						.where(function () {
+							// Sabit fiyatlı paketler için tüm fiyatları getir
+							this.where("activity_packages.constant_price", true).orWhere(function () {
+								// Değişken fiyatlı paketler için sadece geçerli tarihteki fiyatları getir
+								this.where("activity_packages.constant_price", false)
+									.andWhere("activity_package_prices.start_date", "<=", today)
+									.andWhere(function () {
+										this.whereNull("activity_package_prices.end_date").orWhere("activity_package_prices.end_date", ">=", today)
+									})
+							})
+						})
+				})
+				// En düşük paket fiyatına göre min_price/max_price filtresi
+				.modify(function (queryBuilder) {
+					if (min_price || max_price) {
+						// En düşük paket fiyatını raw SQL subquery ile hesapla ve filtrele
+						const minPriceSubquerySql = `(
+						SELECT MIN(app.main_price)
+						FROM activity_packages ap
+						INNER JOIN activity_package_pivots apv ON ap.id = apv.activity_package_id
+						INNER JOIN activity_package_prices app ON ap.id = app.activity_package_id
+						INNER JOIN currencies c ON app.currency_id = c.id
+						INNER JOIN currency_pivots cp ON c.id = cp.currency_id
+						WHERE ap.activity_id = activities.id
+						AND ap.deleted_at IS NULL
+						AND app.deleted_at IS NULL
+						AND apv.language_code = ?
+						AND cp.language_code = ?
+						AND (
+							ap.constant_price = true
+							OR (
+								ap.constant_price = false
+								AND app.start_date <= ?
+								AND (app.end_date IS NULL OR app.end_date >= ?)
+							)
+						)
+					)`
+
+						if (min_price) {
+							queryBuilder.whereRaw(`${minPriceSubquerySql} >= ?`, [language, language, today, today, min_price])
+						}
+						if (max_price) {
+							queryBuilder.whereRaw(`${minPriceSubquerySql} <= ?`, [language, language, today, today, max_price])
+						}
+					}
+				})
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("activities.location_id", location_id)
@@ -30,7 +85,6 @@ export default class ActivityController {
 						queryBuilder.where("activities.activity_type_id", type)
 					}
 				})
-				.groupBy("activities.id")
 				.countDistinct("activities.id as total")
 
 			let activities = await knex("activities")
@@ -50,6 +104,62 @@ export default class ActivityController {
 				.innerJoin("city_pivots", function () {
 					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
 				})
+				// Paketi ve fiyatı olan aktiviteleri filtrele (en düşük fiyata göre)
+				.whereExists(function () {
+					this.select(knex.raw(1))
+						.from("activity_packages")
+						.innerJoin("activity_package_pivots", "activity_packages.id", "activity_package_pivots.activity_package_id")
+						.innerJoin("activity_package_prices", "activity_packages.id", "activity_package_prices.activity_package_id")
+						.whereRaw("activity_packages.activity_id = activities.id")
+						.whereNull("activity_packages.deleted_at")
+						.whereNull("activity_package_prices.deleted_at")
+						.where("activity_package_pivots.language_code", language)
+						.where(function () {
+							// Sabit fiyatlı paketler için tüm fiyatları getir
+							this.where("activity_packages.constant_price", true).orWhere(function () {
+								// Değişken fiyatlı paketler için sadece geçerli tarihteki fiyatları getir
+								this.where("activity_packages.constant_price", false)
+									.andWhere("activity_package_prices.start_date", "<=", today)
+									.andWhere(function () {
+										this.whereNull("activity_package_prices.end_date").orWhere("activity_package_prices.end_date", ">=", today)
+									})
+							})
+						})
+				})
+				// En düşük paket fiyatına göre min_price/max_price filtresi
+				.modify(function (queryBuilder) {
+					if (min_price || max_price) {
+						// En düşük paket fiyatını raw SQL subquery ile hesapla ve filtrele
+						const minPriceSubquerySql = `(
+						SELECT MIN(app.main_price)
+						FROM activity_packages ap
+						INNER JOIN activity_package_pivots apv ON ap.id = apv.activity_package_id
+						INNER JOIN activity_package_prices app ON ap.id = app.activity_package_id
+						INNER JOIN currencies c ON app.currency_id = c.id
+						INNER JOIN currency_pivots cp ON c.id = cp.currency_id
+						WHERE ap.activity_id = activities.id
+						AND ap.deleted_at IS NULL
+						AND app.deleted_at IS NULL
+						AND apv.language_code = ?
+						AND cp.language_code = ?
+						AND (
+							ap.constant_price = true
+							OR (
+								ap.constant_price = false
+								AND app.start_date <= ?
+								AND (app.end_date IS NULL OR app.end_date >= ?)
+							)
+						)
+					)`
+
+						if (min_price) {
+							queryBuilder.whereRaw(`${minPriceSubquerySql} >= ?`, [language, language, today, today, min_price])
+						}
+						if (max_price) {
+							queryBuilder.whereRaw(`${minPriceSubquerySql} <= ?`, [language, language, today, today, max_price])
+						}
+					}
+				})
 				.modify(function (queryBuilder) {
 					if (location_id) {
 						queryBuilder.where("activities.location_id", location_id)
@@ -59,6 +169,36 @@ export default class ActivityController {
 					}
 					if (guest_rating) {
 						queryBuilder.where("activities.average_rating", ">=", guest_rating)
+					}
+				})
+				// Sıralama (arrangement) DB seviyesinde
+				.modify(function (queryBuilder) {
+					if (arrangement === "price_increasing" || arrangement === "price_decreasing") {
+						// En düşük paket fiyatına göre sıralama
+						const priceOrderSubquery = `(
+						SELECT MIN(app.main_price)
+						FROM activity_packages ap
+						INNER JOIN activity_package_pivots apv ON ap.id = apv.activity_package_id
+						INNER JOIN activity_package_prices app ON ap.id = app.activity_package_id
+						WHERE ap.activity_id = activities.id
+						AND ap.deleted_at IS NULL
+						AND app.deleted_at IS NULL
+						AND apv.language_code = ?
+						AND (
+							ap.constant_price = true
+							OR (
+								ap.constant_price = false
+								AND app.start_date <= ?
+								AND (app.end_date IS NULL OR app.end_date >= ?)
+							)
+						)
+					)`
+						const direction = arrangement === "price_increasing" ? "asc" : "desc"
+						queryBuilder.orderByRaw(`${priceOrderSubquery} ${direction}`, [language, today, today])
+					} else if (arrangement === "rating_increasing") {
+						queryBuilder.orderBy("activities.average_rating", "asc")
+					} else if (arrangement === "rating_decreasing") {
+						queryBuilder.orderBy("activities.average_rating", "desc")
 					}
 				})
 				.limit(limit)
@@ -214,35 +354,22 @@ export default class ActivityController {
 				}
 			})
 
+			// activity_packages null olanları filtrele (veritabanında whereExists ile zaten kontrol ediliyor ama güvenlik için)
 			let filteredActivities = activities.filter((activity: any) => activity.activity_packages !== null)
 
-			// activities = activities.filter((activity: any) => activity.activity_packages !== null)
+			// min_price, max_price filtresi ve sıralama (arrangement) artık veritabanı seviyesinde uygulanıyor
 
-			if (min_price) {
-				filteredActivities = filteredActivities.filter((activity: any) => (activity.total_price || 0) >= min_price)
-			}
-			if (max_price) {
-				filteredActivities = filteredActivities.filter((activity: any) => (activity.total_price || 0) <= max_price)
-			}
+			const countResult = await countQuery.first()
 
-			if (arrangement === "price_increasing") {
-				filteredActivities.sort((a: any, b: any) => (a.total_price || 0) - (b.total_price || 0))
-			} else if (arrangement === "price_decreasing") {
-				filteredActivities.sort((a: any, b: any) => (b.total_price || 0) - (a.total_price || 0))
-			} else if (arrangement === "rating_increasing") {
-				filteredActivities.sort((a: any, b: any) => a.average_rating - b.average_rating)
-			} else if (arrangement === "rating_decreasing") {
-				filteredActivities.sort((a: any, b: any) => b.average_rating - a.average_rating)
-			}
+			const total = Number(countResult?.total ?? 0)
 
-			const total = filteredActivities.length
-
-			const totalPages = Math.ceil(total?.total ?? 0 / Number(limit))
+			const totalPages = Math.ceil(total / Number(limit))
 			return res.status(200).send({
 				success: true,
 				message: "activities fetched successfully",
 				data: filteredActivities,
-				total: Number(filteredActivities.length),
+				// total: Number(filteredActivities.length),
+				total: total,
 				totalPages: totalPages,
 			})
 		} catch (error) {
