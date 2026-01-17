@@ -25,9 +25,7 @@ class CityModel extends BaseModel {
 			.leftJoin("hotels", function () {
 				this.on("hotels.location_id", "cities.id").andOnNull("hotels.deleted_at").andOnVal("hotels.status", "=", true).andOnVal("hotels.admin_approval", "=", true)
 			})
-			.leftJoin("activities", function () {
-				this.on("activities.location_id", "cities.id").andOnNull("activities.deleted_at").andOnVal("activities.status", "=", true).andOnVal("activities.admin_approval", "=", true)
-			})
+
 			.leftJoin("visas", function () {
 				this.on("visas.location_id", "countries.id").andOnNull("visas.deleted_at").andOnVal("visas.status", "=", true).andOnVal("visas.admin_approval", "=", true)
 			})
@@ -55,9 +53,28 @@ class CityModel extends BaseModel {
 					AND tpp.deleted_at IS NULL
 					AND tpp.date >= CURRENT_DATE
 				) as tour_locations_count`),
-				knex.raw("COUNT(DISTINCT activities.id) as activities_count"),
+				knex.raw(`(
+					SELECT COUNT(DISTINCT a.id)
+					FROM activities a
+					INNER JOIN activity_packages ap ON ap.activity_id = a.id
+					INNER JOIN activity_package_prices app ON app.activity_package_id = ap.id
+					WHERE a.location_id = cities.id
+					AND a.deleted_at IS NULL
+					AND a.status = true
+					AND a.admin_approval = true
+					AND ap.deleted_at IS NULL
+					AND app.deleted_at IS NULL
+					AND (
+						ap.constant_price = true
+						OR (
+							ap.constant_price = false
+							AND app.start_date <= CURRENT_DATE
+							AND (app.end_date IS NULL OR app.end_date >= CURRENT_DATE)
+						)
+					)
+				) as activities_count`),
 				knex.raw("COUNT(DISTINCT visas.id) as visas_count"),
-				knex.raw("COUNT(DISTINCT car_rentals.id) as car_rentals_count")
+				knex.raw("COUNT(DISTINCT car_rentals.id) as car_rentals_count"),
 			)
 			.limit(4)
 

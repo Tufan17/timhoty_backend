@@ -52,6 +52,7 @@ interface CreatePaymentRequest {
 		lat: number
 		lng: number
 	}
+	free_purchase?: boolean
 }
 
 interface PaymentStatusRequest {
@@ -71,7 +72,7 @@ class UserVisaPayment {
 	 */
 	async createPaymentIntent(req: FastifyRequest<{ Body: CreatePaymentRequest }>, res: FastifyReply) {
 		try {
-			const { amount, currency = "USD", customer, activity_id, booking_id, description, date, users, different_invoice, package_id, hour_id, pickup_location } = req.body
+			const { amount, currency = "USD", customer, activity_id, booking_id, description, date, users, different_invoice, package_id, hour_id, pickup_location, free_purchase } = req.body
 
 			const user = (req as any).user
 			// Validate required fields
@@ -116,7 +117,7 @@ class UserVisaPayment {
 					message: "Hour ID is required",
 				})
 			}
-			if (!pickup_location) {
+			if (free_purchase && !pickup_location) {
 				return res.status(400).send({
 					success: false,
 					message: "Pickup location is required",

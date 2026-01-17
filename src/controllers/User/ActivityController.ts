@@ -218,7 +218,7 @@ export default class ActivityController {
 					"activities.duration",
 					"activities.map_location",
 					"activities.approval_period",
-					"activities.free_purchase"
+					"activities.free_purchase",
 				)
 
 			// Get cover images (Kapak Resmi) for all activities
@@ -256,7 +256,7 @@ export default class ActivityController {
 				FROM activities
 				WHERE activities.id = ANY(?)
 			`,
-				[coverImageCategory, language, activityIds]
+				[coverImageCategory, language, activityIds],
 			)
 
 			activities.forEach((activity: any) => {
@@ -272,21 +272,21 @@ export default class ActivityController {
 				.whereNull("activity_packages.deleted_at")
 				.select("activity_packages.id", "activity_packages.activity_id", "activity_package_pivots.name", "return_acceptance_period", "discount", "total_tax_amount", "constant_price")
 
-			// Group car_rental packages by activity_id
-			const activityPackagesByactivityId = allactivityPackages.reduce((acc: Record<string, any[]>, pkg: any) => {
-				if (!acc[pkg.activity_id]) {
-					acc[pkg.activity_id] = []
-				}
-				acc[pkg.activity_id].push(pkg)
-				return acc
-			}, {} as Record<string, any[]>)
+			const activityPackagesByactivityId = allactivityPackages.reduce(
+				(acc: Record<string, any[]>, pkg: any) => {
+					if (!acc[pkg.activity_id]) {
+						acc[pkg.activity_id] = []
+					}
+					acc[pkg.activity_id].push(pkg)
+					return acc
+				},
+				{} as Record<string, any[]>,
+			)
 
-			// Assign car_rental packages to activity
 			activities.forEach((activity: any) => {
 				activity.activity_packages = activityPackagesByactivityId[activity.id] || []
 			})
 
-			// Get all car_rental package prices in one query
 			const allactivityPackageIds = allactivityPackages.map((pkg: any) => pkg.id)
 			const allactivityPackagePrices = await knex("activity_package_prices")
 				.whereIn("activity_package_prices.activity_package_id", allactivityPackageIds)
@@ -309,20 +309,25 @@ export default class ActivityController {
 				.select("activity_package_prices.id", "activity_package_prices.activity_package_id", "activity_package_prices.main_price", "activity_package_prices.child_price", "activity_package_prices.currency_id", "currency_pivots.name", "currencies.code", "currencies.symbol")
 			const allactivityPackageHours = await knex("activity_package_hours").whereIn("activity_package_hours.activity_package_id", allactivityPackageIds).whereNull("activity_package_hours.deleted_at").select("activity_package_hours.*").orderBy("hour", "asc").orderBy("minute", "asc")
 
-			// Group prices by activity_package_id (only keep the first price for each package)
-			const pricesByPackageId = allactivityPackagePrices.reduce((acc: Record<string, any>, price: any) => {
-				if (!acc[price.activity_package_id]) {
-					acc[price.activity_package_id] = price
-				}
-				return acc
-			}, {} as Record<string, any>)
-			const hoursByPackageId = allactivityPackageHours.reduce((acc: Record<string, any[]>, hour: any) => {
-				if (!acc[hour.activity_package_id]) {
-					acc[hour.activity_package_id] = []
-				}
-				acc[hour.activity_package_id].push(hour)
-				return acc
-			}, {} as Record<string, any[]>)
+			const pricesByPackageId = allactivityPackagePrices.reduce(
+				(acc: Record<string, any>, price: any) => {
+					if (!acc[price.activity_package_id]) {
+						acc[price.activity_package_id] = price
+					}
+					return acc
+				},
+				{} as Record<string, any>,
+			)
+			const hoursByPackageId = allactivityPackageHours.reduce(
+				(acc: Record<string, any[]>, hour: any) => {
+					if (!acc[hour.activity_package_id]) {
+						acc[hour.activity_package_id] = []
+					}
+					acc[hour.activity_package_id].push(hour)
+					return acc
+				},
+				{} as Record<string, any[]>,
+			)
 
 			// Assign prices to car_rental packages
 			activities.forEach((activity: any) => {
@@ -498,11 +503,12 @@ export default class ActivityController {
 				})
 
 				// Paket olanakları
-				.leftJoin("activity_package_opportunities", "activity_packages.id", "activity_package_opportunities.activity_package_id")
+				.leftJoin("activity_package_opportunities", function () {
+					this.on("activity_packages.id", "activity_package_opportunities.activity_package_id").andOnNull("activity_package_opportunities.deleted_at")
+				})
 				.leftJoin("activity_package_opportunity_pivots", function () {
 					this.on("activity_package_opportunities.id", "activity_package_opportunity_pivots.activity_package_opportunity_id")
 						.andOn("activity_package_opportunity_pivots.language_code", knex.raw("?", [language]))
-						.andOnNull("activity_package_opportunities.deleted_at")
 						.andOnNull("activity_package_opportunity_pivots.deleted_at")
 				})
 
@@ -584,7 +590,7 @@ export default class ActivityController {
 					// Paket özellikleri
 					"activity_package_features.id as package_feature_id",
 					"activity_package_features.status as package_feature_status",
-					"activity_package_feature_pivots.name as package_feature_name"
+					"activity_package_feature_pivots.name as package_feature_name",
 				)
 
 			if (results.length === 0) {
