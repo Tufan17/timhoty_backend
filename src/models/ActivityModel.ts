@@ -25,12 +25,7 @@ class ActivityModel extends BaseModel {
 		}
 	}
 	async getDashboardActivitiesCount(): Promise<number> {
-		const result = await knex("activities")
-			.whereNull("activities.deleted_at")
-			.where("activities.status", true)
-			.where("activities.admin_approval", true)
-			.countDistinct("activities.id as count")
-			.first()
+		const result = await knex("activities").whereNull("activities.deleted_at").where("activities.status", true).where("activities.admin_approval", true).countDistinct("activities.id as count").first()
 		return result?.count ? Number(result?.count) : 0
 	}
 	private async getActivitiesByHighlightStatus(language: string, isHighlighted: boolean, limit?: number): Promise<any[]> {
@@ -75,7 +70,7 @@ class ActivityModel extends BaseModel {
 							PARTITION BY activities.id
 							ORDER BY activity_packages.discount DESC, activity_package_prices.main_price ASC, activity_galleries.id ASC
 						) as rn
-					`)
+					`),
 				)
 				.from("activities")
 				.whereNull("activities.deleted_at")
@@ -152,7 +147,7 @@ class ActivityModel extends BaseModel {
 						END as package_price
 					`),
 					"package_id",
-					"created_at"
+					"created_at",
 				)
 				.from(knex.raw(`(${subquery.toString()}) as ranked_activities`))
 				.where("rn", 1)
@@ -187,7 +182,7 @@ class ActivityModel extends BaseModel {
 					FROM activities
 					WHERE activities.id = ANY(?)
 				`,
-					[coverImageCategory, language, activityIds]
+					[coverImageCategory, language, activityIds],
 				)
 
 				// Add image_url to each activity
@@ -215,7 +210,7 @@ class ActivityModel extends BaseModel {
 						package_price: activity.package_price || null,
 						package_hours: null,
 					}
-				})
+				}),
 			)
 
 			// package_id'yi kaldır (sadece internal kullanım içindi)

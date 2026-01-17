@@ -310,6 +310,47 @@ export default class TourController {
 			})
 		}
 	}
+	async updateTourHighlight(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { id } = req.params as { id: string }
+			const { highlight } = req.body as {
+				highlight: boolean
+			}
+
+			// Admin approval değeri zorunlu
+			if (typeof highlight === "undefined") {
+				return res.status(400).send({
+					success: false,
+					message: req.t("TOUR.ADMIN_APPROVAL_REQUIRED"),
+				})
+			}
+
+			const existingTour = await new TourModel().first({ id })
+
+			if (!existingTour) {
+				return res.status(404).send({
+					success: false,
+					message: req.t("TOUR.NOT_FOUND"),
+				})
+			}
+
+			const updatedTour = await new TourModel().update(id, {
+				highlight: highlight,
+			})
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("TOUR.ADMIN_APPROVAL_UPDATED_SUCCESS"),
+				data: updatedTour,
+			})
+		} catch (error) {
+			console.log(error)
+			return res.status(500).send({
+				success: false,
+				message: req.t("TOUR.ADMIN_APPROVAL_UPDATED_ERROR"),
+			})
+		}
+	}
 }
 async function sendMailServiceApproved(email: string, nameSurname: string, language: string = "tr") {
 	try {

@@ -36,4 +36,9 @@ export default async function tourRoutes(fastify: FastifyInstance) {
 		preValidation: [validate(tourUpdateSchema)],
 		handler: tourController.updateTourApproval,
 	})
+	fastify.put("/:id/highlight", {
+		preHandler: [authAdminMiddleware, tourAuditLogger],
+		preValidation: [validate(tourUpdateSchema)],
+		handler: tourController.updateTourHighlight,
+	})
 }
