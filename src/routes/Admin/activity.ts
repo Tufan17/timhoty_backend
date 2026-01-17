@@ -34,4 +34,9 @@ export default async function activityRoutes(fastify: FastifyInstance) {
 		preValidation: [validate(activityUpdateSchema)],
 		handler: activityController.updateActivityApproval,
 	})
+	fastify.put("/:id/highlight", {
+		preHandler: [authAdminMiddleware, activityAuditLogger],
+		preValidation: [validate(activityUpdateSchema)],
+		handler: activityController.updateActivityHighlight,
+	})
 }

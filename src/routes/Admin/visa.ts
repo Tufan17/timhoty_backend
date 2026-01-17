@@ -36,4 +36,9 @@ export default async function visaRoutes(fastify: FastifyInstance) {
 		preValidation: [validate(visaUpdateSchema)],
 		handler: visaController.updateVisaApproval,
 	})
+	fastify.put("/:id/highlight", {
+		preHandler: [authAdminMiddleware, visaAuditLogger],
+		preValidation: [validate(visaUpdateSchema)],
+		handler: visaController.updateVisaHighlight,
+	})
 }

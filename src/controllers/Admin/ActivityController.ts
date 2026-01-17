@@ -326,6 +326,47 @@ export default class ActivityController {
 			})
 		}
 	}
+	async updateActivityHighlight(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { id } = req.params as { id: string }
+			const { highlight } = req.body as {
+				highlight: boolean
+			}
+
+			// Admin approval değeri zorunlu
+			if (typeof highlight === "undefined") {
+				return res.status(400).send({
+					success: false,
+					message: req.t("ACTIVITY.ADMIN_APPROVAL_REQUIRED"),
+				})
+			}
+
+			const existingActivity = await new ActivityModel().first({ id })
+
+			if (!existingActivity) {
+				return res.status(404).send({
+					success: false,
+					message: req.t("ACTIVITY.NOT_FOUND"),
+				})
+			}
+
+			const updatedActivity = await new ActivityModel().update(id, {
+				highlight: highlight,
+			})
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("ACTIVITY.ADMIN_APPROVAL_UPDATED_SUCCESS"),
+				data: updatedActivity,
+			})
+		} catch (error) {
+			console.log(error)
+			return res.status(500).send({
+				success: false,
+				message: req.t("ACTIVITY.ADMIN_APPROVAL_UPDATED_ERROR"),
+			})
+		}
+	}
 }
 async function sendMailServiceApproved(email: string, nameSurname: string, language: string = "tr") {
 	try {

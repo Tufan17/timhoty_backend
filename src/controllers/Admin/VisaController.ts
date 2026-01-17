@@ -87,7 +87,7 @@ export default class VisaController {
 					"visa_pivots.refund_policy",
 					knex.ref("country_pivots.name").as("country_name"),
 					// city_name kaldırıldı
-					knex.ref("countries.id").as("location_id")
+					knex.ref("countries.id").as("location_id"),
 				)
 				.orderBy("visas.created_at", "desc")
 				.limit(Number(limit))
@@ -276,6 +276,47 @@ export default class VisaController {
 
 			const updatedVisa = await new VisaModel().oneToMany(id, "visa_pivots", "visa_id")
 			// console.log(updatedVisa)
+
+			return res.status(200).send({
+				success: true,
+				message: req.t("VISA.ADMIN_APPROVAL_UPDATED_SUCCESS"),
+				data: updatedVisa,
+			})
+		} catch (error) {
+			console.log(error)
+			return res.status(500).send({
+				success: false,
+				message: req.t("VISA.ADMIN_APPROVAL_UPDATED_ERROR"),
+			})
+		}
+	}
+	async updateVisaHighlight(req: FastifyRequest, res: FastifyReply) {
+		try {
+			const { id } = req.params as { id: string }
+			const { highlight } = req.body as {
+				highlight: boolean
+			}
+
+			// Admin approval değeri zorunlu
+			if (typeof highlight === "undefined") {
+				return res.status(400).send({
+					success: false,
+					message: req.t("VISA.ADMIN_APPROVAL_REQUIRED"),
+				})
+			}
+
+			const existingVisa = await new VisaModel().first({ id })
+
+			if (!existingVisa) {
+				return res.status(404).send({
+					success: false,
+					message: req.t("VISA.NOT_FOUND"),
+				})
+			}
+
+			const updatedVisa = await new VisaModel().update(id, {
+				highlight: highlight,
+			})
 
 			return res.status(200).send({
 				success: true,
