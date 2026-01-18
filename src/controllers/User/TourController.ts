@@ -6,10 +6,16 @@ export default class TourController {
 	async index(req: FastifyRequest, res: FastifyReply) {
 		try {
 			const language = (req as any).language
-
-			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, period, departure_point_id } = req.query as any
+			console.log(req.query);
+			const { location_id, page = 1, limit = 5, guest_rating, arrangement, isAvailable, min_price, max_price, period, departure_point_id,destination_id } = req.query as any
 			// Toplam sayıyı al (groupBy olmadan)
 			// Sadece paket fiyatı olan turları say (zamanı geçmemiş fiyatları olan)
+			let new_departure_point_id = departure_point_id
+			
+			if(destination_id){
+				new_departure_point_id = destination_id
+			}
+			
 			const now = new Date()
 			const countResult = await knex("tours")
 				.innerJoin("tour_pivots", "tours.id", "tour_pivots.tour_id")
@@ -47,10 +53,10 @@ export default class TourController {
 					if (guest_rating) {
 						queryBuilder.where("tours.average_rating", ">=", guest_rating)
 					}
-					if (departure_point_id) {
+					if (new_departure_point_id) {
 						// Sadece belirtilen başlangıç noktasına sahip turları filtrele
 						queryBuilder.whereIn("tours.id", function () {
-							this.select("tour_id").from("tour_departure_points").where("location_id", departure_point_id).whereNull("deleted_at")
+							this.select("tour_id").from("tour_departure_points").where("location_id", new_departure_point_id).whereNull("deleted_at")
 						})
 					}
 					if (period) {
@@ -95,9 +101,9 @@ export default class TourController {
 					if (guest_rating) {
 						queryBuilder.where("tours.average_rating", ">=", guest_rating)
 					}
-					if (departure_point_id) {
+					if (new_departure_point_id) {
 						queryBuilder.whereIn("tours.id", function () {
-							this.select("tour_id").from("tour_departure_points").where("location_id", departure_point_id).whereNull("deleted_at")
+							this.select("tour_id").from("tour_departure_points").where("location_id", new_departure_point_id).whereNull("deleted_at")
 						})
 					}
 					if (period) {
