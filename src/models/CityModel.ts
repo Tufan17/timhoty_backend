@@ -5,7 +5,7 @@ class CityModel extends BaseModel {
 	constructor() {
 		super("cities")
 	}
-	static columns = ["id", "country_id", "photo", "is_active", "created_at", "updated_at"]
+	static columns = ["id", "destination_id", "country_id", "photo", "number_plate", "is_active", "created_at", "updated_at"]
 
 	// veri tabanında otel tur aktivite vize ve kiralık araba ekli olan 4 şeihiri listelemek istiyorum ve bunların sayısını da istiyorum
 	/**

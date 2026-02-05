@@ -35,7 +35,8 @@ export default class CityController {
 				.select("cities.*", "city_pivots.name as name")
 				.groupBy("cities.id", "city_pivots.name")
 
-			const countResult = await query.clone().count("* as total").first()
+			// Toplam sayım (clearSelect + clearOrder + clearGroup + countDistinct)
+			const countResult = await query.clone().clearSelect().clearOrder().clearGroup().countDistinct("cities.id as total").first()
 			const total = Number(countResult?.total ?? 0)
 			const totalPages = Math.ceil(total / Number(limit))
 			const data = await query

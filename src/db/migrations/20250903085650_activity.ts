@@ -18,6 +18,8 @@ export async function up(knex: Knex): Promise<void> {
 		table.integer("approval_period")
 		table.integer("comment_count").notNullable().defaultTo(0)
 		table.float("average_rating").notNullable().defaultTo(0)
+		//type
+		// table.string("type").nullable().defaultTo("main")
 		table.timestamp("created_at").defaultTo(knex.fn.now())
 		table.timestamp("updated_at").defaultTo(knex.fn.now())
 		table.timestamp("deleted_at").nullable()
