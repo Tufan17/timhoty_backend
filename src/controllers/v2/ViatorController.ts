@@ -110,7 +110,7 @@ class ViatorController {
 
 			console.log(`✅ Found ${searchResult.products.length} products from search`)
 
-			// 2. Get detailed info for each product
+			// 2. Get detailed info + availability for each product
 			const detailedProducts = []
 			for (let i = 0; i < searchResult.products.length; i++) {
 				const product = searchResult.products[i]
@@ -118,21 +118,98 @@ class ViatorController {
 				console.log(`\n📦 [${i + 1}/${searchResult.products.length}] Fetching details for: ${product.productCode}`)
 
 				try {
+					// 2a. Get product details
 					const detail = await viatorApiService.getProduct(product.productCode)
-					detailedProducts.push(detail)
+
+					// 2b. Get availability schedule (pricing info)
+					let availabilitySchedule = null
+					try {
+						const rawAvailability = await viatorApiService.getAvailabilitySchedule(product.productCode)
+
+						// Filter bookableItems by current date
+						const today = new Date().toISOString().split("T")[0]
+
+						const filteredBookableItems = rawAvailability?.bookableItems
+							?.map((item: any) => {
+								// Filter seasons that include today's date
+								const currentSeasons = item.seasons?.filter((season: any) => {
+									const startDate = season.startDate
+
+									// If endDate is not returned, season extends 384 days from startDate
+									let endDate = season.endDate
+									if (!endDate) {
+										const start = new Date(startDate)
+										start.setDate(start.getDate() + 384)
+										endDate = start.toISOString().split("T")[0]
+									}
+
+									return startDate <= today && endDate >= today
+								})
+
+								if (currentSeasons && currentSeasons.length > 0) {
+									return {
+										...item,
+										seasons: currentSeasons,
+									}
+								}
+								return null
+							})
+							.filter(Boolean)
+
+						// Find the cheapest bookableItem by ADULT price
+						let cheapestItem: any = null
+						let minPrice = Infinity
+
+						for (const item of filteredBookableItems || []) {
+							for (const season of item.seasons || []) {
+								for (const record of season.pricingRecords || []) {
+									for (const pricing of record.pricingDetails || []) {
+										if (pricing.ageBand === "ADULT") {
+											const price = pricing.price?.original?.recommendedRetailPrice || Infinity
+											if (price < minPrice) {
+												minPrice = price
+												cheapestItem = item
+											}
+										}
+									}
+								}
+							}
+						}
+
+						// Return only the cheapest bookableItem
+						availabilitySchedule = cheapestItem
+							? {
+									bookableItem: cheapestItem,
+									currency: rawAvailability?.currency,
+									cheapestAdultPrice: minPrice,
+								}
+							: null
+
+						console.log(`   📅 Availability: ${rawAvailability?.bookableItems?.length || 0} total options`)
+						console.log(`   📅 Filtered (today=${today}): ${filteredBookableItems?.length || 0} active options`)
+						console.log(`   💰 Cheapest: ${cheapestItem?.productOptionCode || "N/A"} @ ${minPrice !== Infinity ? minPrice : "N/A"} ${rawAvailability?.currency}`)
+					} catch (availErr: any) {
+						console.log(`   ⚠️ Availability not available: ${availErr.message}`)
+					}
+
+					// Combine detail + availability
+					const fullProduct = {
+						...detail,
+						availabilitySchedule,
+					}
+
+					detailedProducts.push(fullProduct)
 
 					// Console'a detaylı log
 					console.log(`✅ Product Code: ${detail.productCode}`)
 					console.log(`   Title: ${detail.title}`)
 					console.log(`   Status: ${detail.status}`)
-					console.log(`   Duration: ${JSON.stringify(detail.duration)}`)
-					console.log(`   Pricing: ${JSON.stringify(detail.pricing?.summary)}`)
+					console.log(`   Duration: ${JSON.stringify(detail.itinerary?.duration)}`)
 					console.log(`   Images: ${detail.images?.length || 0} images`)
 					console.log(`   Destinations: ${JSON.stringify(detail.destinations)}`)
 					console.log(`   Tags: ${detail.tags?.length || 0} tags`)
 					console.log(`   Reviews: ${detail.reviews?.totalReviews || 0} reviews (${detail.reviews?.combinedAverageRating || 0} avg)`)
-					console.log(`   confirmationType: ${detail.confirmationType}`)
-					console.log(`   itineraryType: ${detail.itineraryType}`)
+					console.log(`   itineraryType: ${detail.itinerary?.itineraryType}`)
 				} catch (err: any) {
 					console.error(`❌ Failed to fetch ${product.productCode}: ${err.message}`)
 				}
@@ -143,7 +220,7 @@ class ViatorController {
 			// Detaylı response (mapping için analiz)
 			return res.status(200).send({
 				success: true,
-				message: `Fetched ${detailedProducts.length} detailed products. Check console for details.`,
+				message: `Fetched ${detailedProducts.length} detailed products with availability. Check console for details.`,
 				data: {
 					totalFetched: detailedProducts.length,
 					products: detailedProducts,
