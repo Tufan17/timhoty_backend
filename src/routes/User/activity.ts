@@ -13,4 +13,7 @@ export default async function carRentalRoutes(fastify: FastifyInstance) {
 	fastify.get("/:id", {
 		handler: activityController.show,
 	})
+	fastify.get("/v2/:id", {
+		handler: activityController.v2_show,
+	})
 }

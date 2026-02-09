@@ -237,6 +237,93 @@ class ViatorController {
 	}
 
 	/**
+	 * Get product details by productCode
+	 * Used by ActivityController to fetch Viator product details
+	 */
+	async getProductDetails(productCode: string) {
+		try {
+			// Get product details
+			const detail = await viatorApiService.getProduct(productCode)
+
+			// Get availability schedule (pricing info)
+			let availabilitySchedule = null
+			try {
+				const rawAvailability = await viatorApiService.getAvailabilitySchedule(productCode)
+
+				// Filter bookableItems by current date
+				const today = new Date().toISOString().split("T")[0]
+
+				const filteredBookableItems = rawAvailability?.bookableItems
+					?.map((item: any) => {
+						// Filter seasons that include today's date
+						const currentSeasons = item.seasons?.filter((season: any) => {
+							const startDate = season.startDate
+
+							// If endDate is not returned, season extends 384 days from startDate
+							let endDate = season.endDate
+							if (!endDate) {
+								const start = new Date(startDate)
+								start.setDate(start.getDate() + 384)
+								endDate = start.toISOString().split("T")[0]
+							}
+
+							return startDate <= today && endDate >= today
+						})
+
+						if (currentSeasons && currentSeasons.length > 0) {
+							return {
+								...item,
+								seasons: currentSeasons,
+							}
+						}
+						return null
+					})
+					.filter(Boolean)
+
+				// Find the cheapest bookableItem by ADULT price
+				let cheapestItem: any = null
+				let minPrice = Infinity
+
+				for (const item of filteredBookableItems || []) {
+					for (const season of item.seasons || []) {
+						for (const record of season.pricingRecords || []) {
+							for (const pricing of record.pricingDetails || []) {
+								if (pricing.ageBand === "ADULT") {
+									const price = pricing.price?.original?.recommendedRetailPrice || Infinity
+									if (price < minPrice) {
+										minPrice = price
+										cheapestItem = item
+									}
+								}
+							}
+						}
+					}
+				}
+
+				// Return only the cheapest bookableItem
+				availabilitySchedule = cheapestItem
+					? {
+							bookableItem: cheapestItem,
+							currency: rawAvailability?.currency,
+							cheapestAdultPrice: minPrice,
+						}
+					: null
+			} catch (availErr: any) {
+				console.log(`⚠️ Availability not available: ${availErr.message}`)
+			}
+
+			// Combine detail + availability
+			return {
+				...detail,
+				availabilitySchedule,
+			}
+		} catch (error: any) {
+			console.error(`Failed to fetch product details for ${productCode}:`, error.message)
+			throw error
+		}
+	}
+
+	/**
 	 * Get modified products
 	 * GET /api/v2/viator/products/modified
 	 */

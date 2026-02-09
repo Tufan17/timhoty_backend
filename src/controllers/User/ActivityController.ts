@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify"
 import knex from "@/db/knex"
 import ActivityTypeModel from "@/models/ActivityTypeModel"
 import ActivityModel from "@/models/ActivityModel"
+import viatorController from "@/controllers/v2/ViatorController"
 
 export default class ActivityController {
 	async index(req: FastifyRequest, res: FastifyReply) {
@@ -10,7 +11,7 @@ export default class ActivityController {
 			const now = new Date()
 			const today = now.toISOString().split("T")[0]
 
-			const { location_id, page = 1, limit = 5, guest_rating, arrangement, min_price, max_price, type } = req.query as any
+			const { location_id, page = 1, limit = 5, guest_rating, arrangement, min_price, max_price, type, title } = req.query as any
 
 			const countQuery = knex("activities")
 				.innerJoin("activity_pivots", "activities.id", "activity_pivots.activity_id")
@@ -18,6 +19,7 @@ export default class ActivityController {
 				.where("activities.admin_approval", true)
 				.whereNull("activities.deleted_at")
 				.where("activity_pivots.language_code", language)
+				.whereNull("activity_pivots.deleted_at")
 				// Paketi ve fiyatı olan aktiviteleri filtrele (en düşük fiyata göre)
 				.whereExists(function () {
 					this.select(knex.raw(1))
@@ -84,6 +86,9 @@ export default class ActivityController {
 					if (type && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(type)) {
 						queryBuilder.where("activities.activity_type_id", type)
 					}
+					if (title) {
+						queryBuilder.where("activity_pivots.title", "ILIKE", `%${title}%`)
+					}
 				})
 				.countDistinct("activities.id as total")
 
@@ -94,6 +99,7 @@ export default class ActivityController {
 				.innerJoin("activity_pivots", function () {
 					this.on("activities.id", "activity_pivots.activity_id").andOn("activity_pivots.language_code", knex.raw("?", [language]))
 				})
+				.whereNull("activity_pivots.deleted_at")
 				.innerJoin("cities", "activities.location_id", "cities.id")
 				.innerJoin("activities_type_pivots", function () {
 					this.on("activities.activity_type_id", "activities_type_pivots.activity_type_id").andOn("activities_type_pivots.language_code", knex.raw("?", [language]))
@@ -169,6 +175,9 @@ export default class ActivityController {
 					}
 					if (guest_rating) {
 						queryBuilder.where("activities.average_rating", ">=", guest_rating)
+					}
+					if (title) {
+						queryBuilder.where("activity_pivots.title", "ILIKE", `%${title}%`)
 					}
 				})
 				// Sıralama (arrangement) DB seviyesinde
@@ -828,6 +837,272 @@ export default class ActivityController {
 			})
 		} catch (error) {
 			console.error("Activity show error:", error)
+			return res.status(500).send({
+				success: false,
+				message: "Failed to retrieve activity",
+			})
+		}
+	}
+
+	/**
+	 * v2 Show - Routes to Viator API or internal show based on activity type
+	 */
+	v2_show = async (req: FastifyRequest, res: FastifyReply) => {
+		try {
+			const { id } = req.params as { id: string }
+			const language = (req as any).language
+
+			// First find the activity with pivot data
+			const activityData = await knex("activities")
+				.where("activities.id", id)
+				.whereNull("activities.deleted_at")
+				.where("activities.status", true)
+				.where("activities.admin_approval", true)
+				.innerJoin("activity_pivots", function () {
+					this.on("activities.id", "activity_pivots.activity_id").andOn("activity_pivots.language_code", knex.raw("?", [language]))
+				})
+				.leftJoin("activities_type_pivots", function () {
+					this.on("activities.activity_type_id", "activities_type_pivots.activity_type_id").andOn("activities_type_pivots.language_code", knex.raw("?", [language]))
+				})
+				.leftJoin("cities", "activities.location_id", "cities.id")
+				.leftJoin("country_pivots", function () {
+					this.on("cities.country_id", "country_pivots.country_id").andOn("country_pivots.language_code", knex.raw("?", [language]))
+				})
+				.leftJoin("city_pivots", function () {
+					this.on("cities.id", "city_pivots.city_id").andOn("city_pivots.language_code", knex.raw("?", [language]))
+				})
+				.select("activities.*", "activity_pivots.title", "activity_pivots.general_info", "activity_pivots.activity_info", "activity_pivots.refund_policy", "activities_type_pivots.name as activity_type_name", "country_pivots.name as country_name", "city_pivots.name as city_name")
+				.first()
+
+			if (!activityData) {
+				return res.status(404).send({
+					success: false,
+					message: "Activity not found",
+				})
+			}
+
+			// Route based on type
+			if (activityData.type === "viator" && activityData.product_code) {
+				// Viator type - fetch from Viator API and combine with DB data
+				try {
+					const productDetails = await viatorController.getProductDetails(activityData.product_code)
+
+					// Get packages from DB
+					const dbPackages = await knex("activity_packages")
+						.where("activity_packages.activity_id", id)
+						.whereNull("activity_packages.deleted_at")
+						.innerJoin("activity_package_pivots", function () {
+							this.on("activity_packages.id", "activity_package_pivots.activity_package_id").andOn("activity_package_pivots.language_code", knex.raw("?", [language]))
+						})
+						.select("activity_packages.id", "activity_packages.start_date", "activity_packages.end_date", "activity_packages.return_acceptance_period", "activity_packages.discount", "activity_packages.total_tax_amount", "activity_packages.constant_price", "activity_package_pivots.name", "activity_package_pivots.description", "activity_package_pivots.refund_policy")
+
+					// Get package prices
+					const packageIds = dbPackages.map((p: any) => p.id)
+					const dbPrices = await knex("activity_package_prices")
+						.whereIn("activity_package_id", packageIds)
+						.whereNull("activity_package_prices.deleted_at")
+						.innerJoin("currencies", "activity_package_prices.currency_id", "currencies.id")
+						.leftJoin("currency_pivots", function () {
+							this.on("currencies.id", "currency_pivots.currency_id").andOn("currency_pivots.language_code", knex.raw("?", [language]))
+						})
+						.select("activity_package_prices.id", "activity_package_prices.activity_package_id", "activity_package_prices.main_price", "activity_package_prices.child_price", "activity_package_prices.start_date", "activity_package_prices.end_date", "currency_pivots.name as currency_name", "currencies.code as currency_code", "currencies.symbol as currency_symbol")
+
+					// Get package images from DB
+					const dbPackageImages = await knex("activity_package_images").whereIn("activity_package_id", packageIds).whereNull("activity_package_images.deleted_at").select("id", "activity_package_id", "image_url")
+
+					// Get galleries from DB
+					const dbGalleries = await knex("activity_galleries")
+						.where("activity_id", id)
+						.whereNull("activity_galleries.deleted_at")
+						.leftJoin("activity_gallery_pivots", function () {
+							this.on("activity_galleries.id", "activity_gallery_pivots.activity_gallery_id").andOn("activity_gallery_pivots.language_code", knex.raw("?", [language]))
+						})
+						.select("activity_galleries.id", "activity_galleries.image_url", "activity_galleries.image_type", "activity_gallery_pivots.category")
+
+					// Extract hours from Viator availability schedule
+					const extractHours = (availabilitySchedule: any) => {
+						const hours: { id: string; hour: number; minute: number }[] = []
+						const bookableItem = availabilitySchedule?.bookableItem
+						if (!bookableItem?.seasons) return hours
+
+						for (const season of bookableItem.seasons) {
+							for (const pricingRecord of season.pricingRecords || []) {
+								for (const timedEntry of pricingRecord.timedEntries || []) {
+									if (timedEntry.startTime) {
+										const [hourStr, minuteStr] = timedEntry.startTime.split(":")
+										const hour = parseInt(hourStr, 10)
+										const minute = parseInt(minuteStr, 10)
+										// Avoid duplicates
+										const exists = hours.some(h => h.hour === hour && h.minute === minute)
+										if (!exists) {
+											hours.push({
+												id: `viator-${hour}-${minute}`,
+												hour,
+												minute,
+											})
+										}
+									}
+								}
+							}
+						}
+						// Sort hours
+						hours.sort((a, b) => (a.hour !== b.hour ? a.hour - b.hour : a.minute - b.minute))
+						return hours
+					}
+
+					// Extract unavailable dates from Viator availability schedule
+					const extractUnavailableDates = (availabilitySchedule: any) => {
+						const unavailableDates: { date: string; reason: string }[] = []
+						const bookableItem = availabilitySchedule?.bookableItem
+						if (!bookableItem?.seasons) return unavailableDates
+
+						for (const season of bookableItem.seasons) {
+							for (const pricingRecord of season.pricingRecords || []) {
+								for (const timedEntry of pricingRecord.timedEntries || []) {
+									for (const unavailable of timedEntry.unavailableDates || []) {
+										// Avoid duplicates
+										const exists = unavailableDates.some(u => u.date === unavailable.date)
+										if (!exists) {
+											unavailableDates.push({
+												date: unavailable.date,
+												reason: unavailable.reason || "UNAVAILABLE",
+											})
+										}
+									}
+								}
+							}
+						}
+						// Sort by date
+						unavailableDates.sort((a, b) => a.date.localeCompare(b.date))
+						return unavailableDates
+					}
+
+					// Extract inclusions and exclusions as features from Viator product
+					const extractFeatures = (inclusions: any[], exclusions: any[]) => {
+						const features: { id: string; name: string; status: boolean }[] = []
+
+						// Add inclusions (status: true)
+						if (inclusions && Array.isArray(inclusions)) {
+							inclusions.forEach((inclusion: any, index: number) => {
+								features.push({
+									id: `viator-inclusion-${index}`,
+									name: inclusion.description || inclusion.typeDescription || "",
+									status: true,
+								})
+							})
+						}
+
+						// Add exclusions (status: false)
+						if (exclusions && Array.isArray(exclusions)) {
+							exclusions.forEach((exclusion: any, index: number) => {
+								features.push({
+									id: `viator-exclusion-${index}`,
+									name: exclusion.description || exclusion.typeDescription || "",
+									status: false,
+								})
+							})
+						}
+
+						return features
+					}
+
+					// Parse hours and unavailable dates
+					const viatorHours = extractHours(productDetails.availabilitySchedule)
+					const viatorUnavailableDates = extractUnavailableDates(productDetails.availabilitySchedule)
+					const viatorFeatures = extractFeatures(productDetails.inclusions, productDetails.exclusions)
+
+					// Build packages with DB data + Viator hours
+					const packages = dbPackages.map((pkg: any) => {
+						const price = dbPrices.find((p: any) => p.activity_package_id === pkg.id)
+						const images = dbPackageImages.filter((img: any) => img.activity_package_id === pkg.id)
+
+						return {
+							id: pkg.id,
+							start_date: pkg.start_date,
+							name: pkg.name,
+							description: pkg.description,
+							refund_policy: pkg.refund_policy,
+							end_date: pkg.end_date,
+							return_acceptance_period: pkg.return_acceptance_period,
+							discount: pkg.discount,
+							total_tax_amount: pkg.total_tax_amount,
+							constant_price: pkg.constant_price,
+							images: images.map((img: any) => ({
+								id: img.id,
+								image_url: img.image_url,
+							})),
+							hours: viatorHours, // From Viator API
+							unavailable_dates: viatorUnavailableDates, // From Viator API
+							opportunities: [], // Not available in Viator
+							features: [], // Package features not available in Viator
+							price: price
+								? {
+										id: price.id,
+										main_price: price.main_price,
+										child_price: price.child_price,
+										start_date: price.start_date,
+										end_date: price.end_date,
+										currency: {
+											name: price.currency_name,
+											code: price.currency_code,
+											symbol: price.currency_symbol,
+										},
+									}
+								: null,
+						}
+					})
+
+					// Build galleries from DB
+					const galleries = dbGalleries.map((g: any) => ({
+						id: g.id,
+						image_url: g.image_url,
+						image_type: g.image_type,
+						category: g.category,
+					}))
+
+					// Build response in the same format as main type
+					const responseData = {
+						id: activityData.id,
+						type: "viator",
+						title: activityData.title,
+						general_info: activityData.general_info,
+						activity_info: activityData.activity_info,
+						refund_policy: activityData.refund_policy,
+						activity_type_name: activityData.activity_type_name,
+						country_name: activityData.country_name,
+						city_name: activityData.city_name,
+						duration: activityData.duration,
+						average_rating: activityData.average_rating,
+						comment_count: activityData.comment_count,
+						map_location: activityData.map_location,
+						approval_period: activityData.approval_period,
+						about_to_run_out: activityData.about_to_run_out,
+						free_purchase: activityData.free_purchase,
+						created_at: activityData.created_at,
+						updated_at: activityData.updated_at,
+						packages,
+						galleries,
+						features: viatorFeatures, // From Viator API inclusions
+						comments: [],
+					}
+
+					return res.status(200).send({
+						success: true,
+						message: "Activity retrieved successfully",
+						data: responseData,
+					})
+				} catch (viatorErr: any) {
+					console.error("Viator API error:", viatorErr.message)
+					return res.status(500).send({
+						success: false,
+						message: "Failed to fetch Viator product details",
+					})
+				}
+			} else {
+				return this.show(req, res)
+			}
+		} catch (error) {
+			console.error("Activity v2_show error:", error)
 			return res.status(500).send({
 				success: false,
 				message: "Failed to retrieve activity",

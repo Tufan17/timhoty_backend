@@ -6,6 +6,7 @@ import ActivityGalleryModel from "@/models/ActivityGalleryModel"
 import ActivityGalleryPivotModel from "@/models/ActivityGalleryPivot"
 import ActivityPackageModel from "@/models/ActivityPackageModel"
 import ActivityPackagePriceModel from "@/models/ActivityPackagePriceModel"
+import ActivityPackageImageModel from "@/models/ActivityPackageImageModel"
 import CurrencyModel from "@/models/CurrencyModel"
 import { translateCreate } from "@/helper/translate"
 import knex from "@/db/knex"
@@ -345,6 +346,24 @@ export async function syncProducts() {
 								console.log(`   💰 Price created: ${mainPrice} / ${childPrice || "N/A"} ${currencyCode}`)
 							} else {
 								console.log(`   ⚠️ Currency not found: ${currencyCode}`)
+							}
+
+							// 15. Add images to activity_package_images
+							if (product.images && product.images.length > 0) {
+								for (const image of product.images) {
+									const variant = image.variants?.find((v: any) => v.width === 720 && v.height === 480) || image.variants?.[0]
+
+									if (variant?.url) {
+										await new ActivityPackageImageModel().create(
+											{
+												activity_package_id: newPackage.id,
+												image_url: variant.url,
+											},
+											trx,
+										)
+									}
+								}
+								console.log(`   🖼️  Package images synced: ${product.images.length}`)
 							}
 
 							console.log(`   📦 Package created: ${packageName} (${season.startDate} - ${endDate})`)
