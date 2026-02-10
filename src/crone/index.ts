@@ -8,12 +8,23 @@ import { syncProducts } from "./viatur/product-sync"
 cron.schedule("0 10 * * *", () => {})
 
 // Her ayın 1. günü saat 00:00 - Viator Countries, Cities, Tags & Products Sync
-cron.schedule("0 0 1 * *", () => {
-	getCountries().then(() => {
-		getCities().then(() => {
-			getTags().then(() => {
-				syncProducts()
-			})
-		})
-	})
+let isViatorSyncRunning = false
+// "0 0 1 * *"
+cron.schedule("* * * * *", async () => {
+	if (isViatorSyncRunning) {
+		console.log("⏳ Viator sync already running, skipping...")
+		return
+	}
+
+	isViatorSyncRunning = true
+	try {
+		await getCountries()
+		await getCities()
+		await getTags()
+		await syncProducts()
+	} catch (err: any) {
+		console.error("❌ Viator sync cron error:", err.message)
+	} finally {
+		isViatorSyncRunning = false
+	}
 })
