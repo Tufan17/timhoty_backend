@@ -42,7 +42,7 @@ class ViatorApiService {
 		this.config = {
 			apiKey: process.env.VIATOR_API_KEY || "",
 			baseURL: process.env.VIATOR_BASE_URL || "https://api.sandbox.viator.com",
-			timeout: parseInt(process.env.VIATOR_TIMEOUT || "30000"),
+			timeout: 0, // No timeout - unlimited for sync operations
 		}
 
 		this.client = axios.create({
@@ -59,50 +59,58 @@ class ViatorApiService {
 
 	/**
 	 * Search products with pagination and filtering
+	 * Includes retry logic for transient errors
 	 */
 	async searchProducts(params: SearchProductsParams = {}): Promise<ProductSearchResponse> {
-		try {
-			const pagination = params.pagination || {}
-			const start = pagination.offset !== undefined ? pagination.offset + 1 : (pagination.start ?? 1)
-			const count = Math.min(pagination.limit ?? pagination.count ?? ViatorApiService.MAX_COUNT_PER_REQUEST, ViatorApiService.MAX_COUNT_PER_REQUEST)
+		const MAX_RETRIES = 3
+		const RETRY_DELAY = 2000 // 2 seconds
 
-			const sorting = params.sorting || {}
-			const order = (sorting.order || "DESC").toUpperCase() === "DESC" ? "DESCENDING" : "ASCENDING"
+		for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+			try {
+				const pagination = params.pagination || {}
+				const start = pagination.offset !== undefined ? pagination.offset + 1 : (pagination.start ?? 1)
+				const count = Math.min(pagination.limit ?? pagination.count ?? ViatorApiService.MAX_COUNT_PER_REQUEST, ViatorApiService.MAX_COUNT_PER_REQUEST)
 
-			const filtering = { ...(params.filtering || {}) }
-			if (!filtering.destination) {
-				filtering.destination = params.defaultDestination || "77"
+				const sorting = params.sorting || {}
+				const order = (sorting.order || "DESC").toUpperCase() === "DESC" ? "DESCENDING" : "ASCENDING"
+
+				const filtering = { ...(params.filtering || {}) }
+				if (!filtering.destination) {
+					filtering.destination = params.defaultDestination || "77"
+				}
+
+				const body = {
+					filtering,
+					sorting: {
+						sort: sorting.sort || "TRAVELER_RATING",
+						order,
+					},
+					pagination: { start, count },
+					currency: params.currency || "USD",
+				}
+
+				const response = await this.client.post("/products/search", body)
+				return response.data
+			} catch (error: any) {
+				const status = error.response?.status
+				const isRetryable = status === 500 || status === 502 || status === 503 || status === 504 || error.code === "ECONNABORTED"
+
+				if (isRetryable && attempt < MAX_RETRIES) {
+					console.log(`⚠️ Viator API error (attempt ${attempt}/${MAX_RETRIES}), retrying in ${RETRY_DELAY}ms...`)
+					await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt)) // Exponential backoff
+					continue
+				}
+
+				console.error("❌ Viator API - Product search error:", {
+					message: error.message,
+					status: status,
+					data: error.response?.data,
+				})
+				throw new Error(`Viator API Error: ${error.response?.data?.message || error.message}`)
 			}
-
-			const body = {
-				filtering,
-				sorting: {
-					sort: sorting.sort || "TRAVELER_RATING",
-					order,
-				},
-				pagination: { start, count },
-				currency: params.currency || "USD",
-			}
-
-			console.log("🚀 Viator API Request:", {
-				url: `${this.config.baseURL}/products/search`,
-				method: "POST",
-				body: JSON.stringify(body, null, 2),
-			})
-
-			const response = await this.client.post("/products/search", body)
-
-			console.log("✅ Viator API Response:", response.status)
-
-			return response.data
-		} catch (error: any) {
-			console.error("❌ Viator API - Product search error:", {
-				message: error.message,
-				status: error.response?.status,
-				data: error.response?.data,
-			})
-			throw new Error(`Viator API Error: ${error.response?.data?.message || error.message}`)
 		}
+
+		throw new Error("Viator API Error: Max retries exceeded")
 	}
 
 	/**

@@ -986,7 +986,7 @@ export default class ActivityController {
 							inclusions.forEach((inclusion: any, index: number) => {
 								features.push({
 									id: `viator-inclusion-${index}`,
-									name: inclusion.description || inclusion.typeDescription || "",
+									name: inclusion.otherDescription || inclusion.description || inclusion.typeDescription || "",
 									status: true,
 								})
 							})
@@ -997,7 +997,7 @@ export default class ActivityController {
 							exclusions.forEach((exclusion: any, index: number) => {
 								features.push({
 									id: `viator-exclusion-${index}`,
-									name: exclusion.description || exclusion.typeDescription || "",
+									name: exclusion.otherDescription || exclusion.description || exclusion.typeDescription || "",
 									status: false,
 								})
 							})
